@@ -632,6 +632,28 @@
 				</plugins>
 			</build>
 		</profile>
+		
+		<!-- Merge Installers -->
+		<profile>
+			<id>merge-installers</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>com.sshtools</groupId>
+						<artifactId>updatesxmlmerger-maven-plugin</artifactId>
+						<version>0.0.1</version>
+						<configuration>
+							<inputs>
+								<input>${project.build.directory}/media-macos/updates.xml</input>
+								<input>${project.build.directory}/media-windows/updates.xml</input>
+								<input>${project.build.directory}/media-linux/updates.xml</input>
+							</inputs>
+							<output>${project.build.directory}/media/updates.xml</output>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
 		<profile>
 			<id>install4j-installers</id>
 			<activation>
