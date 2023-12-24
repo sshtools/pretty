@@ -16,13 +16,45 @@
 		<picocli.version>4.7.5</picocli.version>
 		<native.image.version>0.9.1-SNAPSHOT</native.image.version>
 		<jline.version>3.24.1</jline.version>
+		
+		<build.phase>continuous</build.phase>
+		<build.mediaTypes>
+			windows,unixInstaller,macos,macosFolder,windowsArchive,unixArchive,linuxRPM,linuxDeb,macosArchive,macosFolderArchive</build.mediaTypes>
+		<build.install4j.project>
+			${project.basedir}/src/main/install4j/pretty.install4j</build.install4j.project>
+		<build.projectProperties>${basedir}/hypersocket.build.properties</build.projectProperties>
+		<build.userProperties>${user.home}/.hypersocket.build.properties</build.userProperties>
 	</properties>
+	
+	<url>https://jadaptive.com</url>
+	<licenses>
+		<license>
+			<name>Commercial</name>
+		</license>
+	</licenses>
+	<organization>
+		<name>JADAPTIVE</name>
+		<url>https://jadaptive.com</url>
+	</organization>
+	<scm>
+		<url>https://github.com/sshtools/pretty</url>
+		<connection>scm:git:https://github.com/sshtools/pretty.git</connection>
+	</scm>
+	<issueManagement>
+		<url>https://github.com/sshtools/pretty/issues</url>
+	</issueManagement>
+	<developers>
+		<developer>
+			<name>Brett Smith</name>
+			<email>brett@logonbox.com</email>
+		</developer>
+	</developers>
+	
 	<build>
 		<plugins>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>properties-maven-plugin</artifactId>
-				<version>1.0.0</version>
 				<executions>
 					<execution>
 						<phase>initialize</phase>
@@ -32,8 +64,8 @@
 						<configuration>
 							<quiet>true</quiet>
 							<files>
-								<file>${basedir}/bithatch.build.properties</file>
-								<file>${user.home}/.bithatch.build.properties</file>
+								<file>${build.projectProperties}</file>
+								<file>${build.userProperties}</file>
 							</files>
 						</configuration>
 					</execution>
@@ -90,18 +122,6 @@
 				<artifactId>maven-jar-plugin</artifactId>
 			</plugin>
 			<plugin>
-				<groupId>com.nervepoint</groupId>
-				<artifactId>google-translate-v2-java-maven-plugin</artifactId>
-				<executions>
-					<execution>
-						<phase>process-resources</phase>
-						<goals>
-							<goal>translate</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<configuration>
@@ -142,6 +162,16 @@
 		<pluginManagement>
 			<plugins>
 				<plugin>
+					<groupId>com.install4j</groupId>
+					<artifactId>install4j-maven</artifactId>
+					<version>10.0.6</version>
+				</plugin>
+				<plugin>
+					<groupId>org.codehaus.mojo</groupId>
+					<artifactId>properties-maven-plugin</artifactId>
+					<version>1.2.1</version>
+				</plugin>
+				<plugin>
 					<groupId>com.gluonhq</groupId>
 					<artifactId>gluonfx-maven-plugin</artifactId>
 					<version>1.0.15</version>
@@ -149,14 +179,13 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-source-plugin</artifactId>
-					<version>3.2.1</version>
+					<version>3.3.0</version>
 				</plugin>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-compiler-plugin</artifactId>
 					<version>3.10.1</version>
 					<configuration>
-						<!-- TODO to jdk 16 -->
 						<source>21</source>
 						<target>21</target>
 						<encoding>UTF-8</encoding>
@@ -165,20 +194,17 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-javadoc-plugin</artifactId>
-					<version>3.2.0</version>
+					<version>3.6.3</version>
 					<configuration>
 						<encoding>UTF-8</encoding>
 						<excludePackageNames>**.impl.*</excludePackageNames>
-						<!-- https://bugs.openjdk.java.net/browse/JDK-8212233 -->
 						<detectJavaApiLink>false</detectJavaApiLink>
-						<source>8</source>
-						<additionalparam>-Xdoclint:none</additionalparam>
 					</configuration>
 				</plugin>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-jar-plugin</artifactId>
-					<version>3.2.0</version>
+					<version>3.3.0</version>
 				</plugin>
 				<plugin>
 					<groupId>com.nervepoint</groupId>
@@ -213,49 +239,6 @@
 							</goals>
 						</execution>
 					</executions>
-				</plugin>
-				<plugin>
-					<groupId>org.eclipse.m2e</groupId>
-					<artifactId>lifecycle-mapping</artifactId>
-					<version>1.0.0</version>
-					<configuration>
-						<lifecycleMappingMetadata>
-							<pluginExecutions>
-								<pluginExecution>
-									<pluginExecutionFilter>
-										<groupId>org.apache.maven.plugins</groupId>
-										<artifactId>maven-enforcer-plugin</artifactId>
-										<versionRange>[1.0.0,)</versionRange>
-										<goals>
-											<goal>enforce</goal>
-										</goals>
-									</pluginExecutionFilter>
-									<action>
-										<ignore />
-									</action>
-								</pluginExecution>
-								<pluginExecution>
-									<pluginExecutionFilter>
-										<groupId>
-											com.nervepoint
-										</groupId>
-										<artifactId>
-											google-translate-v2-java-maven-plugin
-										</artifactId>
-										<versionRange>
-											[0.9.0-SNAPSHOT,)
-										</versionRange>
-										<goals>
-											<goal>translate</goal>
-										</goals>
-									</pluginExecutionFilter>
-									<action>
-										<ignore></ignore>
-									</action>
-								</pluginExecution>
-							</pluginExecutions>
-						</lifecycleMappingMetadata>
-					</configuration>
 				</plugin>
 				<plugin>
 					<groupId>org.codehaus.mojo</groupId>
@@ -636,6 +619,221 @@
 								<buildArg>--allow-incomplete-classpath</buildArg>
 							</buildArgs>
 						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+			<id>install4j-installers</id>
+			<activation>
+				<property>
+					<name>buildInstaller</name>
+					<value>true</value>
+				</property>
+			</activation>
+			<build>
+				<finalName>${project.artifactId}</finalName>
+				<plugins>
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>build-helper-maven-plugin</artifactId>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-dependency-plugin</artifactId>
+						<configuration>
+							<outputDirectory>
+								${project.build.directory}/dependencies</outputDirectory>
+						</configuration>
+						<executions>
+							<execution>
+								<id>copy-dependencies</id>
+								<phase>package</phase>
+								<goals>
+									<goal>copy-dependencies</goal>
+								</goals>
+								<configuration>
+									<stripVersion>true</stripVersion>
+									<outputDirectory>
+										${project.build.directory}/dependencies/common</outputDirectory>
+									<stripVersion>true</stripVersion>
+									<excludeClassifiers>linux,mac,win,linux-aarch64,jpms</excludeClassifiers>
+								</configuration>
+							</execution>
+							<execution>
+								<id>copy-javafx-win</id>
+								<phase>package</phase>
+								<goals>
+									<goal>copy</goal>
+								</goals>
+								<configuration>
+									<stripVersion>true</stripVersion>
+									<outputDirectory>
+										${project.build.directory}/dependencies/win</outputDirectory>
+									<artifactItems>
+										<artifactItem>
+											<groupId>org.openjfx</groupId>
+											<artifactId>javafx-base</artifactId>
+											<version>${javafx.version}</version>
+											<classifier>win</classifier>
+										</artifactItem>
+										<artifactItem>
+											<groupId>org.openjfx</groupId>
+											<artifactId>javafx-controls</artifactId>
+											<version>${javafx.version}</version>
+											<classifier>win</classifier>
+										</artifactItem>
+										<artifactItem>
+											<groupId>org.openjfx</groupId>
+											<artifactId>javafx-graphics</artifactId>
+											<version>${javafx.version}</version>
+											<classifier>win</classifier>
+										</artifactItem>
+										<artifactItem>
+											<groupId>org.openjfx</groupId>
+											<artifactId>javafx-fxml</artifactId>
+											<version>${javafx.version}</version>
+											<classifier>win</classifier>
+										</artifactItem>
+									</artifactItems>
+								</configuration>
+							</execution>
+							<execution>
+								<id>copy-javafx-mac</id>
+								<phase>package</phase>
+								<goals>
+									<goal>copy</goal>
+								</goals>
+								<configuration>
+									<stripVersion>true</stripVersion>
+									<outputDirectory>
+										${project.build.directory}/dependencies/mac</outputDirectory>
+									<artifactItems>
+										<artifactItem>
+											<groupId>org.openjfx</groupId>
+											<artifactId>javafx-base</artifactId>
+											<version>${javafx.version}</version>
+											<classifier>mac</classifier>
+										</artifactItem>
+										<artifactItem>
+											<groupId>org.openjfx</groupId>
+											<artifactId>javafx-controls</artifactId>
+											<version>${javafx.version}</version>
+											<classifier>mac</classifier>
+										</artifactItem>
+										<artifactItem>
+											<groupId>org.openjfx</groupId>
+											<artifactId>javafx-graphics</artifactId>
+											<version>${javafx.version}</version>
+											<classifier>mac</classifier>
+										</artifactItem>
+										<artifactItem>
+											<groupId>org.openjfx</groupId>
+											<artifactId>javafx-fxml</artifactId>
+											<version>${javafx.version}</version>
+											<classifier>mac</classifier>
+										</artifactItem>
+									</artifactItems>
+								</configuration>
+							</execution>
+							<execution>
+								<id>copy-javafx-linux</id>
+								<phase>package</phase>
+								<goals>
+									<goal>copy</goal>
+								</goals>
+								<configuration>
+									<stripVersion>true</stripVersion>
+									<outputDirectory>
+										${project.build.directory}/dependencies/linux</outputDirectory>
+									<artifactItems>
+										<artifactItem>
+											<groupId>org.openjfx</groupId>
+											<artifactId>javafx-base</artifactId>
+											<version>${javafx.version}</version>
+											<classifier>linux</classifier>
+										</artifactItem>
+										<artifactItem>
+											<groupId>org.openjfx</groupId>
+											<artifactId>javafx-controls</artifactId>
+											<version>${javafx.version}</version>
+											<classifier>linux</classifier>
+										</artifactItem>
+										<artifactItem>
+											<groupId>org.openjfx</groupId>
+											<artifactId>javafx-graphics</artifactId>
+											<version>${javafx.version}</version>
+											<classifier>linux</classifier>
+										</artifactItem>
+										<artifactItem>
+											<groupId>org.openjfx</groupId>
+											<artifactId>javafx-fxml</artifactId>
+											<version>${javafx.version}</version>
+											<classifier>linux</classifier>
+										</artifactItem>
+									</artifactItems>
+								</configuration>
+							</execution>
+							<execution>
+								<id>copy-javafx-linux-aarch64</id>
+								<phase>package</phase>
+								<goals>
+									<goal>copy</goal>
+								</goals>
+								<configuration>
+									<stripVersion>true</stripVersion>
+									<outputDirectory>
+										${project.build.directory}/dependencies/linux-aarch64</outputDirectory>
+									<artifactItems>
+										<artifactItem>
+											<groupId>org.openjfx</groupId>
+											<artifactId>javafx-base</artifactId>
+											<version>${javafx.version}</version>
+											<classifier>linux-aarch64</classifier>
+										</artifactItem>
+										<artifactItem>
+											<groupId>org.openjfx</groupId>
+											<artifactId>javafx-controls</artifactId>
+											<version>${javafx.version}</version>
+											<classifier>linux-aarch64</classifier>
+										</artifactItem>
+										<artifactItem>
+											<groupId>org.openjfx</groupId>
+											<artifactId>javafx-graphics</artifactId>
+											<version>${javafx.version}</version>
+											<classifier>linux-aarch64</classifier>
+										</artifactItem>
+										<artifactItem>
+											<groupId>org.openjfx</groupId>
+											<artifactId>javafx-fxml</artifactId>
+											<version>${javafx.version}</version>
+											<classifier>linux-aarch64</classifier>
+										</artifactItem>
+									</artifactItems>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>com.install4j</groupId>
+						<artifactId>install4j-maven</artifactId>
+						<executions>
+							<execution>
+								<id>compile-installers</id>
+								<phase>package</phase>
+								<goals>
+									<goal>compile</goal>
+								</goals>
+								<configuration>
+									<variables>
+										<build.phase>${build.phase}</build.phase>
+									</variables>
+									<release>${product.version}-${build.number}</release>
+									<mediaTypes>${build.mediaTypes}</mediaTypes>
+									<projectFile>${build.install4j.project}</projectFile>
+								</configuration>
+							</execution>
+						</executions>
 					</plugin>
 				</plugins>
 			</build>
