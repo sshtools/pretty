@@ -12,7 +12,7 @@
         <entry>swt-*</entry>
         <entry>javafx-*</entry>
         <entry>jkeychain-*</entry>
-        <entry>pty4j-*</entry>
+        <entry>*pty4j*</entry>
         <entry>install4j-*</entry>
         <entry>jline-native*</entry>
       </macSearchedJars>
