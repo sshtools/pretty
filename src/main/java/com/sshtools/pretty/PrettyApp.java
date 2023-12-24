@@ -78,7 +78,7 @@ public class PrettyApp extends JajaFXApp<Pretty> {
 	private boolean optionsVisible;
 
 	public PrettyApp() {
-		super(PrettyApp.class.getResource("icon-512.png"), RESOURCES.getString("title"), (Pretty) Pretty.getInstance());
+		super(PrettyApp.class.getResource("icon.png"), RESOURCES.getString("title"), (Pretty) Pretty.getInstance());
 		uiToolkit = new JavaFXUIToolkit();
 		fontManager =new FontManager<>(uiToolkit);
 		appContext = new AppContextImpl();

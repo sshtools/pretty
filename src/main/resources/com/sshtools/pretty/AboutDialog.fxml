@@ -16,7 +16,7 @@
          <children>
             <ImageView fitHeight="150.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true">
                <image>
-                  <Image url="@/com/sshtools/pretty/icon-512.png" />
+                  <Image url="@/com/sshtools/pretty/icon.png" />
                </image>
             </ImageView>
             <Label text="%app">
