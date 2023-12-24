@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.String?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Spinner?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<fx:root type="StackPane" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1">
+	<children>
+		<TabPane tabClosingPolicy="UNAVAILABLE">
+			<tabs>
+				<Tab fx:id="displayTab" text="%display">
+					<content>
+
+						<AnchorPane>
+							<children>
+								<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" styleClass="spaced" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+									<children>
+										<Label text="%appearance">
+											<styleClass>
+												<String fx:value="h3" />
+												<String fx:value="tpad" />
+											</styleClass>
+										</Label>
+										<VBox>
+											<children>
+												<HBox alignment="CENTER_LEFT" layoutX="10.0" layoutY="10.0" styleClass="spaced">
+													<children>
+														<Label prefWidth="120.0" text="%theme" />
+														<ComboBox fx:id="theme" prefWidth="240.0" />
+													</children>
+												</HBox>
+												<HBox alignment="CENTER_LEFT" styleClass="spaced">
+													<children>
+														<Label prefWidth="120.0" text="%darkMode" />
+														<ComboBox fx:id="darkMode" prefWidth="150.0" />
+													</children>
+												</HBox>
+												<HBox alignment="CENTER_LEFT" styleClass="spaced">
+													<children>
+														<Label prefWidth="120.0" text="%font" />
+														<ComboBox fx:id="fontName" prefWidth="240.0" />
+                                          <Label prefWidth="60.0" text="%pt" />
+													</children>
+												</HBox>
+											</children>
+											<styleClass>
+												<String fx:value="lpad" />
+												<String fx:value="spaced" />
+											</styleClass>
+										</VBox>
+                              <Label text="%resizing">
+                                 <styleClass>
+                                    <String fx:value="h3" />
+                                    <String fx:value="tpad" />
+                                 </styleClass>
+                              </Label>
+                              <VBox>
+                                 <children>
+                                    <HBox alignment="CENTER_LEFT" styleClass="spaced">
+                                       <children>
+                                          <Label prefWidth="120.0" text="%resizeStrategy" />
+                                          <ComboBox fx:id="resizeStrategy" prefWidth="150.0" />
+                                       </children>
+                                    </HBox>
+                                    <HBox alignment="CENTER_LEFT" styleClass="spaced">
+                                       <children>
+                                          <Label prefWidth="120.0" text="%screenSize" />
+                                          <ComboBox fx:id="screenSize" editable="true" prefWidth="150.0" />
+                                       </children>
+                                    </HBox>
+                                    <HBox alignment="CENTER_LEFT" styleClass="spaced">
+                                       <children>
+                                          <Label prefWidth="120.0" text="%font" />
+                                          <Spinner fx:id="fontSize" editable="true" prefWidth="80.0" styleClass="lpad" />
+                                          <Label prefWidth="60.0" text="%pt" />
+                                       </children>
+                                    </HBox>
+                                 </children>
+                                 <styleClass>
+                                    <String fx:value="lpad" />
+                                    <String fx:value="spaced" />
+                                 </styleClass>
+                              </VBox>
+									</children>
+								</VBox>
+							</children>
+						</AnchorPane>
+					</content>
+				</Tab>
+            <Tab fx:id="behaviourTab" text="%behaviour">
+               <content>
+                  <AnchorPane>
+                     <children>
+                        <VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" styleClass="spaced" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                           <children>
+                              <Label text="%scrolling">
+                                 <styleClass>
+                                    <String fx:value="h3" />
+                                    <String fx:value="tpad" />
+                                 </styleClass>
+                              </Label>
+                              <VBox>
+                                 <children>
+                                    <CheckBox fx:id="showScrollBar" mnemonicParsing="false" selected="true" text="%showScrollBar">
+                                       <tooltip>
+                                          <Tooltip text="%automaticUpdates.toolTip" />
+                                       </tooltip>
+                                    </CheckBox>
+                                    <HBox alignment="CENTER_LEFT" styleClass="spaced">
+                                       <children>
+                                          <Label prefWidth="120.0" text="%bufferSize" />
+                                          <Spinner fx:id="bufferSize" editable="true" prefWidth="140.0" styleClass="lpad" />
+                                          <Label prefWidth="60.0" text="%lines" />
+                                       </children>
+                                    </HBox>
+                                 </children>
+                                 <styleClass>
+                                    <String fx:value="lpad" />
+                                    <String fx:value="spaced" />
+                                 </styleClass>
+                              </VBox>
+                           </children>
+                        </VBox>
+                     </children>
+                  </AnchorPane>
+               </content>
+            </Tab>
+            <Tab fx:id="generalTab" text="%general">
+               <content>
+                  <AnchorPane>
+                     <children>
+                        <VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" styleClass="spaced" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                           <children>
+                              <Label text="%updates">
+                                 <styleClass>
+                                    <String fx:value="h3" />
+                                    <String fx:value="tpad" />
+                                 </styleClass>
+                              </Label>
+                              <VBox>
+                                 <children>
+                                    <CheckBox fx:id="automaticUpdates" mnemonicParsing="false" selected="true" text="%automaticUpdates">
+                                       <tooltip>
+                                          <Tooltip text="%automaticUpdates.toolTip" />
+                                       </tooltip>
+                                    </CheckBox>
+                                    <HBox alignment="CENTER_LEFT" styleClass="spaced">
+                                       <children>
+                                          <Label prefWidth="120.0" text="%phase" />
+                                          <ComboBox fx:id="phase" prefWidth="250.0">
+                                             <tooltip>
+                                                <Tooltip text="%phase.toolTip" />
+                                             </tooltip>
+                                          </ComboBox>
+                                       </children>
+                                    </HBox>
+                                 </children>
+                                 <styleClass>
+                                    <String fx:value="lpad" />
+                                    <String fx:value="spaced" />
+                                 </styleClass>
+                              </VBox>
+                           </children>
+                        </VBox>
+                     </children>
+                  </AnchorPane>
+               </content>
+            </Tab>
+			</tabs>
+		</TabPane>
+	</children>
+</fx:root>

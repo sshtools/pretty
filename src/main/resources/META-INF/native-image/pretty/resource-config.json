@@ -1,0 +1,202 @@
+{
+  "resources":{
+  "includes":[{
+    "pattern":"\\QMETA-INF/fonts.mf\\E"
+  }, {
+    "pattern":"\\QMETA-INF/maven/com.sshtools/pretty/pom.properties\\E"
+  }, {
+    "pattern":"\\QMETA-INF/services/com.sshtools.terminal.emulation.TerminalType\\E"
+  }, {
+    "pattern":"\\QMETA-INF/services/com.sshtools.terminal.emulation.decoder.Decoder\\E"
+  }, {
+    "pattern":"\\QMETA-INF/services/java.lang.System$LoggerFinder\\E"
+  }, {
+    "pattern":"\\QMETA-INF/services/java.time.zone.ZoneRulesProvider\\E"
+  }, {
+    "pattern":"\\QMETA-INF/services/java.util.prefs.PreferencesFactory\\E"
+  }, {
+    "pattern":"\\QMETA-INF/services/javax.xml.parsers.DocumentBuilderFactory\\E"
+  }, {
+    "pattern":"\\QMETA-INF/services/javax.xml.stream.XMLInputFactory\\E"
+  }, {
+    "pattern":"\\QMETA-INF/services/org.apache.commons.logging.LogFactory\\E"
+  }, {
+    "pattern":"\\QMETA-INF/services/org.slf4j.spi.SLF4JServiceProvider\\E"
+  }, {
+    "pattern":"\\Qcom/sshtools/pretty/icon-512.png\\E"
+  }, {
+    "pattern":"\\Qcom/sun/jna/linux-x86-64/libjnidispatch.so\\E"
+  }, {
+    "pattern":"\\Qcommons-logging.properties\\E"
+  }, {
+    "pattern":"\\Qresources/com/pty4j/native/linux/x86-64/libpty.so\\E"
+  }, {
+    "pattern":"\\Qsimplelogger.properties\\E"
+  }, {
+    "pattern":"com.sshtools.jajafx:\\Qcom/sshtools/jajafx/Common.css\\E"
+  }, {
+    "pattern":"com.sshtools.pretty:\\Qcom/sshtools/pretty/AboutDialog.fxml\\E"
+  }, {
+    "pattern":"com.sshtools.pretty:\\Qcom/sshtools/pretty/App.css\\E"
+  }, {
+    "pattern":"com.sshtools.pretty:\\Qcom/sshtools/pretty/BurgerMenu.fxml\\E"
+  }, {
+    "pattern":"com.sshtools.pretty:\\Qcom/sshtools/pretty/Options.fxml\\E"
+  }, {
+    "pattern":"com.sshtools.pretty:\\Qcom/sshtools/pretty/Terminal.css\\E"
+  }, {
+    "pattern":"com.sshtools.pretty:\\Qcom/sshtools/pretty/Terminal.fxml\\E"
+  }, {
+    "pattern":"com.sshtools.pretty:\\Qcom/sshtools/pretty/icon-512.png\\E"
+  }, {
+    "pattern":"com.sshtools.pretty:\\Qthemes.properties\\E"
+  }, {
+    "pattern":"com.sshtools.pretty:\\Qthemes/black-on-white.properties\\E"
+  }, {
+    "pattern":"com.sshtools.terminal.emulation:\\Qcom/sshtools/terminal/emulation/emulator/VT220.properties\\E"
+  }, {
+    "pattern":"com.sshtools.terminal.emulation:\\Qcom/sshtools/terminal/emulation/emulator/VT320.properties\\E"
+  }, {
+    "pattern":"com.sshtools.terminal.emulation:\\Qcom/sshtools/terminal/emulation/emulator/XTERM-256COLOR.properties\\E"
+  }, {
+    "pattern":"com.sshtools.terminal.emulation:\\Qcom/sshtools/terminal/emulation/emulator/XTERM.properties\\E"
+  }, {
+    "pattern":"com.sshtools.terminal.emulation:\\Qcom/sshtools/terminal/emulation/fonts/3270Condensed-Regular.ttf\\E"
+  }, {
+    "pattern":"com.sshtools.terminal.emulation:\\Qcom/sshtools/terminal/emulation/fonts/DejaVuSans.ttf\\E"
+  }, {
+    "pattern":"com.sshtools.terminal.emulation:\\Qcom/sshtools/terminal/emulation/fonts/DejaVuSansMono.ttf\\E"
+  }, {
+    "pattern":"com.sshtools.terminal.emulation:\\Qcom/sshtools/terminal/emulation/fonts/DroidSansMono.ttf\\E"
+  }, {
+    "pattern":"com.sshtools.terminal.emulation:\\Qcom/sshtools/terminal/emulation/fonts/FreeMono.ttf\\E"
+  }, {
+    "pattern":"com.sshtools.terminal.emulation:\\Qcom/sshtools/terminal/emulation/fonts/LegacyComputing.ttf\\E"
+  }, {
+    "pattern":"com.sshtools.terminal.emulation:\\Qcom/sshtools/terminal/emulation/fonts/NotoColorEmoji-Regular.ttf\\E"
+  }, {
+    "pattern":"com.sshtools.terminal.emulation:\\Qcom/sshtools/terminal/emulation/fonts/NotoSansMono-VariableFont_wdth,wght.ttf\\E"
+  }, {
+    "pattern":"com.sshtools.terminal.emulation:\\Qcom/sshtools/terminal/emulation/fonts/SourceCodePro-Regular.ttf\\E"
+  }, {
+    "pattern":"com.sshtools.terminal.emulation:\\Qcom/sshtools/terminal/emulation/fonts/fonts.properties\\E"
+  }, {
+    "pattern":"com.sshtools.terminal.emulation:\\Qcom/sshtools/terminal/emulation/fonts/soft-font.dat\\E"
+  }, {
+    "pattern":"com.sshtools.terminal.emulation:\\Qcom/sshtools/terminal/emulation/fonts/unifont.ttf\\E"
+  }, {
+    "pattern":"com.sshtools.terminal.emulation:\\Qcom/sshtools/terminal/emulation/palette-16.dat\\E"
+  }, {
+    "pattern":"com.sshtools.terminal.emulation:\\Qcom/sshtools/terminal/emulation/palette-256.dat\\E"
+  }, {
+    "pattern":"com.sshtools.terminal.vt.javafx:\\Qcom/sshtools/terminal/vt/javafx/beep.wav\\E"
+  }, {
+    "pattern":"java.base:\\Qjdk/internal/icu/impl/data/icudt72b/ubidi.icu\\E"
+  }, {
+    "pattern":"java.base:\\Qsun/net/www/content-types.properties\\E"
+  }, {
+    "pattern":"javafx.base:\\Qcom/sun/javafx/reflect/Trampoline.class\\E"
+  }, {
+    "pattern":"javafx.controls:\\Qcom/sun/javafx/scene/control/skin/modena/modena.bss\\E"
+  }, {
+    "pattern":"javafx.graphics:\\Qcom/sun/glass/utils/NativeLibLoader.class\\E"
+  }, {
+    "pattern":"javafx.graphics:\\Qcom/sun/prism/es2/glsl/DrawPgram_Color.frag\\E"
+  }, {
+    "pattern":"javafx.graphics:\\Qcom/sun/prism/es2/glsl/FillPgram_Color.frag\\E"
+  }, {
+    "pattern":"javafx.graphics:\\Qcom/sun/prism/es2/glsl/Mask_TextureSuper.frag\\E"
+  }, {
+    "pattern":"javafx.graphics:\\Qcom/sun/prism/es2/glsl/Solid_Color.frag\\E"
+  }, {
+    "pattern":"javafx.graphics:\\Qcom/sun/prism/es2/glsl/Solid_TextureFirstPassLCD.frag\\E"
+  }, {
+    "pattern":"javafx.graphics:\\Qcom/sun/prism/es2/glsl/Solid_TextureRGB.frag\\E"
+  }, {
+    "pattern":"javafx.graphics:\\Qcom/sun/prism/es2/glsl/Solid_TextureSecondPassLCD.frag\\E"
+  }, {
+    "pattern":"javafx.graphics:\\Qcom/sun/prism/es2/glsl/Texture_Color.frag\\E"
+  }, {
+    "pattern":"javafx.graphics:\\Qcom/sun/scenario/effect/impl/es2/glsl/LinearConvolveShadow_28.frag\\E"
+  }, {
+    "pattern":"javafx.graphics:\\Qlibglass.so\\E"
+  }, {
+    "pattern":"javafx.graphics:\\Qlibglassgtk3.so\\E"
+  }, {
+    "pattern":"javafx.graphics:\\Qlibjavafx_font.so\\E"
+  }, {
+    "pattern":"javafx.graphics:\\Qlibjavafx_font_freetype.so\\E"
+  }, {
+    "pattern":"javafx.graphics:\\Qlibjavafx_font_pango.so\\E"
+  }, {
+    "pattern":"javafx.graphics:\\Qlibprism_es2.so\\E"
+  }, {
+    "pattern":"javafx.media:\\Qlibavplugin-54.so\\E"
+  }, {
+    "pattern":"javafx.media:\\Qlibavplugin-56.so\\E"
+  }, {
+    "pattern":"javafx.media:\\Qlibavplugin-57.so\\E"
+  }, {
+    "pattern":"javafx.media:\\Qlibavplugin-ffmpeg-56.so\\E"
+  }, {
+    "pattern":"javafx.media:\\Qlibavplugin-ffmpeg-57.so\\E"
+  }, {
+    "pattern":"javafx.media:\\Qlibavplugin-ffmpeg-58.so\\E"
+  }, {
+    "pattern":"javafx.media:\\Qlibavplugin.so\\E"
+  }, {
+    "pattern":"javafx.media:\\Qlibfxplugins.so\\E"
+  }, {
+    "pattern":"javafx.media:\\Qlibgstreamer-lite.so\\E"
+  }, {
+    "pattern":"javafx.media:\\Qlibjfxmedia.so\\E"
+  }, {
+    "pattern":"org.controlsfx.controls:\\Qorg/controlsfx/control/popover.css\\E"
+  }, {
+    "pattern":"org.jfxtras.styles.jmetro:\\Qjfxtras/styles/jmetro/base.css\\E"
+  }, {
+    "pattern":"org.jfxtras.styles.jmetro:\\Qjfxtras/styles/jmetro/base_extras.css\\E"
+  }, {
+    "pattern":"org.jfxtras.styles.jmetro:\\Qjfxtras/styles/jmetro/base_other_libraries.css\\E"
+  }, {
+    "pattern":"org.jfxtras.styles.jmetro:\\Qjfxtras/styles/jmetro/dark_theme.css\\E"
+  }, {
+    "pattern":"org.jfxtras.styles.jmetro:\\Qjfxtras/styles/jmetro/light_theme.css\\E"
+  }, {
+    "pattern":"org.kordamp.ikonli.core:\\QMETA-INF/resources/ikonli/0.0.0/fonts/ikonli.ttf\\E"
+  }, {
+    "pattern":"org.kordamp.ikonli.fontawesome5:\\QMETA-INF/resources/fontawesome5/5.15.3/fonts/fa-brands-400.ttf\\E"
+  }, {
+    "pattern":"org.kordamp.ikonli.fontawesome5:\\QMETA-INF/resources/fontawesome5/5.15.3/fonts/fa-regular-400.ttf\\E"
+  }, {
+    "pattern":"org.kordamp.ikonli.fontawesome5:\\QMETA-INF/resources/fontawesome5/5.15.3/fonts/fa-solid-900.ttf\\E"
+  }]},
+  "bundles":[{
+    "name":"com.sshtools.pretty.AboutDialog",
+    "locales":[""]
+  }, {
+    "name":"com.sshtools.pretty.BurgerMenu",
+    "locales":[""]
+  }, {
+    "name":"com.sshtools.pretty.Options",
+    "locales":[""]
+  }, {
+    "name":"com.sshtools.pretty.Pretty",
+    "locales":[""]
+  }, {
+    "name":"com.sshtools.pretty.PrettyApp",
+    "locales":[""]
+  }, {
+    "name":"com.sshtools.pretty.Terminal",
+    "locales":[""]
+  }, {
+    "name":"com.sun.javafx.tk.quantum.QuantumMessagesBundle",
+    "locales":[""]
+  }, {
+    "name":"com/sun/javafx/scene/control/skin/resources/controls",
+    "locales":[""]
+  }, {
+    "name":"controlsfx",
+    "locales":[""]
+  }]
+}

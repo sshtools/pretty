@@ -1,0 +1,29 @@
+open module com.sshtools.pretty {
+	exports com.sshtools.pretty;
+	requires transitive org.slf4j;
+	requires static uk.co.bithatch.nativeimage.annotations;
+	requires static org.freedesktop.dbus;
+	requires org.freedesktop.dbus.transport.jre;
+	requires javafx.fxml;
+	requires pty4j;
+	requires transitive com.sshtools.terminal.vt.javafx;
+	requires transitive java.prefs;
+	requires transitive com.sshtools.jini;
+	requires com.sshtools.jaul;
+	requires transitive com.sshtools.jajafx;
+	requires transitive com.sshtools.synergy.client;
+	requires org.controlsfx.controls;
+	requires org.kordamp.ikonli.javafx;
+	requires org.kordamp.ikonli.fontawesome5;
+	requires transitive org.jline.terminal;
+	requires transitive org.jline.reader;
+	requires picocli.shell.jline3;
+	requires transitive org.jline.console;
+	requires transitive org.jline.builtins;
+	requires org.jline.style;
+	requires com.sshtools.terminal.fonts;
+	requires transitive org.jfxtras.styles.jmetro;
+	requires transitive purejavacomm;
+	requires com.sshtools.twoslices;
+//	requires org.scenicview.scenicview;
+}

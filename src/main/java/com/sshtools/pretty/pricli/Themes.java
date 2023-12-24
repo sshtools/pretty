@@ -1,0 +1,51 @@
+package com.sshtools.pretty.pricli;
+
+import java.util.ResourceBundle;
+import java.util.concurrent.Callable;
+
+import org.jline.utils.AttributedStringBuilder;
+import org.jline.utils.AttributedStyle;
+
+import com.sshtools.pretty.TerminalTheme;
+
+import picocli.CommandLine.Command;
+import picocli.CommandLine.ParentCommand;
+
+@Command(name = "themes", aliases = {"ts"}, usageHelpAutoWidth = true, mixinStandardHelpOptions = true, description = "Show terminal themes.")
+public class Themes implements Callable<Integer> {
+	final static ResourceBundle RESOURCES = ResourceBundle.getBundle(Themes.class.getName());
+
+	@ParentCommand
+	private Pricli.PricliCommands parent;
+	
+	@Override
+	public Integer call() throws Exception {
+		var jline = parent.cli().jline();
+		
+		var index = 0;
+		for(var fnt : TerminalTheme.getThemes()) {
+			var as = new AttributedStringBuilder();
+			var bg = fnt.background();
+			var fg = fnt.foreground();
+			
+			as.style(new AttributedStyle().faint());
+			as.append(String.format("%3d. ", ++index));
+			as.style(new AttributedStyle().faintOff());
+			as.append(String.format("%-35s", fnt.getName()));
+			as.append("B: ");
+			
+			as.style(new AttributedStyle().backgroundRgb(bg.toInt()).foregroundRgb(fg.toInt()));
+			as.append(bg.toHTMLColor());
+			as.style(new AttributedStyle().backgroundOff().foregroundOff());
+			as.append("  F: ");
+			as.style(new AttributedStyle().backgroundRgb(fg.toInt()).foregroundRgb(bg.toInt()));
+			as.append(fg.toHTMLColor());
+			as.style(new AttributedStyle().backgroundOff());
+			as.println(jline);
+		}		
+		
+		return 0;
+	}
+
+
+}

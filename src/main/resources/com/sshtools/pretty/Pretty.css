@@ -1,0 +1,43 @@
+/*
+Stage {
+	-fx-icon-color: -fx-notionator-fg;
+	-fx-background: -fx-notionator-bg;
+	-fx-color: -fx-notionator-fg;
+	-fx-accent: -fx-notionator-accent;
+}
+
+#titleBar FontIcon {
+	-fx-icon-size: 24px;
+	-fx-icon-color: -fx-notionator-fg;
+}
+
+#titleBar {
+	-fx-padding: 4px;
+	-fx-background-color: derive(-fx-notionator-bg,-10%);
+	-fx-text-fill: -fx-notionator-fg;
+}
+*/
+
+#terminal-container {
+	-fx-padding: 0 4px 4px 4px;
+}
+
+#terminal-tabs .tab-header-background {
+	-fx-background-insets: 0 0 0 0;
+}
+
+#terminal-canvas {
+	-fx-padding: 8px;
+}
+
+/*
+#terminal-root {
+    -fx-background-color:  -fx-notionator-bg;
+	
+}
+
+#terminal-canvas {
+    -fx-background-color:  -fx-notionator-bg;
+}
+
+*/
