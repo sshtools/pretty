@@ -154,6 +154,13 @@ public class TTY extends StackPane implements Closeable {
 			}
 			
 		});
+		scrollPane.setOnMouseReleased((evt) -> {
+			var mouseMode = emulator.getModes().getMouseReport() != MouseReport.OFF; 
+			if (!mouseMode && evt.isPopupTrigger()) {
+				contextMenu.show(term, evt.getScreenX(), evt.getScreenY());
+				evt.consume();
+			} 
+		});
 		scrollPane.setRight(scroller.getNativeComponent());
 		scrollPane.setCenter(term);
 		

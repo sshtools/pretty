@@ -178,7 +178,7 @@ public class ConsoleProtocol implements TerminalProtocol, ResizeListener, Elemen
 					
 				}, () -> {
 					if (System.getProperty("os.name").toLowerCase().contains("windows")) {
-						bldr.setCommand(new String[] { "cmd.exe", "/c", "start" });
+						bldr.setCommand(new String[] { "cmd.exe"/* , "/c", "start" */ });
 					} else {
 						var bash = "/bin/bash";
 						if(Files.exists(Paths.get(bash))) {
