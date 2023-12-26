@@ -11,7 +11,7 @@ import org.jline.utils.AttributedStyle;
 
 import com.sshtools.pretty.Strings;
 import com.sshtools.terminal.emulation.Feature;
-import com.sshtools.terminal.emulation.LocalTerminal;
+import com.sshtools.terminal.emulation.TerminalViewport;
 import com.sshtools.terminal.vt.javafx.JavaFXTerminalPanel;
 
 import picocli.CommandLine.Command;
@@ -78,7 +78,7 @@ public class Features implements Callable<Integer> {
 
 	}
 
-	private void printFeature(LocalTerminal<JavaFXTerminalPanel, ?, ?> vp, Terminal jline, Feature feature) {
+	private void printFeature(TerminalViewport<JavaFXTerminalPanel, ?, ?> vp, Terminal jline, Feature feature) {
 		var enabled = vp.enabled(feature);
 		var changed = enabled != feature.defaultState();
 		var as = new AttributedStringBuilder();

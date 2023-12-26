@@ -24,8 +24,7 @@ import com.pty4j.unix.UnixPtyProcess;
 import com.sshtools.pretty.Status.Element;
 import com.sshtools.pretty.Status.Unit;
 import com.sshtools.pretty.Status.Width;
-import com.sshtools.terminal.emulation.LocalTerminal;
-import com.sshtools.terminal.emulation.Terminal;
+import com.sshtools.terminal.emulation.TerminalViewport;
 import com.sshtools.terminal.emulation.TerminalOutputStream;
 import com.sshtools.terminal.emulation.events.ResizeListener;
 import com.sshtools.terminal.vt.javafx.JavaFXTerminalPanel;
@@ -231,7 +230,7 @@ public class ConsoleProtocol implements TerminalProtocol, ResizeListener, Elemen
 	}
 
 	@Override
-	public void bufferResized(Terminal terminal, int columns, int rows, boolean remote) {
+	public void bufferResized(TerminalViewport terminal, int columns, int rows, boolean remote) {
 		if (!remote)
 			pty.setWinSize(new WinSize(columns, rows));
 		
@@ -283,7 +282,7 @@ public class ConsoleProtocol implements TerminalProtocol, ResizeListener, Elemen
 	}
 	
 	@Override
-	public void draw(LocalTerminal<JavaFXTerminalPanel, ?, ?> vp, int cols) throws IOException {
+	public void draw(TerminalViewport<JavaFXTerminalPanel, ?, ?> vp, int cols) throws IOException {
 		var bldr = new AttributedStringBuilder();
 		bldr.style(AttributedStyle.INVERSE);
 		if(pty instanceof UnixPtyProcess) {

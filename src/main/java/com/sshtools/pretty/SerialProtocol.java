@@ -14,7 +14,7 @@ import com.sshtools.pretty.Status.Width;
 import com.sshtools.pretty.pricli.Serial.FlowControl;
 import com.sshtools.pretty.pricli.Serial.Parity;
 import com.sshtools.pretty.pricli.Serial.StopBits;
-import com.sshtools.terminal.emulation.LocalTerminal;
+import com.sshtools.terminal.emulation.TerminalViewport;
 import com.sshtools.terminal.emulation.TerminalOutputStream;
 import com.sshtools.terminal.vt.javafx.JavaFXTerminalPanel;
 
@@ -123,7 +123,7 @@ public class SerialProtocol implements TerminalProtocol, Status.Element {
 	}
 
 	@Override
-	public void draw(LocalTerminal<JavaFXTerminalPanel, ?, ?> vp, int cols) throws IOException {
+	public void draw(TerminalViewport<JavaFXTerminalPanel, ?, ?> vp, int cols) throws IOException {
 		var bldr = new AttributedStringBuilder();
 		bldr.style(AttributedStyle.INVERSE);
 		bldr.append(Strings.trimPad( 

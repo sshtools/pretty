@@ -12,9 +12,9 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import org.jline.utils.AttributedStringBuilder;
 import org.jline.utils.AttributedStyle;
 
-import com.sshtools.terminal.emulation.LocalTerminal;
 import com.sshtools.terminal.emulation.Modes;
 import com.sshtools.terminal.emulation.SGRState;
+import com.sshtools.terminal.emulation.TerminalViewport;
 import com.sshtools.terminal.emulation.Viewport;
 import com.sshtools.terminal.emulation.events.ViewportEvent;
 import com.sshtools.terminal.emulation.events.ViewportListener;
@@ -39,21 +39,21 @@ public class Status {
 			
 		}
 		
-		default void attached(LocalTerminal<JavaFXTerminalPanel, ?, ?> vp) {
+		default void attached(TerminalViewport<JavaFXTerminalPanel, ?, ?> vp) {
 		}
 		
-		void draw(LocalTerminal<JavaFXTerminalPanel, ?, ?> vp, int cols) throws IOException;
+		void draw(TerminalViewport<JavaFXTerminalPanel, ?, ?> vp, int cols) throws IOException;
 
 		default void removed(Status status) {
 		}
 		
-		default void detached(LocalTerminal<JavaFXTerminalPanel, ?, ?> vp) {
+		default void detached(TerminalViewport<JavaFXTerminalPanel, ?, ?> vp) {
 		}
 	}
 	
 	public final static class InsertReplaceMode implements Element, ViewportListener {
 		
-		private final LocalTerminal<JavaFXTerminalPanel, ?, ?> terminal;
+		private final TerminalViewport<JavaFXTerminalPanel, ?, ?> terminal;
 		private Status status;
 
 		public InsertReplaceMode(TTY tty) {
@@ -77,7 +77,7 @@ public class Status {
 		}
 
 		@Override
-		public void draw(LocalTerminal<JavaFXTerminalPanel, ?, ?> vp, int cols) throws IOException {
+		public void draw(TerminalViewport<JavaFXTerminalPanel, ?, ?> vp, int cols) throws IOException {
 			var bldr = new AttributedStringBuilder();
 			bldr.style(AttributedStyle.INVERSE);
 			bldr.append(Strings.trimPad(terminal.getModes().isInsertMode() ? "Ins" : "Rep", cols));
@@ -123,7 +123,7 @@ public class Status {
 		}
 
 		@Override
-		public void draw(LocalTerminal<JavaFXTerminalPanel, ?, ?> vp, int cols) throws IOException {
+		public void draw(TerminalViewport<JavaFXTerminalPanel, ?, ?> vp, int cols) throws IOException {
 			var bldr = new AttributedStringBuilder();
 			bldr.style(AttributedStyle.INVERSE);
 			bldr.append(Strings.trimPad( 
@@ -136,7 +136,7 @@ public class Status {
 	}
 	
 	private List<Element> elements = new CopyOnWriteArrayList<>();
-	private LocalTerminal<JavaFXTerminalPanel, ?, ?> vp;
+	private TerminalViewport<JavaFXTerminalPanel, ?, ?> vp;
 	private Map<Element, Bounds> layout = Collections.emptyMap();
 	private int lastLayoutCols;
 	
@@ -183,7 +183,7 @@ public class Status {
 		}
 	}
 	
-	public void attach(LocalTerminal<JavaFXTerminalPanel, ?, ?> vp) {
+	public void attach(TerminalViewport<JavaFXTerminalPanel, ?, ?> vp) {
 		this.vp = vp;
 		lastLayoutCols = -1;
 		try {

@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
 import com.sshtools.pretty.Status.Element;
 import com.sshtools.pretty.Status.Unit;
 import com.sshtools.pretty.Status.Width;
-import com.sshtools.terminal.emulation.LocalTerminal;
+import com.sshtools.terminal.emulation.TerminalViewport;
 import com.sshtools.terminal.emulation.events.TransferListener;
 import com.sshtools.terminal.emulation.transfers.Transfer;
 import com.sshtools.terminal.emulation.transfers.Transfer.Direction;
@@ -64,7 +64,7 @@ public class TransferHandler implements TransferListener {
 		}
 
 		@Override
-		public void draw(LocalTerminal<JavaFXTerminalPanel, ?, ?> vp, int cols) throws IOException {
+		public void draw(TerminalViewport<JavaFXTerminalPanel, ?, ?> vp, int cols) throws IOException {
 			var bldr = new AttributedStringBuilder();
 			bldr.style(AttributedStyle.INVERSE);
 			var completed = accepted.values().stream().collect(Collectors.summarizingLong(t -> t.progress.get())).getSum();
