@@ -16,6 +16,8 @@ import java.util.ResourceBundle;
 
 import org.jline.utils.AttributedStringBuilder;
 import org.jline.utils.AttributedStyle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.pty4j.PtyProcess;
 import com.pty4j.PtyProcessBuilder;
@@ -24,12 +26,15 @@ import com.pty4j.unix.UnixPtyProcess;
 import com.sshtools.pretty.Status.Element;
 import com.sshtools.pretty.Status.Unit;
 import com.sshtools.pretty.Status.Width;
-import com.sshtools.terminal.emulation.TerminalViewport;
 import com.sshtools.terminal.emulation.TerminalOutputStream;
+import com.sshtools.terminal.emulation.TerminalViewport;
 import com.sshtools.terminal.emulation.events.ResizeListener;
 import com.sshtools.terminal.vt.javafx.JavaFXTerminalPanel;
 
 public class ConsoleProtocol implements TerminalProtocol, ResizeListener, Element {
+	
+	static Logger LOG = LoggerFactory.getLogger(ConsoleProtocol.class);
+	
 	public final static class Builder {
 		private Optional<String> command = Optional.empty();
 		private Optional<String[]> args = Optional.empty();
@@ -224,8 +229,14 @@ public class ConsoleProtocol implements TerminalProtocol, ResizeListener, Elemen
 
 		try {
 			pty.getInputStream().transferTo(new TerminalOutputStream(viewport));
+		} catch (Error e) {
+			LOG.error("Protocol failed.", e);
+			throw e;
 		} catch (IOException e) {
 			throw new UncheckedIOException(e);
+		} catch (Exception e) {
+			LOG.error("Protocol failed.", e);
+			throw new IllegalStateException(e);
 		}
 	}
 

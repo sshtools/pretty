@@ -107,6 +107,7 @@ public class Debug implements Callable<Integer> {
 			printRow(jline, "Insert Mode", String.valueOf(modes.isInsertMode()));
 			printRow(jline, "Keyboard Action", String.valueOf(modes.isKeyboardAction()));
 			printRow(jline, "Left/Right Margin Mode", String.valueOf(modes.isLeftRightMarginMode()));
+			printRow(jline, "Special Modifiers", String.valueOf(modes.isSpecialModifiers()));
 			printRow(jline, "Light Background", String.valueOf(modes.isLightBackground()));
 			printRow(jline, "Local Echo", String.valueOf(modes.isLocalEcho()));
 			printRow(jline, "National Character Set", String.valueOf(modes.isNationalCharacterSet()));
