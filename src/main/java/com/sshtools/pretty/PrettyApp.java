@@ -82,6 +82,7 @@ public class PrettyApp extends JajaFXApp<Pretty> {
 		uiToolkit = new JavaFXUIToolkit();
 		fontManager =new FontManager<>(uiToolkit);
 		appContext = new AppContextImpl();
+		setDefaultStandardWindowDecorations(true);
 		new EmojiFonts<Font>(fontManager);
 	}
 
