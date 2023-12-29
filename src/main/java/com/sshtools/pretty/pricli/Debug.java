@@ -22,6 +22,33 @@ public class Debug implements Callable<Integer> {
 	@Override
 	public Integer call() throws Exception {
 		return 0;
+		
+
+
+		//
+		// DEBUG
+		//
+		// TODO move this somewhere else
+//		if (control && shift && keyCode == VDUKeyEvent.F12) {
+//			terminal.dumpStatus();
+//		}
+//		if (control && shift && keyChar == 'G') {
+//			LOG.debug("Slow mode");
+//			DECEmulator.setDebugDelay(DECEmulator.getDebugDelay() + 10);
+//			return;
+//		} else if (control && shift && keyChar == 'H') {
+//			LOG.debug("Normal mode");
+//			DECEmulator.setDebugDelay(0);
+//			return;
+//		} else if (control && shift && keyChar == 'I') {
+//			terminal.onDebugModeRequest.accept(true);
+//			LOG.debug("Display, emulation and buffer debug on");
+//			return;
+//		} else if (control && shift && keyChar == 'J') {
+//			LOG.debug("Display, emulation and buffer debug off");
+//			terminal.onDebugModeRequest.accept(false);
+//			return;
+//		}
 	}
 
 	@Command(name = "pack", aliases = {"p"}, usageHelpAutoWidth = true, mixinStandardHelpOptions = true, description = "Pack the window.")
@@ -59,7 +86,7 @@ public class Debug implements Callable<Integer> {
 			printRow(jline, "Display Rows", String.valueOf(emu.getDisplayRows()));
 			printRow(jline, "Viewport End", String.valueOf(emu.getViewportEnd()));
 			printRow(jline, "Character Set", String.valueOf(emu.getCharacterSet()));
-			printRow(jline, "Screen Base", String.valueOf(emu.getScreenBase()));
+			printRow(jline, "Screen Base", String.valueOf(emu.getViewportStart()));
 			printRow(jline, "Cursor Style", String.valueOf(emu.getCursorStyle()));
 
 			printPage(jline, "", page);

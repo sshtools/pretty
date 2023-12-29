@@ -32,6 +32,7 @@ import com.sshtools.terminal.emulation.emulator.DECEmulator;
 import com.sshtools.terminal.emulation.emulator.DECModes;
 import com.sshtools.terminal.emulation.emulator.DECModes.MouseReport;
 import com.sshtools.terminal.emulation.emulator.DECModes.StatusLineType;
+import com.sshtools.terminal.emulation.emulator.XTERMKitty;
 import com.sshtools.terminal.emulation.fonts.FontSpec;
 import com.sshtools.terminal.vt.javafx.JavaFXScrollBar;
 import com.sshtools.terminal.vt.javafx.JavaFXTerminalPanel;
@@ -105,7 +106,7 @@ public class TTY extends StackPane implements Closeable {
 
 		/* Emulator */
 		var sz = getConfiguredSize();
-		var emulator = new DECEmulator<JavaFXTerminalPanel>("xterm-256color", sz[0], sz[1]);
+		var emulator = new DECEmulator<JavaFXTerminalPanel>(XTERMKitty.ID, sz[0], sz[1]);
 		var buf = emulator.getPage().data();
 
 		/* Create and configure terminal */
@@ -510,7 +511,7 @@ public class TTY extends StackPane implements Closeable {
 				
 					var sz = getConfiguredSize();
 					var cfg = app.getContainer().getConfiguration();
-					var emulator = new DECEmulator<JavaFXTerminalPanel>("xterm-256color", sz[0], cfg.getInt("height", STATUS_SECTION));
+					var emulator = new DECEmulator<JavaFXTerminalPanel>(terminalPanel.getViewport().getTerminalType(), sz[0], cfg.getInt("height", STATUS_SECTION));
 
 					statusTerminal = new JavaFXTerminalPanel.Builder().
 							withUiToolkit(app.getContainer().getUiToolkit()).
