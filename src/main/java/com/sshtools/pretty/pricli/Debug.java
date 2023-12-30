@@ -122,6 +122,8 @@ public class Debug implements Callable<Integer> {
 			printRow(jline, "VT52 Mode", String.valueOf(modes.isVT52Mode()));
 			printRow(jline, "Wide Mode", String.valueOf(modes.isWideMode()));
 			printRow(jline, "Wrap Around", String.valueOf(modes.isWrapAround()));
+			printRow(jline, "Clear Screen On Mode Change", String.valueOf(modes.isClearScreenOnModeChange()));
+			printRow(jline, "Special Modifers", String.valueOf(modes.isSpecialModifiers()));
 			
 			return 0;
 		}

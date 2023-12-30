@@ -32,7 +32,7 @@ import com.sshtools.terminal.emulation.emulator.DECEmulator;
 import com.sshtools.terminal.emulation.emulator.DECModes;
 import com.sshtools.terminal.emulation.emulator.DECModes.MouseReport;
 import com.sshtools.terminal.emulation.emulator.DECModes.StatusLineType;
-import com.sshtools.terminal.emulation.emulator.XTERMKitty;
+import com.sshtools.terminal.emulation.emulator.XTERM256Color;
 import com.sshtools.terminal.emulation.fonts.FontSpec;
 import com.sshtools.terminal.vt.javafx.JavaFXScrollBar;
 import com.sshtools.terminal.vt.javafx.JavaFXTerminalPanel;
@@ -106,7 +106,7 @@ public class TTY extends StackPane implements Closeable {
 
 		/* Emulator */
 		var sz = getConfiguredSize();
-		var emulator = new DECEmulator<JavaFXTerminalPanel>(XTERMKitty.ID, sz[0], sz[1]);
+		var emulator = new DECEmulator<JavaFXTerminalPanel>(XTERM256Color.ID, sz[0], sz[1]);
 		var buf = emulator.getPage().data();
 
 		/* Create and configure terminal */
