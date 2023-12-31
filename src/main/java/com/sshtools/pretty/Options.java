@@ -12,7 +12,6 @@ import com.sshtools.jaul.Phase;
 import com.sshtools.terminal.emulation.ResizeStrategy;
 import com.sshtools.terminal.emulation.fonts.FontSpec;
 
-import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -90,7 +89,7 @@ public class Options extends StackPane implements Closeable {
 			}
 		});
 		
-		theme.getItems().addAll(TerminalTheme.getThemes());
+		theme.getItems().addAll(app.getThemes().getAll());
 		theme.setConverter(new StringConverter<TerminalTheme>() {
 			@Override
 			public String toString(TerminalTheme object) {
@@ -99,7 +98,7 @@ public class Options extends StackPane implements Closeable {
 
 			@Override
 			public TerminalTheme fromString(String name) {
-				return TerminalTheme.getTheme(name);
+				return app.getThemes().get(name);
 			}
 		});
 		

@@ -101,7 +101,7 @@ public class PrettyApp extends JajaFXApp<Pretty> {
 	@Override
 	protected void onStarted() {
 		/* TODO weird */
-		 getPrimaryStage().sizeToScene();
+		getPrimaryStage().sizeToScene();
 	}
 
 	@Override
@@ -111,7 +111,7 @@ public class PrettyApp extends JajaFXApp<Pretty> {
 		LOG.info("Configuring stage, sized to scene at {} x {}", stage.getWidth(), stage.getHeight());
 //		ScenicView.show(getPrimaryStage().getScene());
 	}
-	
+
 	@Override
 	protected StageStyle borderlessStageStyle() {
 		return StageStyle.TRANSPARENT;
@@ -144,6 +144,12 @@ public class PrettyApp extends JajaFXApp<Pretty> {
 	}
 
 	class AppContextImpl implements AppContext {
+
+		private Themes themes;
+
+		AppContextImpl() {
+			themes = new Themes(this);
+		}
 
 		@Override
 		public void options(Stage owner) {
@@ -192,8 +198,8 @@ public class PrettyApp extends JajaFXApp<Pretty> {
 
 		@Override
 		public TerminalTheme getSelectedTheme() {
-			var prefs = getContainer().getAppPreferences();
-			return TerminalTheme.getTheme(prefs.get("theme", "LogonBox Blue"));
+			var prefs = getContainer().getConfiguration();
+			return themes.get(prefs.get("theme", Options.TERMINAL_SECTION));
 		}
 
 		@Override
@@ -260,6 +266,11 @@ public class PrettyApp extends JajaFXApp<Pretty> {
 		@Override
 		public boolean isDecorated() {
 			return PrettyApp.this.isDecorated();
+		}
+
+		@Override
+		public Themes getThemes() {
+			return themes;
 		}
 	}
 

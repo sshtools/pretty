@@ -20,6 +20,8 @@ public interface AppContext {
 	void options(Stage owner);
 
 	TerminalTheme getSelectedTheme();
+	
+	Themes getThemes();
 
 	void about(Stage owner);
 

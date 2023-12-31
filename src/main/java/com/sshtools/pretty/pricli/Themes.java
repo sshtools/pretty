@@ -6,8 +6,6 @@ import java.util.concurrent.Callable;
 import org.jline.utils.AttributedStringBuilder;
 import org.jline.utils.AttributedStyle;
 
-import com.sshtools.pretty.TerminalTheme;
-
 import picocli.CommandLine.Command;
 import picocli.CommandLine.ParentCommand;
 
@@ -23,7 +21,7 @@ public class Themes implements Callable<Integer> {
 		var jline = parent.cli().jline();
 		
 		var index = 0;
-		for(var fnt : TerminalTheme.getThemes()) {
+		for(var fnt : parent.ttyContext().getContainer().getThemes().getAll()) {
 			var as = new AttributedStringBuilder();
 			var bg = fnt.background();
 			var fg = fnt.foreground();

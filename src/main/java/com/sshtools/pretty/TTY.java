@@ -71,7 +71,7 @@ public class TTY extends StackPane implements Closeable {
 	private final List<Handle> handles = new LinkedList<>();
 
 	private Pricli pricli;
-	private TerminalTheme theme = TerminalTheme.getDefault();
+	private TerminalTheme theme;
 	private BorderPane scrollPane;
 	private JavaFXTerminalPanel statusTerminal;
 	private final Stack<TerminalProtocol> protocols = new Stack<>();
@@ -87,6 +87,7 @@ public class TTY extends StackPane implements Closeable {
 	public TTY(TTYContext app, Consumer<TTY> onClose) {
 		this.app = app;
 		this.onClose = onClose;
+		theme = app.getContainer().getSelectedTheme();
 		
 		var cfg = app.getContainer().getConfiguration();
 
@@ -675,7 +676,7 @@ public class TTY extends StackPane implements Closeable {
 	}
 	
 	private void setThemeName(String themeName) {
-		theme = TerminalTheme.getTheme(themeName);
+		theme = app.getContainer().getThemes().get(themeName);
 		theme.apply(terminalPanel, getBackgroundOpacity());
 		if(statusTerminal != null)
 			theme.apply(statusTerminal, 100);

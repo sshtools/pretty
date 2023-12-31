@@ -2,12 +2,14 @@ package com.sshtools.pretty;
 
 import static com.sshtools.terminal.emulation.VDUColor.fromString;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.UncheckedIOException;
+import java.nio.file.NoSuchFileException;
+import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,13 +17,30 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.sshtools.jini.INI;
+import com.sshtools.jini.INI.Section;
+import com.sshtools.jini.INIReader;
+import com.sshtools.jini.INIReader.MultiValueMode;
 import com.sshtools.terminal.emulation.Colors;
 import com.sshtools.terminal.emulation.Colors.Size;
-import com.sshtools.terminal.vt.javafx.JavaFXTerminalPanel;
 import com.sshtools.terminal.emulation.VDUColor;
+import com.sshtools.terminal.vt.javafx.JavaFXTerminalPanel;
+
+import javafx.scene.effect.Bloom;
+import javafx.scene.effect.BlurType;
+import javafx.scene.effect.BoxBlur;
+import javafx.scene.effect.DropShadow;
+import javafx.scene.effect.Effect;
+import javafx.scene.effect.GaussianBlur;
+import javafx.scene.effect.Glow;
+import javafx.scene.effect.InnerShadow;
+import javafx.scene.effect.Lighting;
+import javafx.scene.effect.MotionBlur;
+import javafx.scene.effect.PerspectiveTransform;
+import javafx.scene.effect.Reflection;
+import javafx.scene.effect.SepiaTone;
+import javafx.scene.effect.Shadow;
 
 public class TerminalTheme {
-	private static final String DEFAULT_THEME = "LogonBox Blue";
 	public static Logger LOG = LoggerFactory.getLogger(TerminalTheme.class);
 
 	final static String BACKGROUND_COLOR = "bg";
@@ -33,47 +52,267 @@ public class TerminalTheme {
 	final static String SELECTION_BACKGROUND = "selection-bg";
 	final static String LSCOLORS = "LSCOLORS";
 	final static String LS_COLORS = "LS_COLORS";
-	
-	private String name;
-	private String path;
-	private INI properties;
-	private static List<TerminalTheme> themes;
-	
-	public final static TerminalTheme CUSTOM = new TerminalTheme("Custom", "");
+	final static String EFFECT = "EFFECT";
 
-	TerminalTheme(String name, String path) {
+	private String name;
+
+	private String path;
+
+	private INI properties;
+	private AppContext app;
+
+	TerminalTheme(AppContext app, String name, String path) {
+		this.app = app;
 		this.name = name;
 		this.path = path;
 	}
 
-	public String getName() {
-		return name;
+	public void apply(JavaFXTerminalPanel terminalPanel, int bgAlphaPercent) {
+		var vp = terminalPanel.getViewport();
+		synchronized (vp.getBufferLock()) {
+			terminalPanel.setDefaultBackground(background().withAlphaPercent(bgAlphaPercent));
+			terminalPanel.setDefaultForeground(foreground());
+			terminalPanel.setSelectionBackground(selectionBackground());
+			terminalPanel.setSelectionForeground(selectionForeground());
+			terminalPanel.setCursorColors(cursorForeground(), cursorBackground());
+			vp.getColors().setPalette(Size.PAL16, pal16().orElseGet(() -> Colors.PAL16_DEFAULT.getColors()));
+			var cols = vp.getColors();
+			cols.setPalette(Size.PAL256, pal256().orElseGet(() -> Colors.PAL256_DEFAULT.getColors()));
+			terminalPanel.getControl().setEffect(effect());
+			vp.redisplay();
+		}
 	}
 
-	@Override
-	public String toString() {
-		return name;
-	}
-
-	public INI ini() {
-		if (properties == null) {
-			try (InputStream in = TerminalTheme.class.getResourceAsStream(path)) {
-				if(in == null)
-					throw new FileNotFoundException(String.format("No such theme resource %s for theme %s", path, name));
-				properties = INI.fromInput(in).readOnly();
-			} catch (IOException ioe) {
-				throw new RuntimeException("Failed to load themes.", ioe);
+	public Effect effect() {
+		var tprops = ini();
+		var effects = tprops.getAllOr(EFFECT);
+		Effect fx = null;
+		if (effects.isPresent()) {
+			for (var effect : effects.get()) {
+				fx = createEffect(effect, fx);
 			}
 		}
-		return properties;
+		return fx;
 	}
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((name == null) ? 0 : name.hashCode());
-		return result;
+	private Effect createEffect(String spec, Effect input) {
+		var args = parseArgs(spec);
+		if (spec.equalsIgnoreCase("bloom")) {
+			var blm = new Bloom();
+			blm.setInput(input);
+			if(args.size() > 0)
+				blm.setThreshold(Double.parseDouble(args.get(0)));
+			return blm;
+		} else if (spec.equalsIgnoreCase("sepiaTone")) {
+			var st = new SepiaTone();
+			st.setInput(input);
+			if(args.size() > 0)
+				st.setLevel(Double.parseDouble(args.get(0)));
+			return st;
+		} else if (spec.equalsIgnoreCase("boxBlur")) {
+			var bb = new BoxBlur();
+			if(args.size() > 0 && !args.get(0).equals("")) {
+				bb.setWidth(Double.parseDouble(args.get(0)));
+			}
+			if(args.size() > 1 && !args.get(1).equals("")) {
+				bb.setHeight(Double.parseDouble(args.get(1)));
+			}
+			if(args.size() > 2 && !args.get(2).equals("")) {
+				bb.setIterations(Integer.parseInt(args.get(2)));
+			}
+			bb.setInput(input);
+			return bb;
+		}  else if (spec.equalsIgnoreCase("dropShadow")) {
+			var ds = new DropShadow();
+			ds.setInput(input);
+			
+			if(args.size() > 0 && !args.get(0).equals("")) {
+				ds.setWidth(Double.parseDouble(args.get(0)));
+			}
+			if(args.size() > 1 && !args.get(1).equals("")) {
+				ds.setHeight(Double.parseDouble(args.get(1)));
+			}
+			if(args.size() > 2 && !args.get(2).equals("")) {
+				ds.setOffsetX(Double.parseDouble(args.get(2)));
+			}
+			if(args.size() > 3 && !args.get(3).equals("")) {
+				ds.setOffsetY(Double.parseDouble(args.get(3)));
+			}
+			if(args.size() > 4 && !args.get(4).equals("")) {
+				ds.setRadius(Double.parseDouble(args.get(4)));
+			}
+			if(args.size() > 5 && !args.get(5).equals("")) {
+				ds.setSpread(Double.parseDouble(args.get(5)));
+			}
+			if(args.size() > 6 && !args.get(6).equals("")) {
+				ds.setBlurType(BlurType.valueOf(args.get(6).toUpperCase()));
+			}
+			if(args.size() > 7 && !args.get(7).equals("")) {
+				ds.setColor(app.getUiToolkit().localColorToNativeColor(fromString(args.get(7))));
+			}
+			return ds;
+		} else if (spec.equalsIgnoreCase("gausianBlur")) {
+			var gb = new GaussianBlur();
+			if(args.size() > 0 && !args.get(0).equals("")) {
+				gb.setRadius(0);
+			}
+			gb.setInput(input);
+			return gb;
+		} else if (spec.equalsIgnoreCase("glow")) {
+			var gb = new Glow();
+			if(args.size() > 0 && !args.get(0).equals("")) {
+				gb.setLevel(Double.parseDouble(args.get(0)));
+			}
+			gb.setInput(input);
+			return gb;
+		} else if (spec.equalsIgnoreCase("innerShadow")) {
+			var is = new InnerShadow();
+			is.setInput(input);
+			
+			if(args.size() > 0 && !args.get(0).equals("")) {
+				is.setWidth(Double.parseDouble(args.get(0)));
+			}
+			if(args.size() > 1 && !args.get(1).equals("")) {
+				is.setHeight(Double.parseDouble(args.get(1)));
+			}
+			if(args.size() > 2 && !args.get(2).equals("")) {
+				is.setOffsetX(Double.parseDouble(args.get(2)));
+			}
+			if(args.size() > 3 && !args.get(3).equals("")) {
+				is.setOffsetY(Double.parseDouble(args.get(3)));
+			}
+			if(args.size() > 4 && !args.get(4).equals("")) {
+				is.setRadius(Double.parseDouble(args.get(4)));
+			}
+			if(args.size() > 5 && !args.get(5).equals("")) {
+				is.setChoke(Double.parseDouble(args.get(5)));
+			}
+			if(args.size() > 6 && !args.get(6).equals("")) {
+				is.setBlurType(BlurType.valueOf(args.get(6).toUpperCase()));
+			}
+			if(args.size() > 7 && !args.get(7).equals("")) {
+				is.setColor(app.getUiToolkit().localColorToNativeColor(fromString(args.get(7))));
+			}
+			return is;
+		} else if (spec.equalsIgnoreCase("lighting")) {
+			var lt = new Lighting();
+			lt.setContentInput(input);
+			if(args.size() > 0 && !args.get(0).equals("")) {
+				lt.setDiffuseConstant(Double.parseDouble(args.get(0)));
+			}
+			if(args.size() > 1 && !args.get(1).equals("")) {
+				lt.setSpecularConstant(Double.parseDouble(args.get(1)));
+			}
+			if(args.size() > 2 && !args.get(2).equals("")) {
+				lt.setSpecularExponent(Double.parseDouble(args.get(2)));
+			}
+			if(args.size() > 3 && !args.get(3).equals("")) {
+				lt.setSurfaceScale(Double.parseDouble(args.get(3)));
+			}
+			return lt;
+		}  else if (spec.equalsIgnoreCase("motionBlur")) {
+			var mb = new MotionBlur();
+			if(args.size() > 0 && !args.get(0).equals("")) {
+				mb.setAngle(Double.parseDouble(args.get(0)));
+			}
+			if(args.size() > 1 && !args.get(1).equals("")) {
+				mb.setRadius(Double.parseDouble(args.get(1)));
+			}
+			mb.setInput(input);
+			return mb;
+		} else if (spec.equalsIgnoreCase("perspectiveTransform")) {
+			var mb = new PerspectiveTransform();
+			if(args.size() > 0 && !args.get(0).equals("")) {
+				mb.setLlx(Double.parseDouble(args.get(0)));
+			}
+			if(args.size() > 1 && !args.get(1).equals("")) {
+				mb.setLly(Double.parseDouble(args.get(1)));
+			}
+			if(args.size() > 2 && !args.get(2).equals("")) {
+				mb.setLrx(Double.parseDouble(args.get(2)));
+			}
+			if(args.size() > 3 && !args.get(3).equals("")) {
+				mb.setLry(Double.parseDouble(args.get(3)));
+			}
+			if(args.size() > 4 && !args.get(4).equals("")) {
+				mb.setUlx(Double.parseDouble(args.get(4)));
+			}
+			if(args.size() > 5 && !args.get(5).equals("")) {
+				mb.setUly(Double.parseDouble(args.get(5)));
+			}
+			if(args.size() > 6 && !args.get(6).equals("")) {
+				mb.setUrx(Double.parseDouble(args.get(6)));
+			}
+			if(args.size() > 7 && !args.get(7).equals("")) {
+				mb.setUry(Double.parseDouble(args.get(7)));
+			}
+			mb.setInput(input);
+			return mb;
+		} else if (spec.equalsIgnoreCase("perspectiveTransform")) {
+			var ref = new Reflection();
+			if(args.size() > 0 && !args.get(0).equals("")) {
+				ref.setBottomOpacity(Double.parseDouble(args.get(0)));
+			}
+			if(args.size() > 1 && !args.get(1).equals("")) {
+				ref.setFraction(Double.parseDouble(args.get(1)));
+			}
+			if(args.size() > 2 && !args.get(2).equals("")) {
+				ref.setTopOffset(Double.parseDouble(args.get(2)));
+			}
+			if(args.size() > 3 && !args.get(3).equals("")) {
+				ref.setTopOpacity(Double.parseDouble(args.get(3)));
+			}
+			ref.setInput(input);
+			return ref;
+		} else if (spec.equalsIgnoreCase("shadow")) {
+			var is = new Shadow();
+			is.setInput(input);
+			
+			if(args.size() > 0 && !args.get(0).equals("")) {
+				is.setWidth(Double.parseDouble(args.get(0)));
+			}
+			if(args.size() > 1 && !args.get(1).equals("")) {
+				is.setHeight(Double.parseDouble(args.get(1)));
+			}
+			if(args.size() > 2 && !args.get(2).equals("")) {
+				is.setRadius(Double.parseDouble(args.get(2)));
+			}
+			if(args.size() > 3 && !args.get(3).equals("")) {
+				is.setBlurType(BlurType.valueOf(args.get(3).toUpperCase()));
+			}
+			if(args.size() > 4 && !args.get(4).equals("")) {
+				is.setColor(app.getUiToolkit().localColorToNativeColor(fromString(args.get(4))));
+			}
+			return is;
+		}else {
+			throw new IllegalArgumentException("Unknown effect spec " + spec);
+		}
+	}
+	
+	private List<String> parseArgs(String spec) {
+		if(spec.startsWith("(") && spec.endsWith(")")) {
+			var val = Arrays.asList(spec.substring(1, spec.length() - 2).trim().split(",")); 
+			var lst = val.stream().map(String::trim).toList();
+			if(!lst.get(0).equals("")) {
+				return lst;
+			}
+		}
+		return Collections.emptyList();
+	}
+
+	public VDUColor background() {
+		var tprops = ini();
+		return tprops.getOr(BACKGROUND_COLOR).map(VDUColor::fromString).orElseGet(() -> VDUColor.BLACK);
+	}
+
+	public VDUColor cursorBackground() {
+		var tprops = ini();
+		return tprops.getOr(CURSOR_BACKGROUND).map(VDUColor::fromString).orElseGet(this::foreground);
+	}
+
+	public VDUColor cursorForeground() {
+		var tprops = ini();
+		return tprops.getOr(CURSOR_FOREGROUND).map(VDUColor::fromString).orElseGet(this::background);
 	}
 
 	@Override
@@ -93,136 +332,133 @@ public class TerminalTheme {
 		return true;
 	}
 
-	public static List<TerminalTheme> getThemes() {
-		if (themes == null) {
-			themes = new ArrayList<>();
-			try (BufferedReader br = new BufferedReader(
-					new InputStreamReader(TerminalTheme.class.getResourceAsStream("/themes.properties")))) {
-				String line = null;
-				while ((line = br.readLine()) != null) {
-					line = line.trim();
-					if (!line.startsWith("#")) {
-						int idx = line.indexOf('=');
-						if (idx != -1) {
-							themes.add(new TerminalTheme(line.substring(0, idx), line.substring(idx + 1)));
-						}
-					}
-				}
+	public VDUColor foreground() {
+		var tprops = ini();
+		return tprops.getOr(FOREGROUND_COLOR).map(VDUColor::fromString).orElseGet(() -> VDUColor.BLACK);
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		return result;
+	}
+
+	public INI ini() {
+		if (properties == null) {
+			var is = TerminalTheme.class.getResourceAsStream(path);
+			if (is == null)
+				throw new UncheckedIOException(
+						new NoSuchFileException(String.format("No such theme resource %s for theme %s", path, name)));
+			try (var in = new InputStreamReader(is, "UTF-8")) {
+				return new INIReader.Builder().withMultiValueMode(MultiValueMode.SEPARATED).build().read(in);
 			} catch (IOException ioe) {
-				throw new RuntimeException("Failed to load themes.", ioe);
+				throw new UncheckedIOException("Failed to load themes.", ioe);
+			} catch (ParseException pe) {
+				throw new IllegalArgumentException("Failed parse theme file.", pe);
 			}
 		}
-		return themes;
+		return properties;
 	}
 
-	public static TerminalTheme getTheme(String name) {
-		if(name == null || name.equals("") || name.equals(CUSTOM.getName()))
-			return CUSTOM;
-		for (TerminalTheme t : getThemes()) {
-			if (t.getName().equals(name))
-				return t;
-		}
-		return CUSTOM;
-	}
-
-	public boolean isCustom() {
-		return this.equals(CUSTOM);
-	}
-
-	public static TerminalTheme getDefault() {
-		var t = getTheme(DEFAULT_THEME);
-		return t == null ? getThemes().get(0) : t;
-	}
-
-	public void apply(JavaFXTerminalPanel terminalPanel, int bgAlphaPercent) {
-		var vp = terminalPanel.getViewport();
-		synchronized(vp.getBufferLock()) {
-			terminalPanel.setDefaultBackground(background().withAlphaPercent(bgAlphaPercent));
-			terminalPanel.setDefaultForeground(foreground());
-			terminalPanel.setSelectionBackground(selectionBackground());
-			terminalPanel.setSelectionForeground(selectionForeground());
-			terminalPanel.setCursorColors(cursorForeground(), cursorBackground());
-			vp.getColors().setPalette(Size.PAL16, pal16().orElse(Colors.PAL16_DEFAULT.getColors()));
-			var cols = vp.getColors();
-			cols.setPalette(Size.PAL256, pal256().orElse(Colors.PAL256_DEFAULT.getColors()));
-			vp.redisplay();
-		}
-	}
-	
 	public Optional<VDUColor[]> pal16() {
 		var tprops = ini();
 		var secOr = tprops.sectionOr("palette");
-		if(secOr.isPresent()) {
-			var keys = secOr.get();
-			if(keys.keys().size() == 16 || keys.keys().size() == 8) {
-				var colors = keys.keys().stream().map(k -> fromString(keys.get(k))).toList().toArray(new VDUColor[0]);
-				if(colors.length == 8) {
-					var allColors =new VDUColor[16];
+		if (secOr.isPresent()) {
+			var sec = secOr.get();
+			var allColors = new VDUColor[16];
+			if (sec.contains("*")) {
+				return generate(sec, allColors, Colors.PAL16_DEFAULT.getColors());
+			} else if (sec.keys().size() == 16 || sec.keys().size() == 8) {
+				var colors = sec.keys().stream().map(k -> fromString(sec.get(k))).toList().toArray(new VDUColor[0]);
+				if (colors.length == 8) {
 					System.arraycopy(colors, 0, allColors, 0, 8);
-					for(int i = 0 ; i < 8 ; i++) {
+					for (int i = 0; i < 8; i++) {
 						allColors[i + 8] = allColors[i].brighter();
 					}
 					colors = allColors;
 				}
 				return Optional.of(colors);
-			}
-			else {
+			} else {
 				LOG.warn("If the 'palette' section is present, it must have either 8 or 16 entries.");
 			}
 		}
 		return Optional.empty();
-		
+
 	}
-	
+
 	public Optional<VDUColor[]> pal256() {
 		var tprops = ini();
 		var secOr = tprops.sectionOr("palette-256");
-		if(secOr.isPresent()) {
-			var keys = secOr.get();
-			if(keys.keys().size() == 256) {
-				keys.keys().stream().map(k -> fromString(keys.get(k))).toList().toArray(new VDUColor[0]);
-			}
-			else {
-				LOG.warn("If the 'palette-256' section is present, it must have exactly 256 entries.");
+		if (secOr.isPresent()) {
+			var sec = secOr.get();
+			if (sec.contains("*")) {
+				return generate(sec, new VDUColor[256], Colors.PAL256_DEFAULT.getColors());
+			} else {
+				var cols = Colors.PAL256_DEFAULT.getColors();
+				var newCols = new VDUColor[256];
+				System.arraycopy(cols, 0, newCols, 0, newCols.length);
+				sec.keys().stream().forEach(k -> {
+					newCols[Integer.parseInt(k)] = fromString(sec.get(k));
+				});
+				return Optional.of(newCols);
 			}
 		}
 		return Optional.empty();
-		
-	}
 
-	public VDUColor cursorForeground() {
-		var tprops = ini();
-		return tprops.getOr(CURSOR_FOREGROUND).map(VDUColor::fromString).
-			orElseGet(this::background);
-	}
-
-	public VDUColor cursorBackground() {
-		var tprops = ini();
-		return tprops.getOr(CURSOR_BACKGROUND).map(VDUColor::fromString).
-			orElseGet(this::foreground);
-	}
-
-	public VDUColor selectionForeground() {
-		var tprops = ini();
-		return tprops.getOr(SELECTION_FOREGROUND).map(VDUColor::fromString).
-		orElseGet(this::background);
 	}
 
 	public VDUColor selectionBackground() {
 		var tprops = ini();
-		return tprops.getOr(SELECTION_BACKGROUND).map(VDUColor::fromString).
-		orElseGet(this::foreground);
+		return tprops.getOr(SELECTION_BACKGROUND).map(VDUColor::fromString).orElseGet(this::foreground);
 	}
 
-	public VDUColor foreground() {
+	public VDUColor selectionForeground() {
 		var tprops = ini();
-		return tprops.getOr(FOREGROUND_COLOR).map(VDUColor::fromString).
-		orElseGet(() -> VDUColor.BLACK);
+		return tprops.getOr(SELECTION_FOREGROUND).map(VDUColor::fromString).orElseGet(this::background);
 	}
 
-	public VDUColor background() {
-		var tprops = ini();
-		return tprops.getOr(BACKGROUND_COLOR).map(VDUColor::fromString).
-		orElseGet(() -> VDUColor.BLACK);
+	@Override
+	public String toString() {
+		return name;
+	}
+
+	protected Optional<VDUColor[]> generate(Section sec, VDUColor[] allColors, VDUColor[] defaultCols) {
+		var val = sec.get("*");
+		var spec = new ArrayList<>(Arrays.asList(val.split("\\s+")));
+		var firstVal = spec.remove(0);
+		if (firstVal.equalsIgnoreCase("monochrome")) {
+			var col = (spec.isEmpty() ? foreground() : fromString(spec.remove(0))).toHSL();
+			var step = 251f / 8f;
+			for (int i = 0; i < 8; i++) {
+				var v = Math.round(i * step);
+				allColors[i] = VDUColor.fromHSL(col[0], col[1], v / 255f);
+			}
+			for (int i = 0; i < 8; i++) {
+				var v = 4 + Math.round(i * step);
+				allColors[i + 8] = VDUColor.fromHSL(col[0], col[1], v / 255f);
+			}
+			step = 239f / 255f;
+			for (int i = 16; i < allColors.length; i++) {
+				var v = Math.round((i - 16) * step);
+				allColors[i] = VDUColor.fromHSL(col[0], col[1], v / 255f);
+			}
+		} else {
+			/* All same */
+			var col = fromString(firstVal);
+			for (int i = 0; i < allColors.length; i++) {
+				allColors[i] = col;
+			}
+		}
+		return Optional.of(allColors);
+	}
+
+	private String printHsl(int[] hsl) {
+		return String.format("%d,%d,%d", hsl[0], hsl[1], hsl[2]);
 	}
 }
