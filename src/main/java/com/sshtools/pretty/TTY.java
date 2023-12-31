@@ -115,7 +115,7 @@ public class TTY extends StackPane implements Closeable {
 				withFontManager(app.getContainer().getFontManager()).
 				withBuffer(emulator)
 				.build();
-		theme.apply(terminalPanel);
+		theme.apply(terminalPanel, getBackgroundOpacity());
 		
 		
 		/* Configure terminal's buffer */
@@ -169,6 +169,7 @@ public class TTY extends StackPane implements Closeable {
 		handles.addAll(Arrays.asList(
 			cfg.bindEnum(ResizeStrategy.class, this::setResizeStrategy, terminalPanel::getResizeStrategy, "resize-strategy", Options.TERMINAL_SECTION),
 			cfg.bindInteger(emulator::setMaximumBufferSize, buf::getMaximumSize, "buffer-size", Options.TERMINAL_SECTION),
+			cfg.bindInteger(this::setBackgroundOpacity, this::getBackgroundOpacity, "opacity", Options.TERMINAL_SECTION),
 			cfg.bindString(emulator::setTerminalType, emulator.getTerminalType()::getId, "type", Options.TERMINAL_SECTION),  
 			cfg.bindString((nsz) -> updateAppearance(), () -> String.format("%dx%d", emulator.getColumns(), emulator.getRows()), "screen-size", Options.TERMINAL_SECTION),
 			cfg.bindInteger(this::setFontSize, terminalPanel.getFontManager().getDefault().spec()::getSize, "font-size", Options.TERMINAL_SECTION),
@@ -595,17 +596,12 @@ public class TTY extends StackPane implements Closeable {
 	}
 
 	private void applyColors() {
-		var scene = getScene();
-		if (scene == null)
-			return;
-
-		var node = scene.getRoot();
-		var ss = node.getStylesheets();
+		var ss = getStylesheets();
 		writeJavaFXCSS();
-		var tmpFile = getCustomJavaFXCSSFile();
+		var tmpFile = getCustomJavaFXCSSFile(); /*TODO per tab / window ? */
 		var uri = tmpFile.toUri().toString();
 		ss.remove(uri);
-		ss.add(uri);
+		ss.add(0, uri);
 	}
 
 	private ContextMenu createContextMenu() {
@@ -639,20 +635,24 @@ public class TTY extends StackPane implements Closeable {
 	private String getCustomJavaFXCSSResource() {
 		var bui = new StringBuilder();
 		var bgCol = terminalPanel.getDefaultBackground();
-		var bgStr = bgCol.toHTMLColor();
+		var bgStr = app.getContainer().isDecorated() ? bgCol.toCSSRGB() :  bgCol.toCSSRGBA();
+		var bgOpaqueStr = app.getContainer().isDecorated() ? bgCol.toCSSRGB() :  bgCol.toCSSRGBA();
 		var fgCol = terminalPanel.getDefaultForeground();
 		var fgStr = fgCol.toHTMLColor();
 		var uiToolkit = terminalPanel.getUIToolkit();
 		var aStr = Colors.toHex(
 				Colors.accent(uiToolkit.localColorToNativeColor(bgCol), uiToolkit.localColorToNativeColor(fgCol)));
 		bui.append("* {\n");
-		bui.append("-fx-notionator-fg: ");
+		bui.append("-fx-terminal-fg: ");
 		bui.append(fgStr);
 		bui.append(";\n");
-		bui.append("-fx-notionator-bg: ");
+		bui.append("-fx-terminal-bg: ");
 		bui.append(bgStr);
 		bui.append(";\n");
-		bui.append("-fx-notionator-accent: ");
+		bui.append("-fx-terminal-bg-opaque: ");
+		bui.append(bgOpaqueStr);
+		bui.append(";\n");
+		bui.append("-fx-terminal-accent: ");
 		bui.append(aStr);
 		bui.append(";\n");
 		bui.append("}\n");
@@ -665,11 +665,20 @@ public class TTY extends StackPane implements Closeable {
 		return theme.getName();
 	}
 	
+	private int getBackgroundOpacity() {
+		return (int)((float)terminalPanel.getDefaultBackground().getAlphaRatio() * 100f);
+	}
+
+	private void setBackgroundOpacity(int opacity) {
+		theme.apply(terminalPanel, opacity);
+		applyColors();
+	}
+	
 	private void setThemeName(String themeName) {
 		theme = TerminalTheme.getTheme(themeName);
-		theme.apply(terminalPanel);
+		theme.apply(terminalPanel, getBackgroundOpacity());
 		if(statusTerminal != null)
-			theme.apply(statusTerminal);
+			theme.apply(statusTerminal, 100);
 		applyColors();
 	}
 

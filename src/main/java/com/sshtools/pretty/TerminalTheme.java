@@ -17,8 +17,8 @@ import org.slf4j.LoggerFactory;
 import com.sshtools.jini.INI;
 import com.sshtools.terminal.emulation.Colors;
 import com.sshtools.terminal.emulation.Colors.Size;
-import com.sshtools.terminal.emulation.VDUColor;
 import com.sshtools.terminal.vt.javafx.JavaFXTerminalPanel;
+import com.sshtools.terminal.emulation.VDUColor;
 
 public class TerminalTheme {
 	private static final String DEFAULT_THEME = "LogonBox Blue";
@@ -134,16 +134,18 @@ public class TerminalTheme {
 		return t == null ? getThemes().get(0) : t;
 	}
 
-	public void apply(JavaFXTerminalPanel terminalPanel) {
-		synchronized(terminalPanel.getViewport().getBufferLock()) {
-			terminalPanel.setDefaultBackground(background());
+	public void apply(JavaFXTerminalPanel terminalPanel, int bgAlphaPercent) {
+		var vp = terminalPanel.getViewport();
+		synchronized(vp.getBufferLock()) {
+			terminalPanel.setDefaultBackground(background().withAlphaPercent(bgAlphaPercent));
 			terminalPanel.setDefaultForeground(foreground());
 			terminalPanel.setSelectionBackground(selectionBackground());
 			terminalPanel.setSelectionForeground(selectionForeground());
 			terminalPanel.setCursorColors(cursorForeground(), cursorBackground());
-			terminalPanel.getViewport().getColors().setPalette(Size.PAL16, pal16().orElse(Colors.PAL16_DEFAULT.getColors()));
-			terminalPanel.getViewport().getColors().setPalette(Size.PAL256, pal256().orElse(Colors.PAL256_DEFAULT.getColors()));
-			terminalPanel.getViewport().redisplay();
+			vp.getColors().setPalette(Size.PAL16, pal16().orElse(Colors.PAL16_DEFAULT.getColors()));
+			var cols = vp.getColors();
+			cols.setPalette(Size.PAL256, pal256().orElse(Colors.PAL256_DEFAULT.getColors()));
+			vp.redisplay();
 		}
 	}
 	

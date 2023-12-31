@@ -1,1 +1,54 @@
 
+/* .root, #terminal-container { -fx-background-color:rgba(0,0,0,1); }*/
+
+/*
+Stage {
+	-fx-icon-color: -fx-terminal-fg;
+	-fx-background: -fx-terminal-bg;
+	-fx-color: -fx-terminal-fg;
+	-fx-accent: -fx-terminal-accent;
+}
+
+#titleBar FontIcon {
+	-fx-icon-size: 24px;
+	-fx-icon-color: -fx-terminal-fg;
+}
+
+#titleBar {
+	-fx-padding: 4px;
+	-fx-background-color: derive(-fx-terminal-bg,-10%);
+	-fx-text-fill: -fx-terminal-fg;
+}
+*/
+
+#terminal-root {
+	-fx-background-color: -fx-terminal-bg;
+}
+
+#terminal-anchor {	
+}
+
+#terminal-container {
+	-fx-padding: 0 4px 4px 4px;
+}
+
+#terminal-tabs .tab-header-background {
+	-fx-background-insets: 0 0 0 0;
+	-fx-background-color: -fx-terminal-bg;
+}
+
+#terminal-canvas {
+	-fx-padding: 8px;
+}
+
+/*
+#terminal-root {
+    -fx-background-color:  -fx-terminal-bg;
+	
+}
+
+#terminal-canvas {
+    -fx-background-color:  -fx-terminal-bg;
+}
+
+*/

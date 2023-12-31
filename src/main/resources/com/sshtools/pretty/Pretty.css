@@ -1,43 +1,22 @@
-/*
-Stage {
-	-fx-icon-color: -fx-notionator-fg;
-	-fx-background: -fx-notionator-bg;
-	-fx-color: -fx-notionator-fg;
-	-fx-accent: -fx-notionator-accent;
+.root { -fx-background-color:background_color; }
+
+.pretty .title-bar {
+	-fx-background-color:tab_pane_background_color;
 }
 
-#titleBar FontIcon {
-	-fx-icon-size: 24px;
-	-fx-icon-color: -fx-notionator-fg;
+.pretty .title-label {	
+    -fx-text-fill: text_color;
 }
 
-#titleBar {
-	-fx-padding: 4px;
-	-fx-background-color: derive(-fx-notionator-bg,-10%);
-	-fx-text-fill: -fx-notionator-fg;
-}
-*/
-
-#terminal-container {
-	-fx-padding: 0 4px 4px 4px;
+.pretty.darkMode .title-bar .ikonli-font-icon, .pretty.lightMode .title-bar .ikonli-font-icon  {
+	-fx-icon-color: text_color !important;
 }
 
-#terminal-tabs .tab-header-background {
-	-fx-background-insets: 0 0 0 0;
+.pretty.darkMode .title-bar .ikonli-font-icon:hover , .pretty.lightMode .title-bar .ikonli-font-icon:hover   {
+	-fx-icon-color: text_color !important;
 }
 
-#terminal-canvas {
-	-fx-padding: 8px;
+.title-label {
+	-fx-font-weight: bold;
 }
 
-/*
-#terminal-root {
-    -fx-background-color:  -fx-notionator-bg;
-	
-}
-
-#terminal-canvas {
-    -fx-background-color:  -fx-notionator-bg;
-}
-
-*/

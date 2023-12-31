@@ -81,6 +81,14 @@ public class Debug implements Callable<Integer> {
 			var page = emu.getPage();
 			var modes = emu.getModes();
 
+			printTitle(jline, "Display");
+			printRow(jline, "Default Background", String.valueOf(dpy.getDefaultBackground().toRGBAHTMLColor()));
+			printRow(jline, "Default Foreground", String.valueOf(dpy.getDefaultForeground().toRGBAHTMLColor()));
+			printRow(jline, "Character Height", String.valueOf(dpy.getFontManager().getDefault().charHeight()));
+			printRow(jline, "Character Width", String.valueOf(dpy.getFontManager().getDefault().charWidth()));
+			printRow(jline, "Character Decent", String.valueOf(dpy.getFontManager().getDefault().charDescent()));
+			jline.writer().println();
+			
 			printTitle(jline, "Emulator");
 			printRow(jline, "Size", emu.getColumns() + " x " + emu.getRows());
 			printRow(jline, "Display Rows", String.valueOf(emu.getDisplayRows()));
@@ -124,6 +132,7 @@ public class Debug implements Callable<Integer> {
 			printRow(jline, "Wrap Around", String.valueOf(modes.isWrapAround()));
 			printRow(jline, "Clear Screen On Mode Change", String.valueOf(modes.isClearScreenOnModeChange()));
 			printRow(jline, "Special Modifers", String.valueOf(modes.isSpecialModifiers()));
+			printRow(jline, "Sixel Scrolling", String.valueOf(modes.isSixelScrolling()));
 			
 			return 0;
 		}

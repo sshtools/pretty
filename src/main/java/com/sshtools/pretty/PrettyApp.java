@@ -53,18 +53,12 @@ import jfxtras.styles.jmetro.Style;
 import uk.co.bithatch.nativeimage.annotations.Bundle;
 import uk.co.bithatch.nativeimage.annotations.Reflectable;
 import uk.co.bithatch.nativeimage.annotations.Resource;
+
 @Bundle
-@Resource({"themes.properties",
-	"themes/black-on-light-yellow.properties",
-	"themes/black-on-white.properties",
-	"themes/green-on-black.properties",
-	"themes/grey-on-black.properties",
-	"themes/solarized-dark.properties",
-	"themes/solarized-light.properties",
-	"themes/tango-dark.properties",
-	"themes/tango-light.properties",
-	"themes/white-onblack.properties",
-	})
+@Resource({ "themes.properties", "themes/black-on-light-yellow.properties", "themes/black-on-white.properties",
+		"themes/green-on-black.properties", "themes/grey-on-black.properties", "themes/solarized-dark.properties",
+		"themes/solarized-light.properties", "themes/tango-dark.properties", "themes/tango-light.properties",
+		"themes/white-onblack.properties", })
 @Reflectable
 public class PrettyApp extends JajaFXApp<Pretty> {
 
@@ -80,9 +74,10 @@ public class PrettyApp extends JajaFXApp<Pretty> {
 	public PrettyApp() {
 		super(PrettyApp.class.getResource("icon.png"), RESOURCES.getString("title"), (Pretty) Pretty.getInstance());
 		uiToolkit = new JavaFXUIToolkit();
-		fontManager =new FontManager<>(uiToolkit);
+		fontManager = new FontManager<>(uiToolkit);
 		appContext = new AppContextImpl();
 		setDefaultStandardWindowDecorations(true);
+		setShowFrameTitle(true);
 		new EmojiFonts<Font>(fontManager);
 	}
 
@@ -98,11 +93,17 @@ public class PrettyApp extends JajaFXApp<Pretty> {
 	}
 
 	@Override
+	public void start(final Stage primaryStage) {
+		primaryStage.initStyle(StageStyle.DECORATED);
+		super.start(primaryStage);
+	}
+
+	@Override
 	protected void onStarted() {
 		/* TODO weird */
-		getPrimaryStage().sizeToScene();
-	}	
-	
+		 getPrimaryStage().sizeToScene();
+	}
+
 	@Override
 	protected void onConfigureStage(Stage stage) {
 		LOG.info("Configuring stage, sizing to scene");
@@ -111,12 +112,23 @@ public class PrettyApp extends JajaFXApp<Pretty> {
 //		ScenicView.show(getPrimaryStage().getScene());
 	}
 	
+	@Override
+	protected StageStyle borderlessStageStyle() {
+		return StageStyle.TRANSPARENT;
+	}
+
+	@Override
+	protected void onScene(Scene scene) {
+		scene.getRoot().getStyleClass().add("pretty");
+		scene.setFill(Color.TRANSPARENT);
+	}
 
 	@Override
 	protected Node createContent() {
-		return new TTYContextImpl(appContext, getPrimaryStage());
+		var ttyContextImpl = new TTYContextImpl(appContext, getPrimaryStage());
+		return ttyContextImpl;
 	}
-	
+
 	@Override
 	protected void updateDarkMode() {
 		super.updateDarkMode();
@@ -126,7 +138,7 @@ public class PrettyApp extends JajaFXApp<Pretty> {
 	public void addCommonStylesheets(ObservableList<String> stylesheets) {
 		super.addCommonStylesheets(stylesheets);
 		var appResource = getClass().getResource("Pretty.css");
-		if(appResource != null) {
+		if (appResource != null) {
 			FXUtil.addIfNotAdded(stylesheets, appResource.toExternalForm());
 		}
 	}
@@ -197,7 +209,7 @@ public class PrettyApp extends JajaFXApp<Pretty> {
 				window.setOnCloseRequest(event -> window.hide());
 				dialog.showAndWait();
 			});
-			
+
 		}
 
 		@Override
@@ -244,23 +256,28 @@ public class PrettyApp extends JajaFXApp<Pretty> {
 		public URL getIcon() {
 			return PrettyApp.this.getIcon();
 		}
+
+		@Override
+		public boolean isDecorated() {
+			return PrettyApp.this.isDecorated();
+		}
 	}
 
 	final static class TTYContextImpl extends StackPane implements TTYContext {
-		
+
 		private final AppContext appContext;
 		private final Stage stage;
 
 		TTYContextImpl(AppContext appContext, Stage stage) {
-			
+
 			setId("terminal-tabs");
-			
+
 			this.appContext = appContext;
 			this.stage = stage;
 
 			this.stage.setOnCloseRequest(evt -> {
-				for(var tty : ttys()) {
-					if(!maybeClose(tty)) {
+				for (var tty : ttys()) {
+					if (!maybeClose(tty)) {
 						evt.consume();
 						return;
 					}
@@ -269,34 +286,32 @@ public class PrettyApp extends JajaFXApp<Pretty> {
 			updateStageTitle();
 			newTab();
 		}
-		
+
 		public void select(TTY tty) {
-			if(!getChildren().isEmpty()) {
+			if (!getChildren().isEmpty()) {
 				var first = getChildren().get(0);
-				if(first instanceof TTY && tty.equals(first)) {
+				if (first instanceof TTY && tty.equals(first)) {
 					return;
-				}
-				else if(first instanceof TabPane) {
-					var tabPane = (TabPane)first;
+				} else if (first instanceof TabPane) {
+					var tabPane = (TabPane) first;
 					tabPane.getSelectionModel().select(tabPane.getTabs().get(indexOf(tty)));
 					return;
 				}
 			}
 			throw new IllegalStateException();
 		}
-		
+
 		public int indexOf(TTY tty) {
-			if(!getChildren().isEmpty()) {
+			if (!getChildren().isEmpty()) {
 				var first = getChildren().get(0);
-				if(first instanceof TTY && tty.equals(first)) {
+				if (first instanceof TTY && tty.equals(first)) {
 					return 0;
-				}
-				else if(first instanceof TabPane) {
-					var tabPane = (TabPane)first;
+				} else if (first instanceof TabPane) {
+					var tabPane = (TabPane) first;
 					var index = 0;
-					for(var tab : tabPane.getTabs()) {
-						var t = (TTY)tab.getUserData();
-						if(t.equals(tty)) {
+					for (var tab : tabPane.getTabs()) {
+						var t = (TTY) tab.getUserData();
+						if (t.equals(tty)) {
 							return index;
 						}
 						index++;
@@ -305,18 +320,17 @@ public class PrettyApp extends JajaFXApp<Pretty> {
 			}
 			return -1;
 		}
-		
+
 		public List<TTY> ttys() {
-			if(getChildren().isEmpty())
+			if (getChildren().isEmpty())
 				return Collections.emptyList();
 			else {
 				var first = getChildren().get(0);
-				if(first instanceof TTY) {
-					return Arrays.asList((TTY)first);
-				}
-				else {
-					var tabPane = (TabPane)first;
-					return tabPane.getTabs().stream().map(t -> (TTY)t.getUserData()).toList();
+				if (first instanceof TTY) {
+					return Arrays.asList((TTY) first);
+				} else {
+					var tabPane = (TabPane) first;
+					return tabPane.getTabs().stream().map(t -> (TTY) t.getUserData()).toList();
 				}
 			}
 		}
@@ -331,91 +345,89 @@ public class PrettyApp extends JajaFXApp<Pretty> {
 
 			try {
 				var tty = newTty();
-				if(getChildren().isEmpty()) {
+				if (getChildren().isEmpty()) {
 					getChildren().add(tty);
-				}
-				else {
-					var first = getChildren().get(0); 
-					if(!(first instanceof TabPane)) {
-						var firstTty = (TTY)first;
+				} else {
+					var first = getChildren().get(0);
+					if (!(first instanceof TabPane)) {
+						var firstTty = (TTY) first;
 						getChildren().remove(firstTty);
 						var firstTab = new Tab(firstTty.shortTitle().get(), firstTty);
-						firstTty.shortTitle().addListener((c,o,n) -> { 
-							firstTab.setText(n); 
+						firstTty.shortTitle().addListener((c, o, n) -> {
+							firstTab.setText(n);
 							updateStageTitle();
 							// TODO remove listener on tab remove / hiding to single
-						}); 
+						});
 						firstTab.setUserData(firstTty);
-						
+
 						var tabs = new TabPane(firstTab);
 						tabs.setTabDragPolicy(TabDragPolicy.REORDER);
-						var hndl = getContainer().getConfiguration().bindEnum(Side.class, tabs::setSide, tabs::getSide, "tabs", Options.TERMINAL_SECTION);
+						var hndl = getContainer().getConfiguration().bindEnum(Side.class, tabs::setSide, tabs::getSide,
+								"tabs", Options.TERMINAL_SECTION);
 						tabs.setUserData(hndl);
 						getChildren().add(tabs);
-						
-						tabs.getSelectionModel().selectedItemProperty().addListener((c,o,n) ->  {
-							var selTty = (TTY)n.getUserData();
+
+						tabs.getSelectionModel().selectedItemProperty().addListener((c, o, n) -> {
+							var selTty = (TTY) n.getUserData();
 							updateStageTitle();
 							runLater(() -> selTty.terminal().focusTerminal());
 						});
 						first = tabs;
 					}
-					
+
 					var newTab = new Tab(tty.shortTitle().get(), tty);
 					newTab.setOnCloseRequest(evt -> {
-						if(!maybeClose(tty)) {
+						if (!maybeClose(tty)) {
 							evt.consume();
 							return;
 						}
 					});
-					tty.shortTitle().addListener((c,o,n) -> { 
-						newTab.setText(n); 
+					tty.shortTitle().addListener((c, o, n) -> {
+						newTab.setText(n);
 						updateStageTitle();
 						// TODO remove listener on tab remove / hiding to single
-					}); 
+					});
 					newTab.setUserData(tty);
-					
-					var tabPane = (TabPane)first;
+
+					var tabPane = (TabPane) first;
 					tabPane.getTabs().add(newTab);
 					tabPane.getSelectionModel().select(newTab);
 				}
 				updateStageTitle();
-			}
-			catch(Exception e) {
+			} catch (Exception e) {
 				LOG.error("Failed to add tab.", e);
 			}
 		}
 
 		@Override
 		public void newWindow() {
-			var stage =new Stage(StageStyle.DECORATED);
+			var stage = new Stage(StageStyle.DECORATED);
 			stage.getIcons().add(new Image(appContext.getIcon().toExternalForm()));
-			
+
 			var ttyContext = new TTYContextImpl(appContext, stage);
 			var scene = new Scene(ttyContext);
 			stage.setScene(scene);
 			appContext.addCommonStylesheets(scene.getStylesheets());
-			
 
 			var jMetro = new JMetro(appContext.isDarkMode() ? Style.DARK : Style.LIGHT);
 			appContext.updateDarkMode(jMetro, ttyContext);
 			jMetro.setScene(scene);
-			
+
 			stage.sizeToScene();
 			stage.show();
 		}
 
 		private boolean maybeClose(TTY tty) {
 			var canClose = tty.canClose();
-			if(canClose.isPresent()) {
+			if (canClose.isPresent()) {
 				select(tty);
-				
+
 				var alert = new Alert(AlertType.CONFIRMATION);
 				alert.initOwner(stage);
 				alert.setTitle(RESOURCES.getString("closeTitle"));
 				alert.setHeaderText(canClose.get());
 				alert.setContentText(RESOURCES.getString("closeText"));
-				
+
 				var close = new ButtonType(RESOURCES.getString("close"));
 				var cancel = new ButtonType(RESOURCES.getString("cancel"), ButtonData.CANCEL_CLOSE);
 
@@ -423,17 +435,16 @@ public class PrettyApp extends JajaFXApp<Pretty> {
 
 				var result = alert.showAndWait();
 				if (result.get() == close) {
-				    tty.close();
+					tty.close();
 				} else {
 					return false;
 				}
-			}
-			else {
-			    tty.close();
+			} else {
+				tty.close();
 			}
 			return true;
 		}
-		
+
 		private void updateStageTitle() {
 			activeTty().ifPresentOrElse(tty -> {
 				stage.setTitle(tty.title().get());
@@ -441,50 +452,48 @@ public class PrettyApp extends JajaFXApp<Pretty> {
 				stage.setTitle(RESOURCES.getString("title"));
 			});
 		}
-		
+
 		private Optional<TTY> activeTty() {
-			if(getChildren().isEmpty())
+			if (getChildren().isEmpty())
 				return Optional.empty();
 			else {
 				var first = getChildren().get(0);
-				if(first instanceof TTY) {
-					return Optional.of((TTY)first);
-				}
-				else {
-					var tabPane = (TabPane)first;
+				if (first instanceof TTY) {
+					return Optional.of((TTY) first);
+				} else {
+					var tabPane = (TabPane) first;
 					var sel = tabPane.getSelectionModel().getSelectedItem();
-					var tty = (TTY)sel.getUserData();
+					var tty = (TTY) sel.getUserData();
 					return Optional.of(tty);
 				}
 			}
 		}
-		
+
 		private void closeTty(TTY tty) {
 			/* TODO remove listeners */
 			maybeQueue(() -> {
 				var ttys = ttys();
 				var idx = ttys.indexOf(tty);
-				if(idx > -1) {
+				if (idx > -1) {
 					var first = getChildren().get(0);
-					if(getChildren().size() == 1) {
-						if(first instanceof TabPane) {
-							/* Now just a single tab, switch back to adding the tty directly
-							 * to the frames stack
+					if (getChildren().size() == 1) {
+						if (first instanceof TabPane) {
+							/*
+							 * Now just a single tab, switch back to adding the tty directly to the frames
+							 * stack
 							 */
-							var tabPane = (TabPane)first;
-							((Handle)tabPane.getUserData()).close();
+							var tabPane = (TabPane) first;
+							((Handle) tabPane.getUserData()).close();
 							var firstTab = tabPane.getTabs().get(0);
 							getChildren().remove(first);
-							getChildren().add((TTY)firstTab.getUserData());
-						}
-						else {
+							getChildren().add((TTY) firstTab.getUserData());
+						} else {
 							stage.close();
 						}
-					}
-					else {
-						var tabPane = (TabPane)first;
+					} else {
+						var tabPane = (TabPane) first;
 						var tab = tabPane.getTabs().get(idx);
-						tabPane.getTabs().remove(tab);					
+						tabPane.getTabs().remove(tab);
 					}
 					updateStageTitle();
 				}
@@ -494,10 +503,9 @@ public class PrettyApp extends JajaFXApp<Pretty> {
 		private TTY newTty() {
 			var tty = new TTY(this, this::closeTty);
 			// TODO remove listener on tab remove / hiding to single
-			tty.title().addListener((c,o,n) -> updateStageTitle());
+			tty.title().addListener((c, o, n) -> updateStageTitle());
 			return tty;
 		}
-
 
 		@Override
 		public Stage stage() {

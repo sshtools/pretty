@@ -57,7 +57,7 @@ public class Options extends StackPane implements Closeable {
 	private final PrefBind prefBind;
 	private final Preferences prefs;
 
-	private BooleanProperty scrollBarProperty;
+//	private BooleanProperty scrollBarProperty;
 
 	private IntegerProperty bufferSizeProperty;
 
@@ -162,8 +162,8 @@ public class Options extends StackPane implements Closeable {
 		bufferSize.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, Integer.MAX_VALUE, bufferSizeProperty.get()));
 		bufferSizeProperty.bind(IntegerProperty.integerProperty(bufferSize.getValueFactory().valueProperty()));
 		
-		scrollBarProperty = cfg.getBooleanProperty("scroll-bar", TERMINAL_SECTION);
-		scrollBarProperty.bind(showScrollBar.selectedProperty());
+//		scrollBarProperty = cfg.getBooleanProperty("scroll-bar", TERMINAL_SECTION);
+//		scrollBarProperty.bind(showScrollBar.selectedProperty());
 		
 		screenSize.getItems().addAll("80x24", "132x24", "80x25");
 		screenSize.getSelectionModel().select("80x24");
@@ -184,7 +184,7 @@ public class Options extends StackPane implements Closeable {
 	public void close() {
 		fontSizeProperty.unbind();
 		bufferSizeProperty.unbind();
-		scrollBarProperty.unbind();
+//		scrollBarProperty.unbind();
 		prefBind.close();
 	}
 

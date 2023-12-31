@@ -42,4 +42,6 @@ public interface AppContext {
 	URL getIcon();
 
 	void addCommonStylesheets(ObservableList<String> stylesheets);
+
+	boolean isDecorated();
 }
