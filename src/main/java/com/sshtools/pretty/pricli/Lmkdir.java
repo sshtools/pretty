@@ -8,7 +8,12 @@ import java.util.ResourceBundle;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Parameters;
 
-@Command(name = "lmkdir", usageHelpAutoWidth = true, mixinStandardHelpOptions = true, description = "Create local directory")
+@Command(name = "lmkdir",
+         aliases = { "lmd" },
+         footer = "%nAliases: lmd",
+         usageHelpAutoWidth = true, 
+         mixinStandardHelpOptions = true, 
+         description = "Create local directory")
 public class Lmkdir extends LocalFileCommand {
 	final static ResourceBundle RESOURCES = ResourceBundle.getBundle(Lmkdir.class.getName());
 

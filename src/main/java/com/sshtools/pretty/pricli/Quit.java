@@ -11,7 +11,12 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.ParentCommand;
 
-@Command(name = "quit", aliases = {"q"}, usageHelpAutoWidth = true, mixinStandardHelpOptions = true, description = "Quit all terminals.")
+@Command(name = "quit", 
+         aliases = {"q"},
+         footer = "%nAliases: q",
+         usageHelpAutoWidth = true, 
+         mixinStandardHelpOptions = true, 
+         description = "Quit all terminals.")
 public class Quit implements Callable<Integer> {
 
 	final static ResourceBundle RESOURCES = ResourceBundle.getBundle(Quit.class.getName());

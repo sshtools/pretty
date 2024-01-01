@@ -16,7 +16,6 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.stream.StreamSupport;
 
-import com.sshtools.common.permissions.PermissionDeniedException;
 import com.sshtools.common.sftp.SftpStatusException;
 import com.sshtools.common.ssh.SshException;
 import com.sshtools.common.util.Utils;
@@ -25,7 +24,10 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
-@Command(name = "lls", usageHelpAutoWidth = true, mixinStandardHelpOptions = true, description = "List directory")
+@Command(name = "lls",
+         usageHelpAutoWidth = true, 
+         mixinStandardHelpOptions = true, 
+         description = "List directory")
 public class Lls extends LocalFileCommand {
 
 	static final String SftpLongnameDateFormat = "MMM dd  yyyy";

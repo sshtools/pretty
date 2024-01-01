@@ -14,12 +14,17 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 import picocli.CommandLine.ParentCommand;
 
-@Command(name = "charmap", aliases = {"cm"}, usageHelpAutoWidth = true, mixinStandardHelpOptions = true, description = "Displays ranges of characters.")
+@Command(name = "charmap", 
+         aliases = {"cm"},
+         footer = "%nAliases: cm",
+         usageHelpAutoWidth = true, 
+         mixinStandardHelpOptions = true, 
+         description = "Displays ranges of characters.")
 public class Charmap implements Callable<Integer> {
 	final static ResourceBundle RESOURCES = ResourceBundle.getBundle(Charmap.class.getName());
 
 	@ParentCommand
-	private PricliCommands parent;
+	private DebugCommands parent;
 	
 	@Option(names = {"-d", "--decimal"}, description="Show decimal codes instead of hex.")
 	private boolean decimal;

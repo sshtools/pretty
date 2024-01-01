@@ -23,8 +23,12 @@ import purejavacomm.CommPortIdentifier;
 import purejavacomm.SerialPort;
 import purejavacomm.UnsupportedCommOperationException;
 
-@Command(name = "serial", aliases = {
-		"se" }, usageHelpAutoWidth = true, mixinStandardHelpOptions = true, description = "Connect to serial devices.",
+@Command(name = "serial", 
+         aliases = { "se" },
+         footer = "%nAliases: se",
+         usageHelpAutoWidth = true, 
+         mixinStandardHelpOptions = true, 
+         description = "Connect to serial devices.",
 				subcommands = { 
 						Serial.Ports.class, 
 						Serial.Connect.class, 
@@ -197,7 +201,7 @@ public class Serial implements Callable<Integer> {
 	private Optional<String> port;
 
 	@ParentCommand
-	private PricliCommands parent;
+	private ConnectionCommands parent;
 
 	private Optional<SerialProtocol> active = Optional.empty();
 	

@@ -87,7 +87,6 @@ public final class Pricli {
 	private BooleanProperty visible = new SimpleBooleanProperty(false);
 	private final SystemRegistryImpl systemRegistry;
 	private final ExceptionHandler exceptionHandler;
-	private final CommandLine cmd;
 	private final static Path cwd = Paths.get(System.getProperty("user.dir"));
 	private final Terminal jline;
 	private final LineReader reader;
@@ -210,13 +209,18 @@ public final class Pricli {
 		exceptionHandler = new ExceptionHandler(jline, verboseExceptions);
 
 		factory = new PicocliCommandsFactory();
-		cmd = newCommand(new PricliCommands(ttyContext, this, tty));
+		var cmd = newCommand(new PricliCommands(ttyContext, this, tty));
 		var picocliCommands = new PicocliCommandRegistry(cmd);
-		picocliCommands.name(RESOURCES.getString("terminal"));
+		picocliCommands.name(RESOURCES.getString("app"));
 
 		systemRegistry = new SystemRegistryImpl(parser, jline, Pricli::getCwd, null);
-		systemRegistry.setCommandRegistries(picocliCommands);
 		systemRegistry.addCompleter(new Completers.FileNameCompleter());
+		addCommandRegistry(picocliCommands);
+		registry(RESOURCES.getString("ui"), new UICommands(ttyContext, this, tty));
+		registry(RESOURCES.getString("localFileSystem"), new LocalFileSystemCommands(ttyContext, this, tty));
+		registry(RESOURCES.getString("connections"), new ConnectionCommands(ttyContext, this, tty));
+		registry(RESOURCES.getString("terminal"), new TerminalCommands(ttyContext, this, tty));
+		registry(RESOURCES.getString("debug"), new DebugCommands(ttyContext, this, tty));
 
 		reader = LineReaderBuilder.builder().
 				completer(systemRegistry.completer()).
@@ -246,10 +250,6 @@ public final class Pricli {
 	public void addCommandRegistry(CommandRegistry registry) {
 		this.commandRegistries.add(registry);
 		systemRegistry.setCommandRegistries(this.commandRegistries.toArray(new CommandRegistry[0]));
-	}
-	
-	public CommandLine commandLine() {
-		return cmd;
 	}
 	
 	public boolean isVerboseExceptions() {
@@ -441,7 +441,7 @@ public final class Pricli {
 	}
 	
 	public void printException(Exception e) {
-		printException(null, e, cmd);
+		printException(null, e, null);
 	}
 	
 	public void printError(String message) {
@@ -449,7 +449,7 @@ public final class Pricli {
 	}
 	
 	public void printException(String message, Exception e) {
-		printException(message, e, cmd);
+		printException(message, e, null);
 	}
 	
 	public void printException(String message, Exception e, CommandLine cmd) {
@@ -469,6 +469,13 @@ public final class Pricli {
 
 	public static Path getCwd() {
 		return cwd;
+	}
+	
+	public PicocliCommandRegistry registry(String name, Object command) {
+		var registry = new PicocliCommandRegistry(newCommand(command));
+		registry.name(name);
+		addCommandRegistry(registry);
+		return registry;
 	}
 	
 	private void updateHeight() {
@@ -523,7 +530,7 @@ public final class Pricli {
 		}
 	}
 
-	public CommandLine newCommand(Object command) {
+	private CommandLine newCommand(Object command) {
 		var wtr = jline.writer();
 
 		var cmd = new CommandLine(command, factory);

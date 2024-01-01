@@ -5,11 +5,16 @@ import java.util.concurrent.Callable;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.ParentCommand;
 
-@Command(name = "clear-screen", aliases = {"cls"}, usageHelpAutoWidth = true, mixinStandardHelpOptions = true, description = "Clear the terminal screen.")
-public class ClearScreen implements Callable<Integer> {
+@Command(name = "clear-terminal", 
+         aliases = { "cls", "ct" },
+         footer = "%nAliases: cls, ct",
+         usageHelpAutoWidth = true, 
+         mixinStandardHelpOptions = true, 
+         description = "Clear the terminal screen.")
+public class ClearTerminal implements Callable<Integer> {
 	
 	@ParentCommand
-	private PricliCommands parent;
+	private TerminalCommands parent;
 	
 	@Override
 	public Integer call() throws Exception {

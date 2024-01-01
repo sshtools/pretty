@@ -18,7 +18,10 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Parameters;
 import picocli.CommandLine.ParentCommand;
 
-@Command(name = "features", usageHelpAutoWidth = true, mixinStandardHelpOptions = true, description = "Shows boolean terminal features.")
+@Command(name = "features", 
+         usageHelpAutoWidth = true, 
+         mixinStandardHelpOptions = true, 
+         description = "Shows boolean terminal features.")
 public class Features implements Callable<Integer> {
 	final static ResourceBundle RESOURCES = ResourceBundle.getBundle(Features.class.getName());
 
@@ -29,7 +32,7 @@ public class Features implements Callable<Integer> {
 	private Optional<String> state;
 
 	@ParentCommand
-	private PricliCommands parent;
+	private DebugCommands parent;
 
 	@Override
 	public Integer call() throws Exception {

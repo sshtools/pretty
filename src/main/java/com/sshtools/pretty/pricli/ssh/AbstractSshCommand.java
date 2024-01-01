@@ -13,7 +13,7 @@ import com.sshtools.common.logger.Log.Level;
 import com.sshtools.common.sftp.SftpStatusException;
 import com.sshtools.common.ssh.SecurityLevel;
 import com.sshtools.common.ssh.SshException;
-import com.sshtools.pretty.pricli.PricliCommands;
+import com.sshtools.pretty.pricli.ConnectionCommands;
 import com.sshtools.pretty.pricli.Styling;
 import com.sshtools.pretty.ssh.SshConnector;
 import com.sshtools.pretty.ssh.SshInstance;
@@ -68,7 +68,7 @@ public abstract class AbstractSshCommand implements Callable<Integer> {
 	Optional<String> publicKeyAlgortithm;
 
 	@ParentCommand
-	private PricliCommands parent;
+	protected ConnectionCommands parent;
 
 	private SshConnector connector;
 

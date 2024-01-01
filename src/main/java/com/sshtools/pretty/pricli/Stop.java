@@ -6,13 +6,17 @@ import java.util.concurrent.Callable;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.ParentCommand;
 
-@Command(name = "stop", aliases = {
-		"sr" }, usageHelpAutoWidth = true, mixinStandardHelpOptions = true, description = "Stop recording.")
+@Command(name = "stop", 
+        aliases = { "sr" },
+        footer = "%nAliases: sr",
+        usageHelpAutoWidth = true, 
+        mixinStandardHelpOptions = true, 
+        description = "Stop recording.")
 public class Stop implements Callable<Integer> {
 	final static ResourceBundle RESOURCES = ResourceBundle.getBundle(Stop.class.getName());
 
 	@ParentCommand
-	private PricliCommands parent;
+	private TerminalCommands parent;
 
 	@Override
 	public Integer call() throws Exception {

@@ -5,7 +5,10 @@ import java.util.ResourceBundle;
 
 import picocli.CommandLine.Command;
 
-@Command(name = "lpwd", usageHelpAutoWidth = true, mixinStandardHelpOptions = true, description = "Display current local directory")
+@Command(name = "lpwd", 
+         usageHelpAutoWidth = true, 
+         mixinStandardHelpOptions = true, 
+         description = "Display current local directory")
 public class Lpwd extends LocalFileCommand {
 	final static ResourceBundle RESOURCES = ResourceBundle.getBundle(Lpwd.class.getName());
 

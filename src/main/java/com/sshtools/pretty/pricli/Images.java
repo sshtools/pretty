@@ -11,12 +11,17 @@ import com.sshtools.common.util.IOUtils;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.ParentCommand;
 
-@Command(name = "images", aliases = {"imgs"}, usageHelpAutoWidth = true, mixinStandardHelpOptions = true, description = "Shows the status of the image cache.")
+@Command(name = "images", 
+         aliases = {"imgs"},
+         footer = "%nAliases: imgs",
+         usageHelpAutoWidth = true, 
+         mixinStandardHelpOptions = true, 
+         description = "Shows the status of the image cache.")
 public class Images implements Callable<Integer> {
 	final static ResourceBundle RESOURCES = ResourceBundle.getBundle(Images.class.getName());
 
 	@ParentCommand
-	private PricliCommands parent;
+	private DebugCommands parent;
 	
 	@Override
 	public Integer call() throws Exception {

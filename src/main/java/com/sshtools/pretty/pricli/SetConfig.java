@@ -16,7 +16,10 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 import picocli.CommandLine.ParentCommand;
 
-@Command(name = "set",commandListHeading = "CLIST",  usageHelpAutoWidth = true, mixinStandardHelpOptions = true, description = "Set values in the configuration file.")
+@Command(name = "set",
+         usageHelpAutoWidth = true, 
+         mixinStandardHelpOptions = true, 
+         description = "Set values in the configuration file.")
 public class SetConfig implements Callable<Integer> {
 	
 	@Option(names = {"-s", "--section"}, paramLabel = "SECTION", description="The section under which to store the item. Nested sections are access using a dot notation, e.g. ssh.ciphers")

@@ -19,12 +19,17 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Parameters;
 import picocli.CommandLine.ParentCommand;
 
-@Command(name = "fonts", aliases = {"f"}, usageHelpAutoWidth = true, mixinStandardHelpOptions = true, description = "Show current fonts.")
+@Command(name = "fonts", 
+         aliases = {"f"},
+         footer = "%nAliases: f",
+         usageHelpAutoWidth = true, 
+         mixinStandardHelpOptions = true, 
+         description = "Show current fonts.")
 public class Fonts implements Callable<Integer> {
 	final static ResourceBundle RESOURCES = ResourceBundle.getBundle(Fonts.class.getName());
 
 	@ParentCommand
-	private PricliCommands parent;
+	private DebugCommands parent;
 	
 	@Parameters(index = "0", arity="0..1", paramLabel="NAME_OR_NUMBER", description = "Name or number of soft font to show.")
 	private Optional<String> name;

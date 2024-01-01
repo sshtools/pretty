@@ -5,7 +5,10 @@ import java.nio.file.Path;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Parameters;
 
-@Command(name = "lcd", usageHelpAutoWidth = true, mixinStandardHelpOptions = true, description = "Change local directory")
+@Command(name = "lcd",
+         usageHelpAutoWidth = true, 
+         mixinStandardHelpOptions = true, 
+         description = "Change local directory")
 public class Lcd extends LocalFileCommand {
 
 	@Parameters(index = "0", arity="1", paramLabel="PATH", description = "change directory to PATH", defaultValue = ".")

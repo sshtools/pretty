@@ -12,12 +12,16 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 import picocli.CommandLine.ParentCommand;
 
-@Command(name = "console", aliases = {
-		"co" }, usageHelpAutoWidth = true, mixinStandardHelpOptions = true, description = "Connect to a native shell.")
+@Command(name = "console", 
+		 aliases = { "co" }, 
+		 footer = "%nAliases: co",
+		 usageHelpAutoWidth = true, 
+		 mixinStandardHelpOptions = true, 
+		 description = "Connect to a native shell.")
 public final class Console implements Callable<Integer> {
 
 	@ParentCommand
-	private PricliCommands parent;
+	private ConnectionCommands parent;
 
 	@Option(names = { "-H",
 			"--no-pop" }, paramLabel = "NUMBER", description = "Do not automatically return to the terminal on successful connection.")

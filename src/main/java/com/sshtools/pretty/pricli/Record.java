@@ -11,8 +11,12 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 import picocli.CommandLine.ParentCommand;
 
-@Command(name = "record", aliases = {
-		"rec" }, usageHelpAutoWidth = true, mixinStandardHelpOptions = true, description = "Record all sequences received to a file.")
+@Command(name = "record",
+         aliases = {"rec" },
+         footer = "%nAliases: rec", 
+         usageHelpAutoWidth = true, 
+         mixinStandardHelpOptions = true, 
+         description = "Record all sequences received to a file.")
 public class Record implements Callable<Integer> {
 	final static ResourceBundle RESOURCES = ResourceBundle.getBundle(Record.class.getName());
 
@@ -23,7 +27,7 @@ public class Record implements Callable<Integer> {
 	private Path path;
 
 	@ParentCommand
-	private PricliCommands parent;
+	private TerminalCommands parent;
 
 	@Override
 	public Integer call() throws Exception {

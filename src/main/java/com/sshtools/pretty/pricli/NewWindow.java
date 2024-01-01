@@ -7,10 +7,15 @@ import java.util.concurrent.Callable;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.ParentCommand;
 
-@Command(name = "new-window", aliases = { "nw" }, usageHelpAutoWidth = true, mixinStandardHelpOptions = true, description = "Open a new window.")
+@Command(name = "new-window",
+         aliases = { "nw" },
+         footer = "%nAliases: nw",
+         usageHelpAutoWidth = true, 
+         mixinStandardHelpOptions = true, 
+         description = "Open a new window.")
 public class NewWindow implements Callable<Integer> {
 	@ParentCommand
-	private PricliCommands parent;
+	private UICommands parent;
 
 	@Override
 	public Integer call() throws Exception {

@@ -17,7 +17,10 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 import picocli.CommandLine.ParentCommand;
 
-@Command(name = "show", usageHelpAutoWidth = true, mixinStandardHelpOptions = true, description = "Shows configuration.")
+@Command(name = "show",
+         usageHelpAutoWidth = true, 
+         mixinStandardHelpOptions = true, 
+         description = "Shows configuration.")
 public class Show implements Callable<Integer> {
 	
 	@Option(names = {"-s", "--section"}, paramLabel = "SECTION", description="The section under which to store the item. Nested sections are access using a dot notation, e.g. ssh.ciphers")

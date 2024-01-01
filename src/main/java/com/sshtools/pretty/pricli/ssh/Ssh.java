@@ -9,7 +9,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.sshtools.client.tasks.ShellTask;
 import com.sshtools.pretty.pricli.PicocliCommandRegistry;
-import com.sshtools.pretty.pricli.PricliCommands;
 import com.sshtools.pretty.pricli.Styling;
 import com.sshtools.pretty.ssh.SshConnector;
 import com.sshtools.pretty.ssh.SshConnector.Builder;
@@ -18,9 +17,11 @@ import com.sshtools.pretty.ssh.SshProtocol;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
-import picocli.CommandLine.ParentCommand;
 
-@Command(name = "ssh", usageHelpAutoWidth = true, mixinStandardHelpOptions = true, description = "Make SSH connection to remote host.")
+@Command(name = "ssh", 
+         usageHelpAutoWidth = true, 
+         mixinStandardHelpOptions = true, 
+         description = "Make SSH connection to remote host.")
 public class Ssh extends AbstractSshCommand {
 	final static ResourceBundle RESOURCES = ResourceBundle.getBundle(Ssh.class.getName());
 
@@ -34,9 +35,6 @@ public class Ssh extends AbstractSshCommand {
 
 	@Parameters(index = "0", arity = "1", paramLabel = "DESTINATION", description = "Destination")
 	private String destination;
-
-	@ParentCommand
-	private PricliCommands parent;
 
 	private String hostname = "localhost";
 	private String username = System.getProperty("user.name");
@@ -127,14 +125,10 @@ public class Ssh extends AbstractSshCommand {
 	
 	private void deregisterCommands() {
 		parent.cli().removeCommandRegistry(registry);
-		parent.cli().commandLine().addSubcommand(this);
 	}
 	
 	private void registerCommands() {
-		var cmd = parent.cli().newCommand(new SshCommands(this, parent.cli()));
-		registry = new PicocliCommandRegistry(cmd);
-		registry.name(RESOURCES.getString("ssh"));
-		parent.cli().addCommandRegistry(registry);
+		registry = parent.cli().registry(RESOURCES.getString("ssh"), new SshCommands(this, parent.cli()));
 	}
 
 }

@@ -15,7 +15,12 @@ import com.sshtools.pretty.Pretty;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.ParentCommand;
 
-@Command(name = "about", aliases = {"ab"}, usageHelpAutoWidth = true, mixinStandardHelpOptions = true, description = "Show information about Pretty.")
+@Command(name = "about", 
+         aliases = {"ab"},
+         footer = "%nAliases: ab",
+         usageHelpAutoWidth = true, 
+         mixinStandardHelpOptions = true, 
+         description = "Show information about Pretty.")
 public class About implements Callable<Integer> {
 	final static ResourceBundle RESOURCES = ResourceBundle.getBundle(About.class.getName());
 	

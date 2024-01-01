@@ -13,11 +13,17 @@ import javafx.application.Platform;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.ParentCommand;
 
-@Command(name = "debug", aliases = {"d"}, usageHelpAutoWidth = true, mixinStandardHelpOptions = true, description = "Debug actions.", subcommands = {Debug.Pack.class, Debug.Emulator.class})
+@Command(name = "debug", 
+         aliases = {"d"},
+         footer = "%nAliases: d",
+         usageHelpAutoWidth = true, 
+         mixinStandardHelpOptions = true, 
+         description = "Debug actions.", 
+         subcommands = {Debug.Pack.class, Debug.Emulator.class})
 public class Debug implements Callable<Integer> {
 
 	@ParentCommand
-	private PricliCommands parent;
+	private DebugCommands parent;
 
 	@Override
 	public Integer call() throws Exception {

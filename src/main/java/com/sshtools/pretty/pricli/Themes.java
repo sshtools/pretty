@@ -9,12 +9,17 @@ import org.jline.utils.AttributedStyle;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.ParentCommand;
 
-@Command(name = "themes", aliases = {"ts"}, usageHelpAutoWidth = true, mixinStandardHelpOptions = true, description = "Show terminal themes.")
+@Command(name = "themes", 
+         aliases = {"ts"},
+         footer = "%nAliases: ts",
+         usageHelpAutoWidth = true, 
+         mixinStandardHelpOptions = true, 
+         description = "Show terminal themes.")
 public class Themes implements Callable<Integer> {
 	final static ResourceBundle RESOURCES = ResourceBundle.getBundle(Themes.class.getName());
 
 	@ParentCommand
-	private PricliCommands parent;
+	private TerminalCommands parent;
 	
 	@Override
 	public Integer call() throws Exception {

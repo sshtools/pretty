@@ -8,14 +8,18 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.ParentCommand;
 
-@Command(name = "reset", aliases = { "rst",
-		"r" }, usageHelpAutoWidth = true, mixinStandardHelpOptions = true, description = "Reset the terminal (hard or soft).")
+@Command(name = "reset", 
+         aliases = { "rst", "r" },
+         footer = "%nAliases: rst, r",
+         usageHelpAutoWidth = true, 
+         mixinStandardHelpOptions = true, 
+         description = "Reset the terminal (hard or soft).")
 public class Reset implements Callable<Integer> {
 	@Option(names = { "-h", "--hard" }, description = "Perform hard reset")
 	private boolean hard;
 
 	@ParentCommand
-	private PricliCommands parent;
+	private TerminalCommands parent;
 
 	@Override
 	public Integer call() throws Exception {

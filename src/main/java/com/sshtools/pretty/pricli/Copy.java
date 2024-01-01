@@ -12,13 +12,17 @@ import javafx.scene.input.DataFormat;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.ParentCommand;
 
-@Command(name = "copy", aliases = {
-		"c" }, usageHelpAutoWidth = true, mixinStandardHelpOptions = true, description = "Copy the selection to the system clipboard")
+@Command(name = "copy", 
+         aliases = { "c" },
+         footer = "%nAliases: c",
+         usageHelpAutoWidth = true, 
+         mixinStandardHelpOptions = true, 
+         description = "Copy the selection to the system clipboard")
 public class Copy implements Callable<Integer> {
 	final static ResourceBundle RESOURCES = ResourceBundle.getBundle(Copy.class.getName());
 
 	@ParentCommand
-	private PricliCommands parent;
+	private TerminalCommands parent;
 
 	@Override
 	public Integer call() throws Exception {
