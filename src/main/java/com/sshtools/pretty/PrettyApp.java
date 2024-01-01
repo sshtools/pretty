@@ -28,6 +28,7 @@ import com.sshtools.terminal.vt.javafx.JavaFXUIToolkit;
 
 import javafx.application.HostServices;
 import javafx.application.Platform;
+import javafx.beans.property.ObjectProperty;
 import javafx.collections.ObservableList;
 import javafx.geometry.Side;
 import javafx.scene.Node;
@@ -68,16 +69,18 @@ public class PrettyApp extends JajaFXApp<Pretty> {
 	private final JavaFXUIToolkit uiToolkit;
 	private final FontManager<Font> fontManager;
 	private final AppContextImpl appContext;
+	private final ObjectProperty<DarkMode> darkModeProperty;
 
-	private boolean optionsVisible;
+	private boolean optionsVisible; 
 
 	public PrettyApp() {
 		super(PrettyApp.class.getResource("icon.png"), RESOURCES.getString("title"), (Pretty) Pretty.getInstance());
 		uiToolkit = new JavaFXUIToolkit();
 		fontManager = new FontManager<>(uiToolkit);
 		appContext = new AppContextImpl();
-		setDefaultStandardWindowDecorations(true);
+		setDefaultStandardWindowDecorations(false);
 		setShowFrameTitle(true);
+		darkModeProperty = getContainer().getConfiguration().getEnumProperty(DarkMode.class, "dark-mode", "ui");
 		new EmojiFonts<Font>(fontManager);
 	}
 
@@ -109,7 +112,6 @@ public class PrettyApp extends JajaFXApp<Pretty> {
 		LOG.info("Configuring stage, sizing to scene");
 		stage.sizeToScene();
 		LOG.info("Configuring stage, sized to scene at {} x {}", stage.getWidth(), stage.getHeight());
-//		ScenicView.show(getPrimaryStage().getScene());
 	}
 
 	@Override
@@ -135,12 +137,22 @@ public class PrettyApp extends JajaFXApp<Pretty> {
 	}
 
 	@Override
+	protected DarkMode getDarkMode() {
+		return darkModeProperty.get();
+	}
+
+	@Override
+	protected void listenForDarkModeChanges() {
+		darkModeProperty.addListener((c,o,n) -> updateDarkMode());
+	}
+
+	@Override
 	public void addCommonStylesheets(ObservableList<String> stylesheets) {
-		super.addCommonStylesheets(stylesheets);
 		var appResource = getClass().getResource("Pretty.css");
 		if (appResource != null) {
 			FXUtil.addIfNotAdded(stylesheets, appResource.toExternalForm());
 		}
+		super.addCommonStylesheets(stylesheets);
 	}
 
 	class AppContextImpl implements AppContext {

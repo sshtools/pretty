@@ -1,5 +1,10 @@
 .root { -fx-background-color:background_color; }
 
+.tab-header-area {
+	-fx-background-color: derive(background_color, -10%);
+}
+
+/*
 .pretty .title-bar {
 	-fx-background-color:tab_pane_background_color;
 }
@@ -9,14 +14,17 @@
 }
 
 .pretty.darkMode .title-bar .ikonli-font-icon, .pretty.lightMode .title-bar .ikonli-font-icon  {
-	-fx-icon-color: text_color !important;
+	-fx-icon-color: auto !important;
 }
 
 .pretty.darkMode .title-bar .ikonli-font-icon:hover , .pretty.lightMode .title-bar .ikonli-font-icon:hover   {
-	-fx-icon-color: text_color !important;
+	-fx-icon-color: auto !important;
 }
 
 .title-label {
 	-fx-font-weight: bold;
 }
 
+
+*  
+*/
