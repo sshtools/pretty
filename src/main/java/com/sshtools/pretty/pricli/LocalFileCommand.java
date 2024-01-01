@@ -18,8 +18,10 @@ import com.sshtools.common.util.FileUtils;
 import me.tongfei.progressbar.ConsoleProgressBarConsumer;
 import me.tongfei.progressbar.InteractiveConsoleProgressBarConsumer;
 import me.tongfei.progressbar.ProgressBar;
+import picocli.CommandLine.Command;
 import picocli.CommandLine.ParentCommand;
 
+@Command
 public abstract class LocalFileCommand implements Callable<Integer> {
 
 	@ParentCommand

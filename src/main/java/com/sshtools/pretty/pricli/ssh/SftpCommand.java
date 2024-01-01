@@ -18,8 +18,10 @@ import com.sshtools.pretty.ssh.SshProtocol;
 
 import me.tongfei.progressbar.ProgressBarBuilder;
 import me.tongfei.progressbar.ProgressBarStyle;
+import picocli.CommandLine.Command;
 import picocli.CommandLine.ParentCommand;
 
+@Command
 public abstract class SftpCommand extends LocalFileCommand {
 	@ParentCommand
 	protected SshCommands parent;

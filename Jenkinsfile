@@ -29,7 +29,7 @@ pipeline {
 					 		) {
 					 		  	sh 'mvn -U -Dbuild.mediaTypes=unixInstaller,unixArchive,linuxRPM,linuxDeb ' +
 					 		  	   '-Dbuild.projectProperties=$BUILD_PROPERTIES ' +
-					 		  	   '-DbuildInstaller=true clean package'
+					 		  	   '-DbuildInstaller=true -P translate clean package'
 					 		  	
 					 		  	/* Stash installers */
 			        			stash includes: 'target/media/*', name: 'linux-pretty'
@@ -64,7 +64,7 @@ pipeline {
 					 		) {
 					 		  	bat 'mvn -U -Dinstall4j.verbose=true -Dbuild.mediaTypes=windows,windowsArchive ' +
 					 		  	    '"-Dbuild.projectProperties=%BUILD_PROPERTIES%" ' +
-				 		  	        '-DbuildInstaller=true clean package'
+				 		  	        '-DbuildInstaller=true -P translate clean package'
 					 		  	
 					 		  	/* Stash installers */
 			        			stash includes: 'target/media/*', name: 'windows-pretty'
@@ -100,7 +100,7 @@ pipeline {
 					 			// -Dinstall4j.disableNotarization=true 
 					 		  	sh 'mvn -U -Dbuild.mediaTypes=macos,macosFolder,macosFolderArchive ' +
 					 		  	   '-Dbuild.projectProperties=$BUILD_PROPERTIES ' +
-					 		  	   '-DbuildInstaller=true clean package'
+					 		  	   '-DbuildInstaller=true -P translate clean package'
 					 		  	
 					 		  	/* Stash installers */
 			        			stash includes: 'target/media/*', name: 'macos-pretty'
