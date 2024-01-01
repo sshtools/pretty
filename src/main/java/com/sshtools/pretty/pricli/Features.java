@@ -29,7 +29,7 @@ public class Features implements Callable<Integer> {
 	private Optional<String> state;
 
 	@ParentCommand
-	private Pricli.PricliCommands parent;
+	private PricliCommands parent;
 
 	@Override
 	public Integer call() throws Exception {

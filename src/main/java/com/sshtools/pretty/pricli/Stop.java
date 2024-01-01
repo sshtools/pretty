@@ -12,7 +12,7 @@ public class Stop implements Callable<Integer> {
 	final static ResourceBundle RESOURCES = ResourceBundle.getBundle(Stop.class.getName());
 
 	@ParentCommand
-	private Pricli.PricliCommands parent;
+	private PricliCommands parent;
 
 	@Override
 	public Integer call() throws Exception {

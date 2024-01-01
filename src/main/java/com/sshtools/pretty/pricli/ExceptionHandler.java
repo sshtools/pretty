@@ -14,22 +14,31 @@ import picocli.CommandLine.ParseResult;
 public class ExceptionHandler implements IExecutionExceptionHandler {
 	
 	private final Terminal terminal;
-	private final boolean verboseExceptions;
+	private boolean verboseExceptions;
 
 	public ExceptionHandler(Terminal terminal, boolean verboseExceptions) {
 		this.terminal = terminal;
 		this.verboseExceptions = verboseExceptions;
 	}
 
+	public void setVerboseExceptions(boolean verboseExceptions) {
+		this.verboseExceptions = verboseExceptions;
+	}
+
 	@Override
 	public int handleExecutionException(Exception ex, CommandLine commandLine, ParseResult parseResult)
 			throws Exception {
-		var report = new AttributedStringBuilder();
-		report.style(AttributedStyle.DEFAULT.foreground(AttributedStyle.RED));
 		var msg = ex.getMessage() == null ? "An unknown error occured." : ex.getMessage();
 		if(ex instanceof UnknownHostException) {
 			msg = MessageFormat.format("Could not resolve hostname {0}: Name or service not known.", ex.getMessage());
 		}
+		printExceptionAndMessage(ex, msg);
+		return 0;
+	}
+
+	public void printExceptionAndMessage(Exception ex, String msg) {
+		var report = new AttributedStringBuilder();
+		report.style(AttributedStyle.DEFAULT.foreground(AttributedStyle.RED));
 		report.append(msg);
 		report.style(AttributedStyle.DEFAULT.foregroundDefault());
 		if(verboseExceptions) {
@@ -76,7 +85,6 @@ public class ExceptionHandler implements IExecutionExceptionHandler {
 		}
 		report.println(terminal);
 		terminal.flush();
-		return 0;
 	}
 
 }

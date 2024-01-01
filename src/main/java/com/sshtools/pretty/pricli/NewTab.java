@@ -10,7 +10,7 @@ import picocli.CommandLine.ParentCommand;
 @Command(name = "new-tab", aliases = { "nt" }, usageHelpAutoWidth = true, mixinStandardHelpOptions = true, description = "Open a new tab.")
 public class NewTab implements Callable<Integer> {
 	@ParentCommand
-	private Pricli.PricliCommands parent;
+	private PricliCommands parent;
 
 	@Override
 	public Integer call() throws Exception {

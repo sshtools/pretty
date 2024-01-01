@@ -20,7 +20,7 @@ public class About implements Callable<Integer> {
 	final static ResourceBundle RESOURCES = ResourceBundle.getBundle(About.class.getName());
 	
 	@ParentCommand
-	private Pricli.PricliCommands parent;
+	private PricliCommands parent;
 	
 	@Override
 	public Integer call() throws Exception {

@@ -17,7 +17,7 @@ import picocli.CommandLine.ParentCommand;
 public class Debug implements Callable<Integer> {
 
 	@ParentCommand
-	private Pricli.PricliCommands parent;
+	private PricliCommands parent;
 
 	@Override
 	public Integer call() throws Exception {

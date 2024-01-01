@@ -32,7 +32,7 @@ public class SetConfig implements Callable<Integer> {
 	private Optional<String> value;
 	
 	@ParentCommand
-	private Pricli.PricliCommands parent;
+	private PricliCommands parent;
 	
 	@Override
 	public Integer call() throws Exception {

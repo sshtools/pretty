@@ -17,7 +17,7 @@ import picocli.CommandLine.ParentCommand;
 public final class Console implements Callable<Integer> {
 
 	@ParentCommand
-	private Pricli.PricliCommands parent;
+	private PricliCommands parent;
 
 	@Option(names = { "-H",
 			"--no-pop" }, paramLabel = "NUMBER", description = "Do not automatically return to the terminal on successful connection.")

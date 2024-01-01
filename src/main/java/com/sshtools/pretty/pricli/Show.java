@@ -27,7 +27,7 @@ public class Show implements Callable<Integer> {
 	private Optional<String> key;
 	
 	@ParentCommand
-	private Pricli.PricliCommands parent;
+	private PricliCommands parent;
 	
 	@Override
 	public Integer call() throws Exception {

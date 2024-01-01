@@ -20,7 +20,7 @@ public class Quit implements Callable<Integer> {
 	private boolean force;
 	
 	@ParentCommand
-	private Pricli.PricliCommands parent;
+	private PricliCommands parent;
 	
 	@Override
 	public Integer call() throws Exception {

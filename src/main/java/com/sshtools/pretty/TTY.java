@@ -404,6 +404,10 @@ public class TTY extends StackPane implements Closeable {
 		return terminalPanel;
 	}
 
+	public Stack<TerminalProtocol> protocols() {
+		return protocols;
+	}
+
 	public TerminalProtocol protocol() {
 		return protocols.isEmpty() ? null : protocols.peek();
 	}

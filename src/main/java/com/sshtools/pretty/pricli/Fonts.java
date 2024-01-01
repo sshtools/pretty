@@ -24,7 +24,7 @@ public class Fonts implements Callable<Integer> {
 	final static ResourceBundle RESOURCES = ResourceBundle.getBundle(Fonts.class.getName());
 
 	@ParentCommand
-	private Pricli.PricliCommands parent;
+	private PricliCommands parent;
 	
 	@Parameters(index = "0", arity="0..1", paramLabel="NAME_OR_NUMBER", description = "Name or number of soft font to show.")
 	private Optional<String> name;

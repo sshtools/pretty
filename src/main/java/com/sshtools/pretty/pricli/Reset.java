@@ -15,7 +15,7 @@ public class Reset implements Callable<Integer> {
 	private boolean hard;
 
 	@ParentCommand
-	private Pricli.PricliCommands parent;
+	private PricliCommands parent;
 
 	@Override
 	public Integer call() throws Exception {

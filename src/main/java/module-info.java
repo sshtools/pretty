@@ -25,5 +25,7 @@ open module com.sshtools.pretty {
 	requires transitive org.jfxtras.styles.jmetro;
 	requires transitive purejavacomm;
 	requires com.sshtools.twoslices;
+	requires com.sshtools.agent;
+	requires me.tongfei.progressbar;
 //	requires org.scenicview.scenicview;
 }

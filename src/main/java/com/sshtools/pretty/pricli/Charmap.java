@@ -19,7 +19,7 @@ public class Charmap implements Callable<Integer> {
 	final static ResourceBundle RESOURCES = ResourceBundle.getBundle(Charmap.class.getName());
 
 	@ParentCommand
-	private Pricli.PricliCommands parent;
+	private PricliCommands parent;
 	
 	@Option(names = {"-d", "--decimal"}, description="Show decimal codes instead of hex.")
 	private boolean decimal;

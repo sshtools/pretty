@@ -1,4 +1,4 @@
-package com.sshtools.pretty;
+package com.sshtools.pretty.ssh;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -15,12 +15,18 @@ import com.sshtools.client.SessionChannelNG;
 import com.sshtools.pretty.Status.Element;
 import com.sshtools.pretty.Status.Unit;
 import com.sshtools.pretty.Status.Width;
-import com.sshtools.terminal.emulation.TerminalViewport;
+import com.sshtools.pretty.Strings;
+import com.sshtools.pretty.TTY;
+import com.sshtools.pretty.TerminalProtocol;
 import com.sshtools.terminal.emulation.TerminalOutputStream;
+import com.sshtools.terminal.emulation.TerminalViewport;
 import com.sshtools.terminal.emulation.events.ResizeListener;
 import com.sshtools.terminal.vt.javafx.JavaFXTerminalPanel;
 
-public class SshProtocol implements TerminalProtocol, ResizeListener, Element {
+import uk.co.bithatch.nativeimage.annotations.Bundle;
+
+@Bundle
+public final class SshProtocol implements TerminalProtocol, ResizeListener, Element {
 
 	final static ResourceBundle RESOURCES = ResourceBundle.getBundle(SshProtocol.class.getName());
 
@@ -28,10 +34,12 @@ public class SshProtocol implements TerminalProtocol, ResizeListener, Element {
 	
 	private TTY tty;
 	private Thread thread;
-	private SessionChannelNG session;
+	private final SessionChannelNG session;
+	private final SshInstance instance;
 	
-	public SshProtocol(SessionChannelNG session) {
+	public SshProtocol(SshInstance instance, SessionChannelNG session) {
 		this.session = session;
+		this.instance = instance;
 	}
 
 	@Override
@@ -93,7 +101,6 @@ public class SshProtocol implements TerminalProtocol, ResizeListener, Element {
 	public void bufferResized(TerminalViewport terminal, int columns, int rows, boolean remote) {
 		if (!remote)
 			session.changeTerminalDimensions(columns, rows, 0, 0);
-		
 	}
 
 	@Override
@@ -144,5 +151,9 @@ public class SshProtocol implements TerminalProtocol, ResizeListener, Element {
 		bldr.append(Strings.trimPad(session.getConnection().getRemoteIdentification(), cols));
 		bldr.style(AttributedStyle.INVERSE_OFF);
 		vp.write(bldr.toAnsi().getBytes(vp.getCharacterSet()));
+	}
+
+	public SshInstance getInstance() {
+		return instance;
 	}
 }

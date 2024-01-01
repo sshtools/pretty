@@ -10,7 +10,7 @@ import picocli.CommandLine.ParentCommand;
 @Command(name = "new-window", aliases = { "nw" }, usageHelpAutoWidth = true, mixinStandardHelpOptions = true, description = "Open a new window.")
 public class NewWindow implements Callable<Integer> {
 	@ParentCommand
-	private Pricli.PricliCommands parent;
+	private PricliCommands parent;
 
 	@Override
 	public Integer call() throws Exception {

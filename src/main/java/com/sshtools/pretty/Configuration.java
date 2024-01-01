@@ -87,8 +87,10 @@ public final class Configuration {
 	private Map<String, List<IntegerProperty>> integerProperties = new HashMap<>();
 	private Map<String, List<FloatProperty>> floatProperties = new HashMap<>();
 	private Map<String, List<BooleanProperty>> booleanProperties = new HashMap<>();
+	private Path dir;
 
 	public Configuration(Path dir) {
+		this.dir = dir;
 		try (var in = Configuration.class.getResourceAsStream("Configuration.ini")) {
 			defaultConfiguration = configuredBuilder(new INIReader.Builder()).build().read(new InputStreamReader(in)).readOnly();
 		} catch (IOException ioe) {
@@ -98,6 +100,10 @@ public final class Configuration {
 		}
 		configuration = dir.resolve("pretty.ini");
 		load();
+	}
+	
+	public Path dir() {
+		return dir;
 	}
 
 	public SectionMeta create(String... path) {

@@ -197,7 +197,7 @@ public class Serial implements Callable<Integer> {
 	private Optional<String> port;
 
 	@ParentCommand
-	private Pricli.PricliCommands parent;
+	private PricliCommands parent;
 
 	private Optional<SerialProtocol> active = Optional.empty();
 	
@@ -442,6 +442,11 @@ public class Serial implements Callable<Integer> {
 					throw new IllegalStateException(MessageFormat.format(RESOURCES.getString("connectedToOther"), parent.active.get().displayName(), port));
 				}
 			}
+
+			if(parent.parent.tty().protocols().size() > 1) {
+				throw new IllegalStateException(MessageFormat.format(RESOURCES.getString("connectedToOther"), parent.parent.tty().protocol().displayName()));
+			}
+			
 			try {
 				var portId = CommPortIdentifier.getPortIdentifier(port);
 				if(portId.isCurrentlyOwned()) {

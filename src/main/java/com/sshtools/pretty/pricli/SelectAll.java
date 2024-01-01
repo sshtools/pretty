@@ -8,7 +8,7 @@ import picocli.CommandLine.ParentCommand;
 @Command(name = "select-all", aliases = {"sa"}, usageHelpAutoWidth = true, mixinStandardHelpOptions = true, description = "Select all text on the screen.")
 public class SelectAll implements Callable<Integer> {
 	@ParentCommand
-	private Pricli.PricliCommands parent;
+	private PricliCommands parent;
 	
 	@Override
 	public Integer call() throws Exception {
