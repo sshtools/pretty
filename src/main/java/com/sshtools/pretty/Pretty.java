@@ -21,7 +21,7 @@ import picocli.CommandLine.Option;
 import uk.co.bithatch.nativeimage.annotations.Bundle;
 
 @Command(name = "pretty", mixinStandardHelpOptions = true, description = "A Terminal Emulator", versionProvider = Pretty.Version.class)
-@JaulApp(id = Pretty.TOOLBOX_APP_ID, category = AppCategory.GUI, updaterId = "1111111111111111111", updatesUrl = "https://sshtools-public.s3.eu-west-1.amazonaws.com/pretty/${phase}/updates.xml")
+@JaulApp(id = Pretty.TOOLBOX_APP_ID, category = AppCategory.GUI, updaterId = "54", updatesUrl = "https://sshtools-public.s3.eu-west-1.amazonaws.com/pretty/${phase}/updates.xml")
 @Bundle
 public class Pretty extends JajaApp<PrettyApp> {
 

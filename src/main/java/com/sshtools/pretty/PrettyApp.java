@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 
 import com.sshtools.jajafx.FXUtil;
 import com.sshtools.jajafx.JajaFXApp;
+import com.sshtools.jajafx.JajaFXAppWindow;
 import com.sshtools.jaul.UpdateService;
 import com.sshtools.jini.Data.Handle;
 import com.sshtools.terminal.emulation.UIToolkit;
@@ -31,9 +32,6 @@ import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.collections.ObservableList;
 import javafx.geometry.Side;
-import javafx.scene.Node;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonBar.ButtonData;
@@ -42,15 +40,13 @@ import javafx.scene.control.Dialog;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TabPane.TabDragPolicy;
-import javafx.scene.image.Image;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import javafx.stage.Window;
 import javafx.util.Pair;
-import jfxtras.styles.jmetro.JMetro;
-import jfxtras.styles.jmetro.Style;
 import uk.co.bithatch.nativeimage.annotations.Bundle;
 import uk.co.bithatch.nativeimage.annotations.Reflectable;
 import uk.co.bithatch.nativeimage.annotations.Resource;
@@ -80,7 +76,7 @@ public class PrettyApp extends JajaFXApp<Pretty> {
 		appContext = new AppContextImpl();
 		setDefaultStandardWindowDecorations(false);
 		setShowFrameTitle(true);
-		darkModeProperty = getContainer().getConfiguration().getEnumProperty(DarkMode.class, "dark-mode", "ui");
+		darkModeProperty = getContainer().getConfiguration().getEnumProperty(DarkMode.class, Constants.DARK_MODE_KEY, Constants.UI_SECTION);
 		new EmojiFonts<Font>(fontManager);
 	}
 
@@ -90,60 +86,7 @@ public class PrettyApp extends JajaFXApp<Pretty> {
 
 	@Override
 	protected void needUpdate() {
-		maybeQueue(() -> {
-			/* TODO */
-		});
-	}
-
-	@Override
-	public void start(final Stage primaryStage) {
-		primaryStage.initStyle(StageStyle.DECORATED);
-		super.start(primaryStage);
-	}
-
-	@Override
-	protected void onStarted() {
-		/* TODO weird */
-		getPrimaryStage().sizeToScene();
-	}
-
-	@Override
-	protected void onConfigureStage(Stage stage) {
-		LOG.info("Configuring stage, sizing to scene");
-		stage.sizeToScene();
-		LOG.info("Configuring stage, sized to scene at {} x {}", stage.getWidth(), stage.getHeight());
-	}
-
-	@Override
-	protected StageStyle borderlessStageStyle() {
-		return StageStyle.TRANSPARENT;
-	}
-
-	@Override
-	protected void onScene(Scene scene) {
-		scene.getRoot().getStyleClass().add("pretty");
-		scene.setFill(Color.TRANSPARENT);
-	}
-
-	@Override
-	protected Node createContent() {
-		var ttyContextImpl = new TTYContextImpl(appContext, getPrimaryStage());
-		return ttyContextImpl;
-	}
-
-	@Override
-	protected void updateDarkMode() {
-		super.updateDarkMode();
-	}
-
-	@Override
-	protected DarkMode getDarkMode() {
-		return darkModeProperty.get();
-	}
-
-	@Override
-	protected void listenForDarkModeChanges() {
-		darkModeProperty.addListener((c,o,n) -> updateDarkMode());
+		maybeQueue(() -> getWindows().forEach(wnd -> ((PrettyAppWindow) wnd).updateUpdatesState()));
 	}
 
 	@Override
@@ -155,12 +98,64 @@ public class PrettyApp extends JajaFXApp<Pretty> {
 		super.addCommonStylesheets(stylesheets);
 	}
 
+	public AppContextImpl getAppContext() {
+		return appContext;
+	}
+
+	@Override
+	public void start(final Stage primaryStage) {
+		primaryStage.initStyle(StageStyle.DECORATED);
+		super.start(primaryStage);
+	}
+
+	@Override
+	protected void onStarted() {
+		/* TODO weird */
+		Window.getWindows().get(0).sizeToScene();
+	}
+
+	@Override
+	protected void onConfigurePrimaryStage(Stage stage) {
+		LOG.info("Configuring stage, sizing to scene");
+		stage.sizeToScene();
+		LOG.info("Configuring stage, sized to scene at {} x {}", stage.getWidth(), stage.getHeight());
+	}
+
+	@Override
+	protected TTYContextImpl createContent(Stage stage) {
+		var ttyContextImpl = new TTYContextImpl(appContext, stage);
+		return ttyContextImpl;
+	}
+
+	@Override
+	protected DarkMode getDarkMode() {
+		return darkModeProperty.get();
+	}
+
+	@Override
+	protected JajaFXAppWindow createAppWindow(Stage stage) {
+		var ctx = createContent(stage);
+		var aw = new PrettyAppWindow(stage, ctx, this);
+		ctx.setAppWindow(aw);
+		return aw;
+	}
+
+	@Override
+	protected void listenForDarkModeChanges() {
+		darkModeProperty.addListener((c,o,n) -> updateDarkMode());
+	}
+
 	class AppContextImpl implements AppContext {
 
 		private Themes themes;
 
 		AppContextImpl() {
 			themes = new Themes(this);
+		}
+
+		@Override
+		public PrettyAppWindow newAppWindow(Stage stage) {
+			return PrettyApp.this.newAppWindow(stage);
 		}
 
 		@Override
@@ -187,7 +182,7 @@ public class PrettyApp extends JajaFXApp<Pretty> {
 					var window = dialog.getDialogPane().getScene().getWindow();
 					dialog.setTitle(" ");
 					window.setOnCloseRequest(event -> window.hide());
-					applyStylesToRoot(window.getScene().getRoot());
+					PrettyApp.this.updateDarkMode(window.getScene().getRoot());
 
 					scene.setContent(options);
 					try {
@@ -211,7 +206,7 @@ public class PrettyApp extends JajaFXApp<Pretty> {
 		@Override
 		public TerminalTheme getSelectedTheme() {
 			var prefs = getContainer().getConfiguration();
-			return themes.get(prefs.get("theme", Options.TERMINAL_SECTION));
+			return themes.get(prefs.get("theme", Constants.TERMINAL_SECTION));
 		}
 
 		@Override
@@ -266,11 +261,6 @@ public class PrettyApp extends JajaFXApp<Pretty> {
 		}
 
 		@Override
-		public void updateDarkMode(JMetro jMetro, Parent parent) {
-			PrettyApp.this.updateDarkMode(jMetro, parent);
-		}
-
-		@Override
 		public URL getIcon() {
 			return PrettyApp.this.getIcon();
 		}
@@ -290,6 +280,7 @@ public class PrettyApp extends JajaFXApp<Pretty> {
 
 		private final AppContext appContext;
 		private final Stage stage;
+		private PrettyAppWindow appWindow;
 
 		TTYContextImpl(AppContext appContext, Stage stage) {
 
@@ -308,6 +299,15 @@ public class PrettyApp extends JajaFXApp<Pretty> {
 			});
 			updateStageTitle();
 			newTab();
+		}
+
+		@Override
+		public JajaFXAppWindow appWindow() {
+			return appWindow;
+		}
+
+		public void setAppWindow(PrettyAppWindow appWindow) {
+			this.appWindow = appWindow;
 		}
 
 		public void select(TTY tty) {
@@ -386,7 +386,7 @@ public class PrettyApp extends JajaFXApp<Pretty> {
 						var tabs = new TabPane(firstTab);
 						tabs.setTabDragPolicy(TabDragPolicy.REORDER);
 						var hndl = getContainer().getConfiguration().bindEnum(Side.class, tabs::setSide, tabs::getSide,
-								"tabs", Options.TERMINAL_SECTION);
+								"tabs", Constants.TERMINAL_SECTION);
 						tabs.setUserData(hndl);
 						getChildren().add(tabs);
 
@@ -424,18 +424,8 @@ public class PrettyApp extends JajaFXApp<Pretty> {
 
 		@Override
 		public void newWindow() {
-			var stage = new Stage(StageStyle.DECORATED);
-			stage.getIcons().add(new Image(appContext.getIcon().toExternalForm()));
-
-			var ttyContext = new TTYContextImpl(appContext, stage);
-			var scene = new Scene(ttyContext);
-			stage.setScene(scene);
-			appContext.addCommonStylesheets(scene.getStylesheets());
-
-			var jMetro = new JMetro(appContext.isDarkMode() ? Style.DARK : Style.LIGHT);
-			appContext.updateDarkMode(jMetro, ttyContext);
-			jMetro.setScene(scene);
-
+			var stage = new Stage();
+			appContext.newAppWindow(stage);
 			stage.sizeToScene();
 			stage.show();
 		}
@@ -476,7 +466,8 @@ public class PrettyApp extends JajaFXApp<Pretty> {
 			});
 		}
 
-		private Optional<TTY> activeTty() {
+		@Override
+		public Optional<TTY> activeTty() {
 			if (getChildren().isEmpty())
 				return Optional.empty();
 			else {

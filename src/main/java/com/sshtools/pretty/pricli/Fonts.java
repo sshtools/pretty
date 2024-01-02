@@ -10,7 +10,7 @@ import org.jline.terminal.Terminal;
 import org.jline.utils.AttributedStringBuilder;
 import org.jline.utils.AttributedStyle;
 
-import com.sshtools.pretty.Options;
+import com.sshtools.pretty.Constants;
 import com.sshtools.terminal.emulation.fonts.FontManager.ManagedFont;
 import com.sshtools.terminal.emulation.fonts.FontSpec;
 import com.sshtools.terminal.emulation.fonts.SoftFont;
@@ -67,7 +67,7 @@ public class Fonts implements Callable<Integer> {
 				mgr.move(fnt, no - 1);
 				
 				parent.ttyContext().getContainer().getConfiguration().put("fonts", mgr.getFonts(true).stream().
-						map(f -> f.spec().getName()).toList().toArray(new String[0]), Options.TERMINAL_SECTION);
+						map(f -> f.spec().getName()).toList().toArray(new String[0]), Constants.TERMINAL_SECTION);
 				
 				parent.cli().result(RESOURCES.getString("saved"));
 			}

@@ -13,6 +13,7 @@ import com.sshtools.terminal.emulation.ResizeStrategy;
 import com.sshtools.terminal.emulation.fonts.FontSpec;
 
 import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.ObjectProperty;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.CheckBox;
@@ -26,8 +27,6 @@ import uk.co.bithatch.nativeimage.annotations.Bundle;
 
 @Bundle
 public class Options extends StackPane implements Closeable {
-	public static final String TERMINAL_SECTION = "terminal";
-
 	final static ResourceBundle RESOURCES = ResourceBundle.getBundle(Options.class.getName());
 
 	@FXML
@@ -61,6 +60,8 @@ public class Options extends StackPane implements Closeable {
 	private IntegerProperty bufferSizeProperty;
 
 	private IntegerProperty fontSizeProperty;
+
+	private ObjectProperty<DarkMode> darkModeproperty;
 	
 	public Options(AppContext app) {
 		prefs = app.getPreferences();
@@ -103,7 +104,6 @@ public class Options extends StackPane implements Closeable {
 		});
 		
 		darkMode.getItems().addAll(DarkMode.values());
-		darkMode.getSelectionModel().select(DarkMode.AUTO);
 		darkMode.setConverter(new StringConverter<DarkMode>() {
 			@Override
 			public String toString(DarkMode object) {
@@ -153,13 +153,17 @@ public class Options extends StackPane implements Closeable {
 			}
 		});
 		
-		fontSizeProperty = cfg.getIntProperty("font-size", TERMINAL_SECTION);
+		fontSizeProperty = cfg.getIntProperty("font-size", Constants.TERMINAL_SECTION);
 		fontSize.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(6, 256, fontSizeProperty.get()));
 		fontSizeProperty.bind(IntegerProperty.integerProperty(fontSize.getValueFactory().valueProperty()));
 		
-		bufferSizeProperty = cfg.getIntProperty("buffer-size", TERMINAL_SECTION);
+		bufferSizeProperty = cfg.getIntProperty("buffer-size", Constants.TERMINAL_SECTION);
 		bufferSize.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, Integer.MAX_VALUE, bufferSizeProperty.get()));
 		bufferSizeProperty.bind(IntegerProperty.integerProperty(bufferSize.getValueFactory().valueProperty()));
+		
+		darkModeproperty = cfg.getEnumProperty(DarkMode.class, Constants.DARK_MODE_KEY, Constants.UI_SECTION);
+		darkMode.getSelectionModel().select(darkModeproperty.get());
+		darkModeproperty.bind(darkMode.valueProperty());
 		
 //		scrollBarProperty = cfg.getBooleanProperty("scroll-bar", TERMINAL_SECTION);
 //		scrollBarProperty.bind(showScrollBar.selectedProperty());
@@ -170,7 +174,7 @@ public class Options extends StackPane implements Closeable {
 
 		prefBind = new PrefBind(prefs);
 		prefBind.bind(automaticUpdates);
-//		prefBind.bind(Phase.class, phase);
+		prefBind.bind(Phase.class, phase);
 //		prefBind.bind(DarkMode.class, darkMode);
 //		prefBind.bind(ResizeStrategy.class, resizeStrategy);
 //		prefBind.bind(theme);
@@ -183,6 +187,7 @@ public class Options extends StackPane implements Closeable {
 	public void close() {
 		fontSizeProperty.unbind();
 		bufferSizeProperty.unbind();
+		darkModeproperty.unbind();
 //		scrollBarProperty.unbind();
 		prefBind.close();
 	}

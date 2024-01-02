@@ -112,6 +112,7 @@ public class TTY extends StackPane implements Closeable {
 
 		/* Create and configure terminal */
 		terminalPanel = new JavaFXTerminalPanel.Builder().
+				withAudioSystem(new TTYAudioSystem(this)).
 				withUiToolkit(app.getContainer().getUiToolkit()).
 				withFontManager(app.getContainer().getFontManager()).
 				withBuffer(emulator)
@@ -168,23 +169,23 @@ public class TTY extends StackPane implements Closeable {
 		
 		/* Bind to configuration */
 		handles.addAll(Arrays.asList(
-			cfg.bindEnum(ResizeStrategy.class, this::setResizeStrategy, terminalPanel::getResizeStrategy, "resize-strategy", Options.TERMINAL_SECTION),
-			cfg.bindInteger(emulator::setMaximumBufferSize, buf::getMaximumSize, "buffer-size", Options.TERMINAL_SECTION),
-			cfg.bindInteger(this::setBackgroundOpacity, this::getBackgroundOpacity, "opacity", Options.TERMINAL_SECTION),
-			cfg.bindString(emulator::setTerminalType, emulator.getTerminalType()::getId, "type", Options.TERMINAL_SECTION),  
-			cfg.bindString((nsz) -> updateAppearance(), () -> String.format("%dx%d", emulator.getColumns(), emulator.getRows()), "screen-size", Options.TERMINAL_SECTION),
-			cfg.bindInteger(this::setFontSize, terminalPanel.getFontManager().getDefault().spec()::getSize, "font-size", Options.TERMINAL_SECTION),
-			cfg.bindStrings(this::setFonts, this::getFonts, "fonts", Options.TERMINAL_SECTION),
-			cfg.bindStrings((s) -> updateFeatures(), this::getEnabledFeatures, "enabled-features", Options.TERMINAL_SECTION), 
-			cfg.bindStrings((s) -> updateFeatures(), this::getDisabledFeatures, "disabled-features", Options.TERMINAL_SECTION),
-			cfg.bindString(this::setThemeName, this::getThemeName, "theme", Options.TERMINAL_SECTION),
+			cfg.bindEnum(ResizeStrategy.class, this::setResizeStrategy, terminalPanel::getResizeStrategy, "resize-strategy", Constants.TERMINAL_SECTION),
+			cfg.bindInteger(emulator::setMaximumBufferSize, buf::getMaximumSize, "buffer-size", Constants.TERMINAL_SECTION),
+			cfg.bindInteger(this::setBackgroundOpacity, this::getBackgroundOpacity, "opacity", Constants.TERMINAL_SECTION),
+			cfg.bindString(emulator::setTerminalType, emulator.getTerminalType()::getId, "type", Constants.TERMINAL_SECTION),  
+			cfg.bindString((nsz) -> updateAppearance(), () -> String.format("%dx%d", emulator.getColumns(), emulator.getRows()), "screen-size", Constants.TERMINAL_SECTION),
+			cfg.bindInteger(this::setFontSize, terminalPanel.getFontManager().getDefault().spec()::getSize, "font-size", Constants.TERMINAL_SECTION),
+			cfg.bindStrings(this::setFonts, this::getFonts, "fonts", Constants.TERMINAL_SECTION),
+			cfg.bindStrings((s) -> updateFeatures(), this::getEnabledFeatures, "enabled-features", Constants.TERMINAL_SECTION), 
+			cfg.bindStrings((s) -> updateFeatures(), this::getDisabledFeatures, "disabled-features", Constants.TERMINAL_SECTION),
+			cfg.bindString(this::setThemeName, this::getThemeName, "theme", Constants.TERMINAL_SECTION),
 			cfg.bindBoolean((s) -> checkStatusDisplay(), this::isStatusDisplay, "enabled", STATUS_SECTION),
-			cfg.bindBoolean(emulator::setEnableScrollback, emulator::isEnableScrollback, "scroll-back", Options.TERMINAL_SECTION),
-			cfg.bindBoolean(emulator::setEnableBlinking, emulator::isEnableBlinking, "blinking", Options.TERMINAL_SECTION),
-			cfg.bindBoolean(emulator.getModes()::setCursorBlink, emulator.getModes()::isCursorBlink, "cursor-blink", Options.TERMINAL_SECTION),
-			cfg.bindEnum(CursorStyle.class, terminalPanel::setCursorStyle, terminalPanel::getCursorStyle, "cursor-style", Options.TERMINAL_SECTION),
-			cfg.bindEnum(TriState.class, this::setScrollBar, this::getScrollBar, "scroll-bar", Options.TERMINAL_SECTION),
-			cfg.bindBoolean(scroller.getNativeComponent()::setVisible, scroller.getNativeComponent()::isVisible, "scroll-bar", Options.TERMINAL_SECTION)
+			cfg.bindBoolean(emulator::setEnableScrollback, emulator::isEnableScrollback, "scroll-back", Constants.TERMINAL_SECTION),
+			cfg.bindBoolean(emulator::setEnableBlinking, emulator::isEnableBlinking, "blinking", Constants.TERMINAL_SECTION),
+			cfg.bindBoolean(emulator.getModes()::setCursorBlink, emulator.getModes()::isCursorBlink, "cursor-blink", Constants.TERMINAL_SECTION),
+			cfg.bindEnum(CursorStyle.class, terminalPanel::setCursorStyle, terminalPanel::getCursorStyle, "cursor-style", Constants.TERMINAL_SECTION),
+			cfg.bindEnum(TriState.class, this::setScrollBar, this::getScrollBar, "scroll-bar", Constants.TERMINAL_SECTION),
+			cfg.bindBoolean(scroller.getNativeComponent()::setVisible, scroller.getNativeComponent()::isVisible, "scroll-bar", Constants.TERMINAL_SECTION)
 		));
 
 		getChildren().add(scrollPane);
@@ -214,7 +215,7 @@ public class TTY extends StackPane implements Closeable {
 				ke.consume();
 			}
 			else if(ke.isAltDown() && ke.getCharacter().equals("/")) {
-				togglePricli();
+				showPricli();
 				ke.consume();
 			}
 		});
@@ -342,11 +343,31 @@ public class TTY extends StackPane implements Closeable {
 		return scrollPane.getBottom() != null && scrollPane.getBottom().isVisible();
 	}
 
-	private void togglePricli() {
-		if(pricli == null)
-			pricli = new Pricli(this);
+	void togglePricli() {
+		if(pricli == null || !pricli.showing()) {
+			showPricli();
+		}
 		else 
-			pricli.show();
+			hidePricli();
+	}
+
+	public void hidePricli() {
+		if(pricli != null && pricli.showing()) {
+			pricli.hide();
+		}
+	}
+	
+	public Pricli cli() {
+		if(pricli == null) {
+			pricli = new Pricli(this);
+		}
+		return pricli;
+	}
+	
+	public void showPricli() {
+		if(pricli == null || !pricli.showing()) {
+			cli().show();
+		}
 	}
 	
 	public Map<String, String> environment() {
@@ -459,10 +480,10 @@ public class TTY extends StackPane implements Closeable {
 		
 		vp.resetFeatures();
 		vp.enable(Arrays.asList(
-				cfg.getAll("enabled-features", Options.TERMINAL_SECTION)).
+				cfg.getAll("enabled-features", Constants.TERMINAL_SECTION)).
 				stream().map(fn->Feature.Registry.get().get(fn)).filter(Optional::isPresent).map(Optional::get).toList().toArray(new Feature[0]));
 		vp.disable(Arrays.asList(
-				cfg.getAll("disabled-features", Options.TERMINAL_SECTION)).
+				cfg.getAll("disabled-features", Constants.TERMINAL_SECTION)).
 				stream().map(fn->Feature.Registry.get().get(fn)).filter(Optional::isPresent).map(Optional::get).toList().toArray(new Feature[0]));
 	}
 	
@@ -499,7 +520,7 @@ public class TTY extends StackPane implements Closeable {
 	private void updateFont() {
 		var fnt = terminalPanel.getFontManager().getFonts(false).stream().findFirst().orElseThrow(()-> new IllegalStateException("No primary fonts selected."));
 		try {
-			terminalPanel.setTerminalFont(new FontSpec(fnt.spec().getName(), app.getContainer().getConfiguration().getInt("font-size", Options.TERMINAL_SECTION)));
+			terminalPanel.setTerminalFont(new FontSpec(fnt.spec().getName(), app.getContainer().getConfiguration().getInt("font-size", Constants.TERMINAL_SECTION)));
 		} catch (Exception e) {
 			LOG.warn("Failed to set font.", e);
 		}
@@ -628,7 +649,7 @@ public class TTY extends StackPane implements Closeable {
 			about(); 
 		});
 		
-		return new TerminalMenu(terminalPanel, Arrays.asList(newTab, newWindow, new SeparatorMenuItem()), this::togglePricli, options, about).menu();
+		return new TerminalMenu(terminalPanel, Arrays.asList(newTab, newWindow, new SeparatorMenuItem()), this::showPricli, options, about).menu();
 	}
 
 	private Path getCustomJavaFXCSSFile() {
@@ -705,7 +726,7 @@ public class TTY extends StackPane implements Closeable {
 
 	private int[] getConfiguredSize() {
 		var prefs = app.getContainer().getConfiguration();
-		var ssz = prefs.get("screen-size", Options.TERMINAL_SECTION);
+		var ssz = prefs.get("screen-size", Constants.TERMINAL_SECTION);
 		try {
 			var arr = ssz.split("x");
 			int sw = Integer.parseInt(arr[0]);

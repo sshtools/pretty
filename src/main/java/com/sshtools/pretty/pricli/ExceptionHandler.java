@@ -2,6 +2,7 @@ package com.sshtools.pretty.pricli;
 
 import java.net.UnknownHostException;
 import java.text.MessageFormat;
+import java.util.function.Supplier;
 
 import org.jline.terminal.Terminal;
 import org.jline.utils.AttributedStringBuilder;
@@ -14,14 +15,10 @@ import picocli.CommandLine.ParseResult;
 public class ExceptionHandler implements IExecutionExceptionHandler {
 	
 	private final Terminal terminal;
-	private boolean verboseExceptions;
+	private final Supplier<Boolean> verboseExceptions;
 
-	public ExceptionHandler(Terminal terminal, boolean verboseExceptions) {
+	public ExceptionHandler(Terminal terminal, Supplier<Boolean> verboseExceptions) {
 		this.terminal = terminal;
-		this.verboseExceptions = verboseExceptions;
-	}
-
-	public void setVerboseExceptions(boolean verboseExceptions) {
 		this.verboseExceptions = verboseExceptions;
 	}
 
@@ -41,7 +38,7 @@ public class ExceptionHandler implements IExecutionExceptionHandler {
 		report.style(AttributedStyle.DEFAULT.foreground(AttributedStyle.RED));
 		report.append(msg);
 		report.style(AttributedStyle.DEFAULT.foregroundDefault());
-		if(verboseExceptions) {
+		if(verboseExceptions.get()) {
 			Throwable nex = ex;
 			int indent = 0;
 			while(nex != null) {

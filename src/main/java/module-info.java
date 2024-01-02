@@ -1,5 +1,6 @@
 open module com.sshtools.pretty {
 	exports com.sshtools.pretty;
+	exports com.sshtools.pretty.pricli;
 	requires transitive org.slf4j;
 	requires static uk.co.bithatch.nativeimage.annotations;
 	requires static org.freedesktop.dbus;

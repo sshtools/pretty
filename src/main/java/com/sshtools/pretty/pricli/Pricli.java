@@ -38,6 +38,7 @@ import org.slf4j.LoggerFactory;
 
 import com.sshtools.jini.Data.Handle;
 import com.sshtools.pretty.ConsoleProtocol;
+import com.sshtools.pretty.Constants;
 import com.sshtools.pretty.TTY;
 import com.sshtools.pretty.TTYContext;
 import com.sshtools.pretty.TerminalMenu;
@@ -101,7 +102,6 @@ public final class Pricli {
 	private String rightPrompt;
 	private final List<Handle> handles = new LinkedList<>();
 	private boolean autoAlign = true;
-	private boolean verboseExceptions = true;
 	private List<CommandRegistry> commandRegistries = new ArrayList<>();
 	private PicocliCommandsFactory factory;
 
@@ -206,7 +206,8 @@ public final class Pricli {
 				ke.consume();
 			}
 		});
-		exceptionHandler = new ExceptionHandler(jline, verboseExceptions);
+		
+		exceptionHandler = new ExceptionHandler(jline, () -> tty.getTTYContext().getContainer().getConfiguration().getBoolean(Constants.VERBOSE_EXCEPTIONS_KEY,  Constants.DEBUG_SECTION)); 
 
 		factory = new PicocliCommandsFactory();
 		var cmd = newCommand(new PricliCommands(ttyContext, this, tty));
@@ -252,19 +253,9 @@ public final class Pricli {
 		systemRegistry.setCommandRegistries(this.commandRegistries.toArray(new CommandRegistry[0]));
 	}
 	
-	public boolean isVerboseExceptions() {
-		return verboseExceptions;
-	}
-
-	public void setVerboseExceptions(boolean verboseExceptions) {
-		this.verboseExceptions = verboseExceptions;
-		exceptionHandler.setVerboseExceptions(verboseExceptions);
-	}
-
 	public Path getWorkingDirectory() {
 		return workingDirectory;
 	}
-
 	
 	public void setWorkingDirectory(Path workingDirectory) {
 		this.workingDirectory = workingDirectory;
@@ -347,9 +338,25 @@ public final class Pricli {
 		tty.terminal().focusTerminal();
 	}
 
+	public boolean showing() {
+		return visible.get();
+	}
+
 	public void show() {
 		startReader();
 		visible.set(true);
+	}
+
+	public void execute(String cmdline) {
+		try {
+			systemRegistry.execute(cmdline);
+		}
+		catch(Exception e) {
+			printException(e);
+		}
+		catch(Throwable t) {
+			LOG.error("Uncatchable error.", t);
+		}
 	}
 	
 	private String getPrompt() {
@@ -434,6 +441,10 @@ public final class Pricli {
 			thread = new Thread(this::readCommands, "PricliPrompt");
 			thread.start();
 		}
+	}
+
+	public void print(AttributedString message) {
+		print(message.toAnsi(jline));
 	}
 	
 	public void print(String message) {
