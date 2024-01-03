@@ -244,6 +244,11 @@
 
 	<dependencies>
 		<dependency>
+			<groupId>jsyn</groupId>
+			<artifactId>jsyn</artifactId>
+			<version>20171016</version>
+		</dependency>
+		<dependency>
 			<groupId>io.github.palexdev</groupId>
 			<artifactId>scenicview</artifactId>
 			<version>17.0.2</version>
@@ -271,9 +276,9 @@
 			<version>${jline.version}</version>
 		</dependency>
 		<dependency>
-		    <groupId>me.tongfei</groupId>
-		    <artifactId>progressbar</artifactId>
-		    <version>0.10.1-SNAPSHOT</version>
+			<groupId>me.tongfei</groupId>
+			<artifactId>progressbar</artifactId>
+			<version>0.10.1-SNAPSHOT</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.jline</groupId>
@@ -377,8 +382,8 @@
 		<dependency>
 			<groupId>com.sshtools</groupId>
 			<artifactId>jajafx</artifactId>
-			<version>0.1.8</version> 
-		</dependency> 
+			<version>0.1.8</version>
+		</dependency>
 		<dependency>
 			<groupId>com.sshtools</groupId>
 			<artifactId>jaul</artifactId>
@@ -618,54 +623,54 @@
 				</plugins>
 			</build>
 		</profile>
-		
-        <!-- Native Driver Activation -->
-        <profile>
-            <id>windows</id>
-            <activation>
-                <os>
-                    <family>windows</family>
-                </os>
-            </activation>
-            <dependencies>
-                <dependency>
-                    <groupId>com.sshtools</groupId>
-                    <artifactId>maverick-sshagent-jdk16-sockets</artifactId>
-                    <version>${maverick.synergy.version}</version>
-                </dependency>
-            </dependencies>
-        </profile>
-        <profile>
-            <id>linux</id>
-            <activation>
-                <os>
-                    <family>linux</family>
-                </os>
-            </activation>
-            <dependencies>
-                <dependency>
-                    <groupId>com.sshtools</groupId>
-                    <artifactId>maverick-sshagent-jdk16-sockets</artifactId>
-                    <version>${maverick.synergy.version}</version>
-                </dependency>
-            </dependencies>
-        </profile>
-        <profile>
-            <id>macos</id>
-            <activation>
-                <os>
-                    <family>mac</family>
-                </os>
-            </activation>
-            <dependencies>
-                <dependency>
-                    <groupId>com.sshtools</groupId>
-                    <artifactId>maverick-sshagent-named-pipes</artifactId>
-                    <version>${maverick.synergy.version}</version>
-                </dependency>
-            </dependencies>
-        </profile>
-		
+
+		<!-- Native Driver Activation -->
+		<profile>
+			<id>windows</id>
+			<activation>
+				<os>
+					<family>windows</family>
+				</os>
+			</activation>
+			<dependencies>
+				<dependency>
+					<groupId>com.sshtools</groupId>
+					<artifactId>maverick-sshagent-jdk16-sockets</artifactId>
+					<version>${maverick.synergy.version}</version>
+				</dependency>
+			</dependencies>
+		</profile>
+		<profile>
+			<id>linux</id>
+			<activation>
+				<os>
+					<family>linux</family>
+				</os>
+			</activation>
+			<dependencies>
+				<dependency>
+					<groupId>com.sshtools</groupId>
+					<artifactId>maverick-sshagent-jdk16-sockets</artifactId>
+					<version>${maverick.synergy.version}</version>
+				</dependency>
+			</dependencies>
+		</profile>
+		<profile>
+			<id>macos</id>
+			<activation>
+				<os>
+					<family>mac</family>
+				</os>
+			</activation>
+			<dependencies>
+				<dependency>
+					<groupId>com.sshtools</groupId>
+					<artifactId>maverick-sshagent-named-pipes</artifactId>
+					<version>${maverick.synergy.version}</version>
+				</dependency>
+			</dependencies>
+		</profile>
+
 		<profile>
 			<id>native-image</id>
 			<build>
@@ -707,7 +712,7 @@
 				</plugins>
 			</build>
 		</profile>
-		
+
 		<!-- Merge Installers -->
 		<profile>
 			<id>merge-installers</id>
@@ -719,9 +724,12 @@
 						<version>0.0.1</version>
 						<configuration>
 							<inputs>
-								<input>${project.build.directory}/media-macos/updates.xml</input>
-								<input>${project.build.directory}/media-windows/updates.xml</input>
-								<input>${project.build.directory}/media-linux/updates.xml</input>
+								<input>
+									${project.build.directory}/media-macos/updates.xml</input>
+								<input>
+									${project.build.directory}/media-windows/updates.xml</input>
+								<input>
+									${project.build.directory}/media-linux/updates.xml</input>
 							</inputs>
 							<output>${project.build.directory}/media/updates.xml</output>
 						</configuration>

@@ -28,5 +28,6 @@ open module com.sshtools.pretty {
 	requires com.sshtools.twoslices;
 	requires com.sshtools.agent;
 	requires me.tongfei.progressbar;
+	requires jsyn;
 //	requires org.scenicview.scenicview;
 }

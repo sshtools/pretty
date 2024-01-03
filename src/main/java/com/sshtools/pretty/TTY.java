@@ -119,7 +119,6 @@ public class TTY extends StackPane implements Closeable {
 				.build();
 		theme.apply(terminalPanel, getBackgroundOpacity());
 		
-		
 		/* Configure terminal's buffer */
 		emulator.getTransferManager().addTransferListener(new TransferHandler(this));
 		emulator.addTitleChangeListener((t, title) -> runLater(() -> this.title.setValue(title)));
@@ -412,7 +411,12 @@ public class TTY extends StackPane implements Closeable {
 				handles.forEach(Handle::close);
 			}
 			finally {
-				onClose.accept(this);
+				try {
+					terminalPanel.close();
+				}
+				finally {
+					onClose.accept(this);
+				}
 			}
 		}
 	}
