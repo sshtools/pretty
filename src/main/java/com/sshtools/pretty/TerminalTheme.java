@@ -41,18 +41,28 @@ import javafx.scene.effect.SepiaTone;
 import javafx.scene.effect.Shadow;
 
 public class TerminalTheme {
+	private static final String META = "meta";
+
 	public static Logger LOG = LoggerFactory.getLogger(TerminalTheme.class);
 
 	final static String BACKGROUND_COLOR = "bg";
 	final static String FOREGROUND_COLOR = "fg";
+	final static String DESCRIPTION = "description";
 	final static String COLOR_PRINTING = "color-printing";
 	final static String CURSOR_FOREGROUND = "cursor-fg";
 	final static String CURSOR_BACKGROUND = "cursor-bg";
 	final static String SELECTION_FOREGROUND = "selection-fg";
 	final static String SELECTION_BACKGROUND = "selection-bg";
+	final static String DARK_THEME = "dark-theme";
+	final static String LIGHT_THEME = "light-theme";
 	final static String LSCOLORS = "LSCOLORS";
 	final static String LS_COLORS = "LS_COLORS";
 	final static String EFFECT = "EFFECT";
+
+	private static final String TYPE = "type";
+	private static final String TYPE_STATIC = "static";
+	private static final String TYPE_ABSTRACT = "abstract";
+	private static final String TYPE_CONCRETE = "concrete";
 
 	private String name;
 
@@ -300,6 +310,34 @@ public class TerminalTheme {
 		return Collections.emptyList();
 	}
 
+	public boolean isAbstract() {
+		return getType().equals(TYPE_ABSTRACT);
+	}
+
+	public boolean isStatic() {
+		return getType().equals(TYPE_STATIC);
+	}
+
+	public boolean isConcrete() {
+		return getType().equals(TYPE_CONCRETE);
+	}
+
+	private String getType() {
+		return ini().sectionOr(META).map(sec -> sec.getOr(TYPE, TYPE_STATIC)).orElse(TYPE_STATIC);
+	}
+
+	public Optional<String> darkModeTheme() {
+		return ini().sectionOr(META).map(sec -> sec.get(DARK_THEME));
+	}
+
+	public Optional<String> lightModeTheme() {
+		return ini().sectionOr(META).map(sec -> sec.get(LIGHT_THEME));
+	}
+
+	public String description() {
+		return ini().sectionOr(META).map(sec -> sec.getOr(DESCRIPTION, name())).orElse(name());
+	}
+
 	public VDUColor background() {
 		var tprops = ini();
 		return tprops.getOr(BACKGROUND_COLOR).map(VDUColor::fromString).orElseGet(() -> VDUColor.BLACK);
@@ -337,7 +375,7 @@ public class TerminalTheme {
 		return tprops.getOr(FOREGROUND_COLOR).map(VDUColor::fromString).orElseGet(() -> VDUColor.BLACK);
 	}
 
-	public String getName() {
+	public String name() {
 		return name;
 	}
 

@@ -172,12 +172,13 @@ public class TTY extends StackPane implements Closeable {
 			cfg.bindInteger(emulator::setMaximumBufferSize, buf::getMaximumSize, "buffer-size", Constants.TERMINAL_SECTION),
 			cfg.bindInteger(this::setBackgroundOpacity, this::getBackgroundOpacity, "opacity", Constants.TERMINAL_SECTION),
 			cfg.bindString(emulator::setTerminalType, emulator.getTerminalType()::getId, "type", Constants.TERMINAL_SECTION),  
+			cfg.bindString(emulator::setTerminalType, emulator.getTerminalType()::getId, "type", Constants.TERMINAL_SECTION),  
 			cfg.bindString((nsz) -> updateAppearance(), () -> String.format("%dx%d", emulator.getColumns(), emulator.getRows()), "screen-size", Constants.TERMINAL_SECTION),
 			cfg.bindInteger(this::setFontSize, terminalPanel.getFontManager().getDefault().spec()::getSize, "font-size", Constants.TERMINAL_SECTION),
 			cfg.bindStrings(this::setFonts, this::getFonts, "fonts", Constants.TERMINAL_SECTION),
 			cfg.bindStrings((s) -> updateFeatures(), this::getEnabledFeatures, "enabled-features", Constants.TERMINAL_SECTION), 
 			cfg.bindStrings((s) -> updateFeatures(), this::getDisabledFeatures, "disabled-features", Constants.TERMINAL_SECTION),
-			cfg.bindString(this::setThemeName, this::getThemeName, "theme", Constants.TERMINAL_SECTION),
+			cfg.bindString(this::setThemeName, this::getThemeName, Constants.THEME_KEY, Constants.TERMINAL_SECTION),
 			cfg.bindBoolean((s) -> checkStatusDisplay(), this::isStatusDisplay, "enabled", STATUS_SECTION),
 			cfg.bindBoolean(emulator::setEnableScrollback, emulator::isEnableScrollback, "scroll-back", Constants.TERMINAL_SECTION),
 			cfg.bindBoolean(emulator::setEnableBlinking, emulator::isEnableBlinking, "blinking", Constants.TERMINAL_SECTION),
@@ -186,6 +187,11 @@ public class TTY extends StackPane implements Closeable {
 			cfg.bindEnum(TriState.class, this::setScrollBar, this::getScrollBar, "scroll-bar", Constants.TERMINAL_SECTION),
 			cfg.bindBoolean(scroller.getNativeComponent()::setVisible, scroller.getNativeComponent()::isVisible, "scroll-bar", Constants.TERMINAL_SECTION)
 		));
+		
+		cfg.getStringProperty(Constants.DARK_MODE_KEY, Constants.UI_SECTION).addListener((c,o,n) -> {
+			theme = app.getContainer().getThemes().resolve(cfg.get(Constants.THEME_KEY, Constants.TERMINAL_SECTION));
+			applyTheme();
+		});
 
 		getChildren().add(scrollPane);
 		terminalPanel.setOnBeforeKeyTyped(ke -> {
@@ -568,7 +574,7 @@ public class TTY extends StackPane implements Closeable {
 //						cfg.bindStrings(this::setFonts, this::getFonts, "fonts", Options.TERMINAL_SECTION),
 //						cfg.bindStrings((s) -> updateFeatures(), this::getEnabledFeatures, "enabled-features", Options.TERMINAL_SECTION), 
 //						cfg.bindStrings((s) -> updateFeatures(), this::getDisabledFeatures, "disabled-features", Options.TERMINAL_SECTION),
-//						cfg.bindString(this::setThemeName, this::getThemeName, "theme", Options.TERMINAL_SECTION),
+//						cfg.bindString(this::setThemeName, this::getThemeName, Constants.THEME_KEY, Options.TERMINAL_SECTION),
 //						cfg.bindBoolean(this::setStatusDisplay, this::isStatusDisplay, "enabled", STATUS_SECTION),
 //						cfg.bindBoolean(emulator::setEnableScrollback, emulator::isEnableScrollback, "scroll-back", Options.TERMINAL_SECTION),
 //						cfg.bindBoolean(emulator::setEnableBlinking, emulator::isEnableBlinking, "blinking", Options.TERMINAL_SECTION),
@@ -692,7 +698,7 @@ public class TTY extends StackPane implements Closeable {
 	}
 	
 	private String getThemeName() {
-		return theme.getName();
+		return theme.name();
 	}
 	
 	private int getBackgroundOpacity() {
@@ -705,7 +711,11 @@ public class TTY extends StackPane implements Closeable {
 	}
 	
 	private void setThemeName(String themeName) {
-		theme = app.getContainer().getThemes().get(themeName);
+		theme = app.getContainer().getThemes().resolve(themeName);
+		applyTheme();
+	}
+
+	private void applyTheme() {
 		theme.apply(terminalPanel, getBackgroundOpacity());
 		if(statusTerminal != null)
 			theme.apply(statusTerminal, 100);

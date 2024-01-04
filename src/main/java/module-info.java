@@ -29,5 +29,5 @@ open module com.sshtools.pretty {
 	requires com.sshtools.agent;
 	requires me.tongfei.progressbar;
 	requires jsyn;
-//	requires org.scenicview.scenicview;
+	requires org.scenicview.scenicview; 
 }

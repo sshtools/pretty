@@ -13,6 +13,7 @@ import java.util.prefs.Preferences;
 
 import org.kordamp.ikonli.fontawesome5.FontAwesomeSolid;
 import org.kordamp.ikonli.javafx.FontIcon;
+import org.scenicview.ScenicView;
 //import org.scenicview.ScenicView;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,6 +44,7 @@ import javafx.scene.control.TabPane.TabDragPolicy;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.Window;
@@ -172,6 +174,7 @@ public class PrettyApp extends JajaFXApp<Pretty> {
 
 					dialog.setHeaderText(RESOURCES.getString("optionsText"));
 					dialog.initOwner(owner);
+					dialog.initModality(Modality.NONE);
 
 					var fi = new FontIcon();
 					fi.setIconCode(FontAwesomeSolid.COGS);
@@ -183,6 +186,13 @@ public class PrettyApp extends JajaFXApp<Pretty> {
 					dialog.setTitle(" ");
 					window.setOnCloseRequest(event -> window.hide());
 					PrettyApp.this.updateDarkMode(window.getScene().getRoot());
+					
+					try {
+						if(Boolean.getBoolean("jaja.debugScene"))
+							ScenicView.show(scene);
+					}
+					catch(Throwable e) {
+					}
 
 					scene.setContent(options);
 					try {
@@ -206,7 +216,7 @@ public class PrettyApp extends JajaFXApp<Pretty> {
 		@Override
 		public TerminalTheme getSelectedTheme() {
 			var prefs = getContainer().getConfiguration();
-			return themes.get(prefs.get("theme", Constants.TERMINAL_SECTION));
+			return themes.resolve(prefs.get(Constants.THEME_KEY, Constants.TERMINAL_SECTION));
 		}
 
 		@Override

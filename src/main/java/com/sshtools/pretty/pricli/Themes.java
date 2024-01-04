@@ -34,7 +34,7 @@ public class Themes implements Callable<Integer> {
 			as.style(new AttributedStyle().faint());
 			as.append(String.format("%3d. ", ++index));
 			as.style(new AttributedStyle().faintOff());
-			as.append(String.format("%-35s", fnt.getName()));
+			as.append(String.format("%-35s", fnt.name()));
 			as.append("B: ");
 			
 			as.style(new AttributedStyle().backgroundRgb(bg.toInt()).foregroundRgb(fg.toInt()));

@@ -4,11 +4,13 @@
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.Spinner?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.Tooltip?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
@@ -17,6 +19,61 @@
 	<children>
 		<TabPane tabClosingPolicy="UNAVAILABLE">
 			<tabs>
+            <Tab fx:id="appearanceTab" text="%appearance">
+               <content>
+                  <AnchorPane>
+                     <children>
+                        <BorderPane styleClass="tpad" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                           <center>
+                              <BorderPane>
+                                 <bottom>
+                                    <VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" BorderPane.alignment="CENTER">
+                                       <children>
+                                          <Label text="%ui">
+                                             <styleClass>
+                                                <String fx:value="h3" />
+                                                <String fx:value="tpad" />
+                                             </styleClass>
+                                          </Label>
+                                          <VBox>
+                                             <children>
+                                                <HBox alignment="CENTER_LEFT" layoutX="10.0" layoutY="10.0" styleClass="spaced">
+                                                   <children>
+                                                      <CheckBox fx:id="matchThemeToDarkMode" mnemonicParsing="false" text="%matchThemeToDarkMode" />
+                                                   </children>
+                                                </HBox>
+                                                <HBox alignment="CENTER_LEFT" styleClass="spaced">
+                                                   <children>
+                                                      <Label prefWidth="120.0" text="%darkMode" />
+                                                      <ComboBox fx:id="darkMode" prefWidth="150.0" />
+                                                   </children>
+                                                </HBox>
+                                             </children>
+                                             <styleClass>
+                                                <String fx:value="lpad" />
+                                                <String fx:value="spaced" />
+                                             </styleClass>
+                                          </VBox>
+                                       </children>
+                                       <styleClass>
+                                          <String fx:value="spaced" />
+                                          <String fx:value="lpad" />
+                                       </styleClass>
+                                    </VBox>
+                                 </bottom>
+                                 <center>
+                                    <StackPane fx:id="preview" prefHeight="240.0" prefWidth="300.0" styleClass="padded" BorderPane.alignment="CENTER" />
+                                 </center>
+                              </BorderPane>
+                           </center>
+                           <left>
+                              <ListView fx:id="themes" prefWidth="275.0" BorderPane.alignment="CENTER" />
+                           </left>
+                        </BorderPane>
+                     </children>
+                  </AnchorPane>
+               </content>
+            </Tab>
 				<Tab fx:id="displayTab" text="%display">
 					<content>
 
@@ -24,7 +81,7 @@
 							<children>
 								<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" styleClass="spaced" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
 									<children>
-										<Label text="%appearance">
+										<Label text="%screen">
 											<styleClass>
 												<String fx:value="h3" />
 												<String fx:value="tpad" />
@@ -32,18 +89,6 @@
 										</Label>
 										<VBox>
 											<children>
-												<HBox alignment="CENTER_LEFT" layoutX="10.0" layoutY="10.0" styleClass="spaced">
-													<children>
-														<Label prefWidth="120.0" text="%theme" />
-														<ComboBox fx:id="theme" prefWidth="240.0" />
-													</children>
-												</HBox>
-												<HBox alignment="CENTER_LEFT" styleClass="spaced">
-													<children>
-														<Label prefWidth="120.0" text="%darkMode" />
-														<ComboBox fx:id="darkMode" prefWidth="150.0" />
-													</children>
-												</HBox>
 												<HBox alignment="CENTER_LEFT" styleClass="spaced">
 													<children>
 														<Label prefWidth="120.0" text="%font" />

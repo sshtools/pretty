@@ -13,6 +13,9 @@ public class Constants {
 	// Keys
 	//
 	
+	// Terminal
+	public static final String THEME_KEY = "theme";
+	
 	// UI
 	public static final String DARK_MODE_KEY = "dark-mode";
 	public static final String MUTE_KEY = "mute";
