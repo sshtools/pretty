@@ -30,9 +30,12 @@ public class PrettyAppWindow extends JajaFXAppWindow {
 
 	private FontIcon bell;
 	private Label updateIconLabel;
+	private final AppContext ctx;
 
-	public PrettyAppWindow(Stage stage, Node content, PrettyApp app) {
+	public PrettyAppWindow(Stage stage, Node content, PrettyApp app, AppContext ctx) {
 		super(stage, content, app);
+		
+		this.ctx = ctx;
 
 		scene.getRoot().getStyleClass().add("pretty");
 		scene.setFill(Color.TRANSPARENT);
@@ -95,7 +98,7 @@ public class PrettyAppWindow extends JajaFXAppWindow {
 						}
 						
 
-						var updateDialogPane = new UpdateDialog(((PrettyApp) app).getAppContext());
+						var updateDialogPane = new UpdateDialog(ctx);
 						var dialog = new Dialog<Pair<String, String>>();
 						dialog.setDialogPane(updateDialogPane);
 						dialog.setTitle(RESOURCES.getString("update"));

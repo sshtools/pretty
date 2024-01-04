@@ -18,6 +18,8 @@ import org.scenicview.ScenicView;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.install4j.api.launcher.StartupNotification;
+import com.install4j.api.launcher.StartupNotification.Listener;
 import com.sshtools.jajafx.FXUtil;
 import com.sshtools.jajafx.JajaFXApp;
 import com.sshtools.jajafx.JajaFXAppWindow;
@@ -59,7 +61,7 @@ import uk.co.bithatch.nativeimage.annotations.Resource;
 		"themes/solarized-light.properties", "themes/tango-dark.properties", "themes/tango-light.properties",
 		"themes/white-onblack.properties", })
 @Reflectable
-public class PrettyApp extends JajaFXApp<Pretty> {
+public class PrettyApp extends JajaFXApp<Pretty> implements Listener {
 
 	private final static Logger LOG = LoggerFactory.getLogger(PrettyApp.class);
 	private final static ResourceBundle RESOURCES = ResourceBundle.getBundle(PrettyApp.class.getName());
@@ -80,6 +82,7 @@ public class PrettyApp extends JajaFXApp<Pretty> {
 		setShowFrameTitle(true);
 		darkModeProperty = getContainer().getConfiguration().getEnumProperty(DarkMode.class, Constants.DARK_MODE_KEY, Constants.UI_SECTION);
 		new EmojiFonts<Font>(fontManager);
+		StartupNotification.registerStartupListener(this);
 	}
 
 	public static void main(String[] args) {
@@ -98,10 +101,6 @@ public class PrettyApp extends JajaFXApp<Pretty> {
 			FXUtil.addIfNotAdded(stylesheets, appResource.toExternalForm());
 		}
 		super.addCommonStylesheets(stylesheets);
-	}
-
-	public AppContextImpl getAppContext() {
-		return appContext;
 	}
 
 	@Override
@@ -137,9 +136,19 @@ public class PrettyApp extends JajaFXApp<Pretty> {
 	@Override
 	protected JajaFXAppWindow createAppWindow(Stage stage) {
 		var ctx = createContent(stage);
-		var aw = new PrettyAppWindow(stage, ctx, this);
+		var aw = new PrettyAppWindow(stage, ctx, this, appContext);
 		ctx.setAppWindow(aw);
 		return aw;
+	}
+
+	@Override
+	public void startupPerformed(String parameters) {
+		Platform.runLater(() -> {
+			var stage = new Stage();
+			appContext.newAppWindow(stage);
+			stage.sizeToScene();
+			stage.show();
+		});
 	}
 
 	@Override

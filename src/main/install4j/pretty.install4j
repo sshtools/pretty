@@ -42,7 +42,7 @@
   </files>
   <launchers>
     <launcher name="pretty" id="52" menuName="Push SFTP GUI">
-      <executable name="pretty" iconSet="true" executableDir="." stderrFile="toolbox.log" redirectStdout="true" stdoutFile="toolbox.log" executableMode="gui" />
+      <executable name="pretty" iconSet="true" executableDir="." stderrFile="toolbox.log" redirectStdout="true" stdoutFile="toolbox.log" executableMode="gui" singleInstance="true" />
       <java mainClass="com.sshtools.pretty/com.sshtools.pretty.Pretty" mainMode="module" vmParameters="-Dinstall4j.installationDir=${installer:sys.installationDir}">
         <modulePath>
           <directory location="lib" failOnError="false" />
@@ -52,6 +52,9 @@
           <directory location="linux-aarch64" failOnError="false" />
         </modulePath>
       </java>
+      <desktopFile>Keywords=shell;prompt;command;commandline;cmd;
+Categories=System;TerminalEmulator;
+Comment=Terminal emulator with built in SSH and Serial support </desktopFile>
       <iconImageFiles>
         <file path="../resources/com/sshtools/pretty/icon-16.png" />
         <file path="../resources/com/sshtools/pretty/icon-24.png" />
