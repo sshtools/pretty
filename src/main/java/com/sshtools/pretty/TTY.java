@@ -284,11 +284,11 @@ public class TTY extends StackPane implements Closeable {
 			fadeIn.setFromValue(0);
 			node.setVisible(true);
 		}
-		fadeIn.setToValue(1);
+		fadeIn.setToValue(0.9f);
 		fadeIn.setInterpolator(Interpolator.EASE_BOTH);
 		
 		var fadeOut = new FadeTransition(Duration.millis(500));
-		fadeOut.setFromValue(1);
+		fadeOut.setFromValue(0.9f);
 		fadeOut.setToValue(0);
 		fadeOut.setInterpolator(Interpolator.EASE_BOTH);
 		fadeOut.setOnFinished(evt -> node.setVisible(false));
