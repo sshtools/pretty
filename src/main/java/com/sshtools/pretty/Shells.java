@@ -50,14 +50,26 @@ public class Shells {
 	}
 	
 	public Shells() {
+		String sysroot = System.getenv("SystemRoot");
+		if(sysroot != null) {
+			checkShell("cmd", "DOS Command Prompt", null, null, new String[0], "C:\\Windows\\System32");
+			checkShell("powershell", "Microsoft Powershell",  null, null, null, sysroot + File.separator + "\\System32\\WindowsPowerShell\\v1.0\\powershell.exe");
+			checkPosixShells();
+		}
+		else {
+			checkPosixShells();
+			checkShell("pwsh", "Microsoft Powershell",  new String[] {"--version"}, ".* (.*)", new String[] {"-Login"}, "/usr/bin");
+		}
+		shells.add(new Shell(ShellType.BUILTIN, "serial", (Path)null, "Pretty Serial Support", null, new String[0]));
+		shells.add(new Shell(ShellType.BUILTIN, "ssh", (Path)null, "Maverick Synergy SSH", null, new String[0]));
+		shells.add(new Shell(ShellType.BUILTIN, NATIVE, (Path)null, "Default native shell", null, new String[0]));
+	}
+
+	private void checkPosixShells() {
 		checkShell("bash", "GNU Bourne-Again Shell", new String[] {"--version"}, ".*version ([^\s].*) .*", new String[] {"-l"}, "/usr/bin");
 		checkShell("dash", "POSIX Shell", null, null, new String[] {"-l"}, "/usr/bin");
 		checkShell("zsh", "The Z Shell", new String[] {"--version"}, ".* (.*) .*", new String[] {"-l"}, "/usr/bin");
 		checkShell("csh", "C-like Shell", null, null, new String[] {"-l"}, "/usr/bin");
-		checkShell("pwsh", "Microsoft Powershell",  new String[] {"--version"}, ".* (.*)", new String[] {"-Login"}, "/usr/bin");
-		shells.add(new Shell(ShellType.BUILTIN, "serial", (Path)null, "Pretty Serial Support", null, new String[0]));
-		shells.add(new Shell(ShellType.BUILTIN, "ssh", (Path)null, "Maverick Synergy SSH", null, new String[0]));
-		shells.add(new Shell(ShellType.BUILTIN, NATIVE, (Path)null, "Default native shell", null, new String[0]));
 	}
 	
 	public Optional<Shell> getDefault() {

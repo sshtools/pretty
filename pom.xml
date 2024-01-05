@@ -10,7 +10,7 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<javafx.version>21.0.1</javafx.version>
+		<javafx.version>22-ea+16</javafx.version>
 		<languages>da,nl,fi,fr,de,it,no,pl,ru,sv,es,ja,he,pt</languages>
 		<native.maven.plugin.version>0.9.9</native.maven.plugin.version>
 		<picocli.version>4.7.5</picocli.version>
@@ -254,6 +254,25 @@
 			<version>17.0.2</version>
 			<optional>true</optional>
 			<scope>provided</scope>
+			
+			<exclusions>
+				<exclusion>
+					<groupId>org.openjfx</groupId>
+					<artifactId>javafx-base</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.openjfx</groupId>
+					<artifactId>javafx-controls</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.openjfx</groupId>
+					<artifactId>javafx-graphics</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.openjfx</groupId>
+					<artifactId>javafx-fxml</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>com.sshtools</groupId>
@@ -383,6 +402,24 @@
 			<groupId>com.sshtools</groupId>
 			<artifactId>jajafx</artifactId>
 			<version>0.1.9-SNAPSHOT</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.openjfx</groupId>
+					<artifactId>javafx-base</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.openjfx</groupId>
+					<artifactId>javafx-controls</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.openjfx</groupId>
+					<artifactId>javafx-graphics</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.openjfx</groupId>
+					<artifactId>javafx-fxml</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>com.sshtools</groupId>
