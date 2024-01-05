@@ -44,10 +44,16 @@ import com.sshtools.terminal.emulation.fonts.FontSpec;
 import com.sshtools.terminal.vt.javafx.JavaFXScrollBar;
 import com.sshtools.terminal.vt.javafx.JavaFXTerminalPanel;
 
+import javafx.animation.FadeTransition;
+import javafx.animation.Interpolator;
+import javafx.animation.PauseTransition;
+import javafx.animation.SequentialTransition;
+import javafx.animation.Transition;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.input.Clipboard;
@@ -58,6 +64,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import javafx.util.Duration;
 import uk.co.bithatch.nativeimage.annotations.Bundle;
 import uk.co.bithatch.nativeimage.annotations.Reflectable;
 import uk.co.bithatch.nativeimage.annotations.Resource;
@@ -90,6 +97,7 @@ public class TTY extends StackPane implements Closeable {
 	private boolean closed;
 
 	private JavaFXScrollBar scroller;
+	private Transition resizeFade;
 
 	public TTY(TTYContext app, Consumer<TTY> onClose) {
 		this.app = app;
@@ -125,6 +133,12 @@ public class TTY extends StackPane implements Closeable {
 				withBuffer(emulator)
 				.build();
 		theme.apply(terminalPanel, getBackgroundOpacity());
+
+		/* Resizer status */
+		var resizeInfo = new Label("999 X 999");
+		resizeInfo.setVisible(false);
+		resizeInfo.managedProperty().bind(resizeInfo.visibleProperty());
+		resizeInfo.getStyleClass().add("resize-info");
 		
 		/* Configure terminal's buffer */
 		emulator.getTransferManager().addTransferListener(new TransferHandler(this));
@@ -139,6 +153,7 @@ public class TTY extends StackPane implements Closeable {
 					}
 				});
 			}
+			runLater(() -> showResizeInfo(resizeInfo));
 		});
 		emulator.addModeChangeListener(modes -> {
 			if(statusTerminal != null)
@@ -200,7 +215,11 @@ public class TTY extends StackPane implements Closeable {
 			applyTheme();
 		});
 
+		/* Build this stack */
 		getChildren().add(scrollPane);
+		getChildren().add(resizeInfo);
+		
+		
 		terminalPanel.setOnBeforeKeyTyped(ke -> {
 			if(ke.isControlDown() && ke.isShiftDown() && ke.getCharacter().equals("C")) {
 				var content = new ClipboardContent();
@@ -248,6 +267,37 @@ public class TTY extends StackPane implements Closeable {
 			LOG.error("Failed to start protocol.", e);
 			runProtocol(new ErrorProtocol(RESOURCES.getString("failedToStartShell"), e));
 		}
+	}
+
+	private void showResizeInfo(Label node) {
+		if(resizeFade != null) {
+			resizeFade.stop();
+		}
+		
+		node.setText(String.format("%d x %d", terminalPanel.getViewport().getColumns(), terminalPanel.getViewport().getRows()));
+		
+		var fadeIn = new FadeTransition(Duration.millis(125));
+		if(node.isVisible()) {
+			fadeIn.setFromValue(node.getOpacity());
+		}
+		else {
+			fadeIn.setFromValue(0);
+			node.setVisible(true);
+		}
+		fadeIn.setToValue(1);
+		fadeIn.setInterpolator(Interpolator.EASE_BOTH);
+		
+		var fadeOut = new FadeTransition(Duration.millis(500));
+		fadeOut.setFromValue(1);
+		fadeOut.setToValue(0);
+		fadeOut.setInterpolator(Interpolator.EASE_BOTH);
+		fadeOut.setOnFinished(evt -> node.setVisible(false));
+		
+		resizeFade = new SequentialTransition(node, fadeIn, new PauseTransition(Duration.seconds(1)), fadeOut);
+		
+		resizeFade.play();
+		
+		
 	}
 
 	public static Terminal ttyJLine(String termType, TerminalViewport<JavaFXTerminalPanel, ?, ?> vp) {
