@@ -447,13 +447,16 @@ public class TerminalTheme {
 	public Optional<VDUColor[]> pal256() {
 		var tprops = ini();
 		var secOr = tprops.sectionOr("palette-256");
+		var newCols = new VDUColor[256];
 		if (secOr.isPresent()) {
 			var sec = secOr.get();
-			var newCols = new VDUColor[256];
 			if (sec.contains("*")) {
 				generate(sec, newCols, Colors.PAL256_DEFAULT.getColors());
 			} else {
 				System.arraycopy(Colors.PAL256_DEFAULT.getColors(), 0, newCols, 0, newCols.length);
+				pal16().ifPresent(pal16 -> {
+					System.arraycopy(pal16, 0, newCols, 0, pal16.length);
+				});
 			}
 
 			sec.keys().stream().filter(k -> !k.equals("*")).forEach(k -> {
@@ -467,6 +470,14 @@ public class TerminalTheme {
 				}
 			});
 			return Optional.of(newCols);
+		}
+		else {
+			var pal16 = pal16();
+			if(pal16.isPresent()) {
+				System.arraycopy(Colors.PAL256_DEFAULT.getColors(), 0, newCols, 0, newCols.length);
+				System.arraycopy(pal16.get(), 0, newCols, 0, pal16.get().length);
+				return Optional.of(newCols);
+			}
 		}
 		return Optional.empty();
 

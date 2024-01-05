@@ -2,8 +2,6 @@ package com.sshtools.pretty.pricli;
 
 import static javafx.application.Platform.runLater;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -27,7 +25,6 @@ import org.jline.reader.impl.DefaultParser;
 import org.jline.reader.impl.history.DefaultHistory;
 import org.jline.terminal.Size;
 import org.jline.terminal.Terminal;
-import org.jline.terminal.TerminalBuilder;
 import org.jline.utils.AttributedString;
 import org.jline.utils.AttributedStringBuilder;
 import org.jline.utils.AttributedStyle;
@@ -43,8 +40,6 @@ import com.sshtools.pretty.TTY;
 import com.sshtools.pretty.TTYContext;
 import com.sshtools.pretty.TerminalMenu;
 import com.sshtools.terminal.emulation.ResizeStrategy;
-import com.sshtools.terminal.emulation.TerminalInputStream;
-import com.sshtools.terminal.emulation.TerminalOutputStream;
 import com.sshtools.terminal.emulation.emulator.DECEmulator;
 import com.sshtools.terminal.vt.javafx.JavaFXScrollBar;
 import com.sshtools.terminal.vt.javafx.JavaFXTerminalPanel;
@@ -145,24 +140,10 @@ public final class Pricli {
 		overlay.setOnMouseClicked(e->close());
 		overlay.setOpacity(0);
 
-		try {
-			var sz = new Size(vp.getColumns(), vp.getRows());
-			LOG.info("Initial shell size to {} x {}", sz.getColumns(), sz.getRows());
-			jline = TerminalBuilder.builder().
-					type(SCREEN_TERM_TYPE).
-					size(sz).
-					streams(new TerminalInputStream(vp), 
-							new TerminalOutputStream(vp)
-					).
-					build();
-
-			vp.addResizeListener((trm, cols, rows, remote) -> {
-				LOG.info("Shell size change to {} x {}", cols, rows);
-				jline.setSize(new Size(cols, rows));
-			});
-		} catch (IOException ioe) {
-			throw new UncheckedIOException(ioe);
-		}
+		jline = TTY.ttyJLine(SCREEN_TERM_TYPE, vp);
+		vp.addResizeListener((trm, cols, rows, remote) -> {
+			jline.setSize(new Size(cols, rows));
+		});
 		
 		var root = new BorderPane();
 		var scroller = new JavaFXScrollBar(term).getNativeComponent();

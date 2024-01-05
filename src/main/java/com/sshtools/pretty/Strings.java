@@ -3,6 +3,9 @@ package com.sshtools.pretty;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jline.utils.AttributedStringBuilder;
+import org.jline.utils.AttributedStyle;
+
 public class Strings {
 	
 	public static String trimPad(String str, int len) {
@@ -97,5 +100,55 @@ public class Strings {
 			b.append(c);
 		}
 		return b.toString();
+	}
+
+	public static AttributedStringBuilder ansiExceptionString(boolean verbose, Exception ex, String msg) {
+		var report = new AttributedStringBuilder();
+		report.style(AttributedStyle.DEFAULT.foreground(AttributedStyle.RED));
+		report.append(msg);
+		report.style(AttributedStyle.DEFAULT.foregroundDefault());
+		if(verbose) {
+			Throwable nex = ex;
+			int indent = 0;
+			while(nex != null) {
+				report.append(System.lineSeparator());
+				if(indent > 0) {
+					report.append(String.format("%" + ( 8 + ((indent - 1 )* 2) ) + "s", ""));
+					report.style(AttributedStyle.DEFAULT.foreground(AttributedStyle.RED));
+					report.append(nex.getMessage() == null ? "No message." : nex.getMessage());
+					report.style(AttributedStyle.DEFAULT.foregroundDefault());
+					report.append(System.lineSeparator());
+				}
+				
+				for(var el : nex.getStackTrace()) {
+					report.append(System.lineSeparator());
+					report.append(String.format("%" + ( 8 + (indent * 2) ) + "s", ""));
+					report.append("at ");
+					if(el.getModuleName() != null) {
+						report.append(el.getModuleName());
+						report.append('/');
+					}
+					report.style(AttributedStyle.DEFAULT.foreground(AttributedStyle.YELLOW));
+					report.append(el.getClassName());
+					report.append('.');
+					report.append(el.getMethodName());
+					report.style(AttributedStyle.DEFAULT.foregroundDefault());
+					if(el.getFileName() != null) {
+						report.append('(');
+						report.append(el.getFileName());
+						if(el.getLineNumber() > -1) {
+							report.append(':');
+							report.style(AttributedStyle.DEFAULT.foreground(AttributedStyle.YELLOW));
+							report.append(String.valueOf(el.getLineNumber()));
+							report.style(AttributedStyle.DEFAULT.foregroundDefault());
+							report.append(')');
+						}
+					}
+				}
+				indent++;
+				nex = nex.getCause();
+			}
+		}
+		return report;
 	}
 }

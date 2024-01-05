@@ -48,6 +48,8 @@ public interface AppContext {
 	PrettyAppWindow newAppWindow(Stage stage);
 
 	Path getDefaultWorkingDirectory();
+	
+	Shells getShells();
 
 	void open(String... args);
 }

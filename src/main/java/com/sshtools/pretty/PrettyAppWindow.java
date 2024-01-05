@@ -57,20 +57,28 @@ public class PrettyAppWindow extends JajaFXAppWindow {
 		bell.setOnMouseClicked(evt -> muteProperty.set(!muteProperty.get()));
 		updateMuteIcon(muteProperty);
 
-		var g = new HBox(bell);
-		g.setPrefWidth(32);
-		g.setAlignment(Pos.CENTER);
-		
 		var shell = new FontIcon();
 		shell.setIconSize(18);
 		shell.setOnMouseClicked(evt -> ((TTYContextImpl) content).activeTty().ifPresent(tty -> tty.togglePricli()));
 		shell.setIconCode(FontAwesomeSolid.GREATER_THAN);
+		
+		var newTab = new FontIcon();
+		newTab.setIconSize(18);
+		newTab.setOnMouseClicked(evt -> ((TTYContextImpl) content).newTab());
+		newTab.setIconCode(FontAwesomeSolid.PLUS);
 
-		title.getAccessories().getChildren().addAll(g, shell);
+		title.getAccessories().getChildren().addAll(wrapIcon(bell), wrapIcon(shell), wrapIcon(newTab));
 
 		doUpdateUpdatesState(title);
 
 		return title;
+	}
+	
+	private HBox wrapIcon(Node node) {
+		var g = new HBox(node);
+		g.setPrefWidth(25);
+		g.setAlignment(Pos.CENTER);
+		return g;
 	}
 
 	public void updateUpdatesState() {

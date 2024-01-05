@@ -15,6 +15,7 @@ import com.sshtools.jajafx.FXUtil;
 import com.sshtools.jajafx.JajaFXApp.DarkMode;
 import com.sshtools.jajafx.PrefBind;
 import com.sshtools.jaul.Phase;
+import com.sshtools.pretty.Shells.Shell;
 import com.sshtools.pretty.pricli.Styling;
 import com.sshtools.terminal.emulation.ResizeStrategy;
 import com.sshtools.terminal.emulation.emulator.DECEmulator;
@@ -22,6 +23,7 @@ import com.sshtools.terminal.emulation.emulator.XTERM256Color;
 import com.sshtools.terminal.emulation.fonts.FontSpec;
 import com.sshtools.terminal.vt.javafx.JavaFXTerminalPanel;
 
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.collections.transformation.FilteredList;
@@ -37,7 +39,9 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.control.Tab;
+import javafx.scene.control.TextArea;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.util.StringConverter;
 import uk.co.bithatch.nativeimage.annotations.Bundle;
@@ -63,6 +67,8 @@ public class Options extends StackPane implements Closeable {
 	@FXML
 	private ComboBox<ResizeStrategy> resizeStrategy;
 	@FXML
+	private ComboBox<Shell> defaultShell;
+	@FXML
 	private Spinner<Integer> fontSize;
 	@FXML
 	private Spinner<Integer> bufferSize;
@@ -72,6 +78,10 @@ public class Options extends StackPane implements Closeable {
 	private ListView<TerminalTheme> themes;
 	@FXML
 	private StackPane preview;
+	@FXML
+	private HBox customCommandOptions;
+	@FXML
+	private TextArea customCommand;
 
 	private final PrefBind prefBind;
 	private final Preferences prefs;
@@ -102,6 +112,7 @@ public class Options extends StackPane implements Closeable {
 
 		FXUtil.addIfNotAdded(getStylesheets(), Options.class.getResource("Options.css").toExternalForm());
 		
+		/* Update phases */
 		phase.getItems().addAll(app.getUpdateService().getPhases());
 		phase.setConverter(new StringConverter<Phase>() {
 			@Override
@@ -114,9 +125,46 @@ public class Options extends StackPane implements Closeable {
 				return null;
 			}
 		});
-
 		
-		/* Preview terminal */
+		/* Shells */
+		defaultShell.getItems().setAll(app.getShells().getAll());
+		defaultShell.getItems().add(null);
+		defaultShell.setConverter(new StringConverter<Shell>() {
+			@Override
+			public String toString(Shell object) {
+				if(object == null)
+					return RESOURCES.getString("customCommand");
+				else {
+					if(object.version() == null)
+						return MessageFormat.format(RESOURCES.getString("shellItemNoVersion"), object.name(), object.commandName());
+					else
+						return MessageFormat.format(RESOURCES.getString("shellItem"), object.name(), object.commandName(), object.version());
+				}
+			}
+
+			@Override
+			public Shell fromString(String string) {
+				return null;
+			}
+		});
+		defaultShell.getSelectionModel().selectedItemProperty().addListener((c,o,n) -> {
+			if(n != null) {
+				cfg.put(Constants.SHELL_KEY,n.commandName(),  Constants.TERMINAL_SECTION);
+			}
+		});
+		var initialShellName = cfg.get(Constants.SHELL_KEY, Constants.TERMINAL_SECTION);
+		var initialShell = app.getShells().getByCommandName(initialShellName);
+		if(initialShell.isPresent()) {
+			defaultShell.getSelectionModel().select(initialShell.get());
+		}
+		else {
+			customCommand.setText(String.join(System.lineSeparator(), Strings.parseQuotedString(initialShellName)));
+		}
+		customCommandOptions.managedProperty().bind(customCommandOptions.visibleProperty());
+		customCommand.setPromptText(app.getShells().getDefault().map(Shell::toFullCommandText).orElse(RESOURCES.getString("noDefaultShell")));
+		customCommandOptions.visibleProperty().bind(Bindings.isNull(defaultShell.getSelectionModel().selectedItemProperty()));
+		
+		/* Themes and Preview terminal */
 		var emulator = new DECEmulator<JavaFXTerminalPanel>(XTERM256Color.ID, 33, 14);
 		var panel = new JavaFXTerminalPanel.Builder().
 				withUiToolkit(app.getUiToolkit()).
@@ -127,7 +175,7 @@ public class Options extends StackPane implements Closeable {
 		panel.setResizeStrategy(ResizeStrategy.SCREEN);
 		preview.getChildren().add(panel.getControl());
 		
-		var initialTheme = app.getThemes().getOrDefault(app.getConfiguration().get(Constants.THEME_KEY, Constants.TERMINAL_SECTION));
+		var initialTheme = app.getThemes().getOrDefault(cfg.get(Constants.THEME_KEY, Constants.TERMINAL_SECTION));
 		matchThemeToDarkMode.setSelected(!initialTheme.isConcrete());
 
 		var filteredList = new FilteredList<>(app.getThemes().getAll(), 
@@ -138,7 +186,7 @@ public class Options extends StackPane implements Closeable {
 		themes.scrollTo(initialTheme);
 		themes.getSelectionModel().selectedItemProperty().addListener((c,o,n) -> {
 			if(n != null) {
-				app.getConfiguration().put(Constants.THEME_KEY,n.name(),  Constants.TERMINAL_SECTION);
+				cfg.put(Constants.THEME_KEY,n.name(),  Constants.TERMINAL_SECTION);
 				setupPreviewText(n, panel);
 			}
 		});

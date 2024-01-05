@@ -187,10 +187,17 @@ public class PrettyApp extends JajaFXApp<Pretty> implements Listener {
 
 	class AppContextImpl implements AppContext {
 
-		private Themes themes;
+		private final Themes themes;
+		private final Shells shells;
 
 		AppContextImpl() {
 			themes = new Themes(this);
+			shells = new Shells();
+		}
+
+		@Override
+		public Shells getShells() {
+			return shells;
 		}
 
 		@Override

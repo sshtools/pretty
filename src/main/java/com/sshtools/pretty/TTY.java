@@ -19,15 +19,22 @@ import java.util.ResourceBundle;
 import java.util.Stack;
 import java.util.function.Consumer;
 
+import org.jline.terminal.Size;
+import org.jline.terminal.Terminal;
+import org.jline.terminal.TerminalBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.sshtools.jini.Data.Handle;
 import com.sshtools.pretty.Configuration.TriState;
+import com.sshtools.pretty.Shells.ShellType;
 import com.sshtools.pretty.pricli.Pricli;
 import com.sshtools.terminal.emulation.CursorStyle;
 import com.sshtools.terminal.emulation.Feature;
 import com.sshtools.terminal.emulation.ResizeStrategy;
+import com.sshtools.terminal.emulation.TerminalInputStream;
+import com.sshtools.terminal.emulation.TerminalOutputStream;
+import com.sshtools.terminal.emulation.TerminalViewport;
 import com.sshtools.terminal.emulation.emulator.DECEmulator;
 import com.sshtools.terminal.emulation.emulator.DECModes;
 import com.sshtools.terminal.emulation.emulator.DECModes.MouseReport;
@@ -233,25 +240,32 @@ public class TTY extends StackPane implements Closeable {
 		updateAppearance();
 		updateState();
 		
-		Thread.setDefaultUncaughtExceptionHandler((t, e) -> {
-			e.printStackTrace();
-		});
 
-		/* Used to prompt for some connection parameters */
-		new Thread(() -> {
-			try {
-				protocol(new ConsoleProtocol.Builder().
-						withPath(app.getContainer().getDefaultWorkingDirectory()).
-						build());
-				LOG.info("Main loop exited normally.");	
-			}
-			catch(Throwable e) {
-				LOG.error("Main loop error.", e);
-			}
-			finally {
-				LOG.info("Main loop exited.");				
-			}
-		}, "InitialProtocol").start();
+		try {
+			startShell();
+		}
+		catch(Exception e) {
+			LOG.error("Failed to start protocol.", e);
+			runProtocol(new ErrorProtocol(RESOURCES.getString("failedToStartShell"), e));
+		}
+	}
+
+	public static Terminal ttyJLine(String termType, TerminalViewport<JavaFXTerminalPanel, ?, ?> vp) {
+		try {
+			var sz = new Size(vp.getColumns(), vp.getRows());
+			LOG.info("Initial shell size to {} x {}", sz.getColumns(), sz.getRows());
+			var jline = TerminalBuilder.builder().
+					type(termType).
+					size(sz).
+					streams(new TerminalInputStream(vp), 
+							new TerminalOutputStream(vp)
+					).
+					build();
+			
+			return jline;
+		} catch (IOException ioe) {
+			throw new UncheckedIOException(ioe);
+		}
 	}
 	
 	public Status status() {
@@ -445,12 +459,12 @@ public class TTY extends StackPane implements Closeable {
 		return protocols.isEmpty() ? null : protocols.peek();
 	}
 
-	public void attached(ConsoleProtocol consoleProtocol) {
+	public void attached(TerminalProtocol consoleProtocol) {
 		runLater(this::updateState);
 		
 	}
 
-	public void detached(ConsoleProtocol consoleProtocol) {
+	public void detached(TerminalProtocol consoleProtocol) {
 		runLater(this::updateState);		
 	}
 	
@@ -772,10 +786,61 @@ public class TTY extends StackPane implements Closeable {
 			map.put(key, val);
 		}));
 	}
+	
 	private void updateState() {
 		var proto = protocol();
 		shortTitle.setValue(proto == null ? RESOURCES.getString("appType") : proto.displayName());
 		checkStatusDisplay();
+	}
+
+	private void startShell() {
+		var cmd = app.getContainer().getConfiguration().get(Constants.SHELL_KEY, Constants.TERMINAL_SECTION);
+		var parsedCommand = Strings.parseQuotedString(cmd);
+		var cmdName = parsedCommand.get(0).trim();
+		if(cmdName.equals("")) {
+			cmdName = Shells.NATIVE;
+		}
+		var shell = app.getContainer().getShells().getByCommandName(cmdName);
+		if(shell.isPresent()) {
+			var shellObj = shell.get();
+			if(shellObj.commandName().equals(Shells.NATIVE)) {
+				shellObj = app.getContainer().getShells().getDefault().orElseThrow(() -> new IllegalStateException("No default shell available."));
+			}
+			if(shellObj.type() == ShellType.BUILTIN) {
+				throw new UnsupportedOperationException("TODO");
+			}
+			else {
+				runProtocol(new ConsoleProtocol.Builder().
+					withPath(app.getContainer().getDefaultWorkingDirectory()).
+					withCommandLine(shellObj.fullCommand()).
+					build());
+			}
+		}
+		else {
+			runProtocol(new ConsoleProtocol.Builder().
+					withPath(app.getContainer().getDefaultWorkingDirectory()).
+					withCommandLine(parsedCommand).
+					build());
+		}
+		
+		
+	}
+
+	private void runProtocol(TerminalProtocol proto) {
+		/* Not a known shell, so just treat as a custom command */
+		/* Used to prompt for some connection parameters */
+		new Thread(() -> {
+			try {
+				protocol(proto);
+				LOG.info("Main loop exited normally.");	
+			}
+			catch(Throwable e) {
+				LOG.error("Main loop error.", e);
+			}
+			finally {
+				LOG.info("Main loop exited.");				
+			}
+		}, "InitialProtocol").start();
 	}
 
 

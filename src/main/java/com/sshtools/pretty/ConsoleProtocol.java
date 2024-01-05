@@ -8,8 +8,10 @@ import java.nio.file.Paths;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.ResourceBundle;
@@ -49,9 +51,26 @@ public class ConsoleProtocol implements TerminalProtocol, ResizeListener, Elemen
 		public ConsoleProtocol build() {
 			return new ConsoleProtocol(this);
 		}
+
+		public Builder withCommandLine(String... commandAndArgs) {
+			return withCommandLine(Arrays.asList(commandAndArgs));
+		}
+		
+		public Builder withCommandLine(List<String> commandAndArgs) {
+			if(commandAndArgs.size() > 0)
+				withCommand(commandAndArgs.get(0));
+			if(commandAndArgs.size() > 1)
+				withArguments(commandAndArgs.subList(1,  commandAndArgs.size()));
+			return this;
+		}
+	
 		public Builder withArguments(String... args) {
 			this.args = Optional.of(args);
 			return this;
+		}
+	
+		public Builder withArguments(Collection<String> args) {
+			return withArguments(args.toArray(new String[0]));
 		}
 		
 		public Builder withCommand(String command) {
