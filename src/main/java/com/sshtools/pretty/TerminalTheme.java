@@ -80,10 +80,11 @@ public class TerminalTheme {
 	public void apply(JavaFXTerminalPanel terminalPanel, int bgAlphaPercent) {
 		var vp = terminalPanel.getViewport();
 		synchronized (vp.getBufferLock()) {
-			terminalPanel.setDefaultBackground(background().withAlphaPercent(bgAlphaPercent));
-			terminalPanel.setDefaultForeground(foreground());
-			terminalPanel.setSelectionBackground(selectionBackground());
-			terminalPanel.setSelectionForeground(selectionForeground());
+			var colors = terminalPanel.getViewport().getColors();
+			colors.setBG(background().withAlphaPercent(bgAlphaPercent));
+			colors.setFG(foreground().withAlphaPercent(bgAlphaPercent));
+			colors.setMouseBG(selectionBackground());
+			colors.setMouseFG(selectionForeground());
 			terminalPanel.setCursorColors(cursorForeground(), cursorBackground());
 			vp.getColors().setPalette(Size.PAL16, pal16().orElseGet(() -> Colors.PAL16_DEFAULT.getColors()));
 			var cols = vp.getColors();
@@ -110,67 +111,67 @@ public class TerminalTheme {
 		if (spec.equalsIgnoreCase("bloom")) {
 			var blm = new Bloom();
 			blm.setInput(input);
-			if(args.size() > 0)
+			if (args.size() > 0)
 				blm.setThreshold(Double.parseDouble(args.get(0)));
 			return blm;
 		} else if (spec.equalsIgnoreCase("sepiaTone")) {
 			var st = new SepiaTone();
 			st.setInput(input);
-			if(args.size() > 0)
+			if (args.size() > 0)
 				st.setLevel(Double.parseDouble(args.get(0)));
 			return st;
 		} else if (spec.equalsIgnoreCase("boxBlur")) {
 			var bb = new BoxBlur();
-			if(args.size() > 0 && !args.get(0).equals("")) {
+			if (args.size() > 0 && !args.get(0).equals("")) {
 				bb.setWidth(Double.parseDouble(args.get(0)));
 			}
-			if(args.size() > 1 && !args.get(1).equals("")) {
+			if (args.size() > 1 && !args.get(1).equals("")) {
 				bb.setHeight(Double.parseDouble(args.get(1)));
 			}
-			if(args.size() > 2 && !args.get(2).equals("")) {
+			if (args.size() > 2 && !args.get(2).equals("")) {
 				bb.setIterations(Integer.parseInt(args.get(2)));
 			}
 			bb.setInput(input);
 			return bb;
-		}  else if (spec.equalsIgnoreCase("dropShadow")) {
+		} else if (spec.equalsIgnoreCase("dropShadow")) {
 			var ds = new DropShadow();
 			ds.setInput(input);
-			
-			if(args.size() > 0 && !args.get(0).equals("")) {
+
+			if (args.size() > 0 && !args.get(0).equals("")) {
 				ds.setWidth(Double.parseDouble(args.get(0)));
 			}
-			if(args.size() > 1 && !args.get(1).equals("")) {
+			if (args.size() > 1 && !args.get(1).equals("")) {
 				ds.setHeight(Double.parseDouble(args.get(1)));
 			}
-			if(args.size() > 2 && !args.get(2).equals("")) {
+			if (args.size() > 2 && !args.get(2).equals("")) {
 				ds.setOffsetX(Double.parseDouble(args.get(2)));
 			}
-			if(args.size() > 3 && !args.get(3).equals("")) {
+			if (args.size() > 3 && !args.get(3).equals("")) {
 				ds.setOffsetY(Double.parseDouble(args.get(3)));
 			}
-			if(args.size() > 4 && !args.get(4).equals("")) {
+			if (args.size() > 4 && !args.get(4).equals("")) {
 				ds.setRadius(Double.parseDouble(args.get(4)));
 			}
-			if(args.size() > 5 && !args.get(5).equals("")) {
+			if (args.size() > 5 && !args.get(5).equals("")) {
 				ds.setSpread(Double.parseDouble(args.get(5)));
 			}
-			if(args.size() > 6 && !args.get(6).equals("")) {
+			if (args.size() > 6 && !args.get(6).equals("")) {
 				ds.setBlurType(BlurType.valueOf(args.get(6).toUpperCase()));
 			}
-			if(args.size() > 7 && !args.get(7).equals("")) {
+			if (args.size() > 7 && !args.get(7).equals("")) {
 				ds.setColor(app.getUiToolkit().localColorToNativeColor(fromString(args.get(7))));
 			}
 			return ds;
 		} else if (spec.equalsIgnoreCase("gausianBlur")) {
 			var gb = new GaussianBlur();
-			if(args.size() > 0 && !args.get(0).equals("")) {
+			if (args.size() > 0 && !args.get(0).equals("")) {
 				gb.setRadius(0);
 			}
 			gb.setInput(input);
 			return gb;
 		} else if (spec.equalsIgnoreCase("glow")) {
 			var gb = new Glow();
-			if(args.size() > 0 && !args.get(0).equals("")) {
+			if (args.size() > 0 && !args.get(0).equals("")) {
 				gb.setLevel(Double.parseDouble(args.get(0)));
 			}
 			gb.setInput(input);
@@ -178,98 +179,98 @@ public class TerminalTheme {
 		} else if (spec.equalsIgnoreCase("innerShadow")) {
 			var is = new InnerShadow();
 			is.setInput(input);
-			
-			if(args.size() > 0 && !args.get(0).equals("")) {
+
+			if (args.size() > 0 && !args.get(0).equals("")) {
 				is.setWidth(Double.parseDouble(args.get(0)));
 			}
-			if(args.size() > 1 && !args.get(1).equals("")) {
+			if (args.size() > 1 && !args.get(1).equals("")) {
 				is.setHeight(Double.parseDouble(args.get(1)));
 			}
-			if(args.size() > 2 && !args.get(2).equals("")) {
+			if (args.size() > 2 && !args.get(2).equals("")) {
 				is.setOffsetX(Double.parseDouble(args.get(2)));
 			}
-			if(args.size() > 3 && !args.get(3).equals("")) {
+			if (args.size() > 3 && !args.get(3).equals("")) {
 				is.setOffsetY(Double.parseDouble(args.get(3)));
 			}
-			if(args.size() > 4 && !args.get(4).equals("")) {
+			if (args.size() > 4 && !args.get(4).equals("")) {
 				is.setRadius(Double.parseDouble(args.get(4)));
 			}
-			if(args.size() > 5 && !args.get(5).equals("")) {
+			if (args.size() > 5 && !args.get(5).equals("")) {
 				is.setChoke(Double.parseDouble(args.get(5)));
 			}
-			if(args.size() > 6 && !args.get(6).equals("")) {
+			if (args.size() > 6 && !args.get(6).equals("")) {
 				is.setBlurType(BlurType.valueOf(args.get(6).toUpperCase()));
 			}
-			if(args.size() > 7 && !args.get(7).equals("")) {
+			if (args.size() > 7 && !args.get(7).equals("")) {
 				is.setColor(app.getUiToolkit().localColorToNativeColor(fromString(args.get(7))));
 			}
 			return is;
 		} else if (spec.equalsIgnoreCase("lighting")) {
 			var lt = new Lighting();
 			lt.setContentInput(input);
-			if(args.size() > 0 && !args.get(0).equals("")) {
+			if (args.size() > 0 && !args.get(0).equals("")) {
 				lt.setDiffuseConstant(Double.parseDouble(args.get(0)));
 			}
-			if(args.size() > 1 && !args.get(1).equals("")) {
+			if (args.size() > 1 && !args.get(1).equals("")) {
 				lt.setSpecularConstant(Double.parseDouble(args.get(1)));
 			}
-			if(args.size() > 2 && !args.get(2).equals("")) {
+			if (args.size() > 2 && !args.get(2).equals("")) {
 				lt.setSpecularExponent(Double.parseDouble(args.get(2)));
 			}
-			if(args.size() > 3 && !args.get(3).equals("")) {
+			if (args.size() > 3 && !args.get(3).equals("")) {
 				lt.setSurfaceScale(Double.parseDouble(args.get(3)));
 			}
 			return lt;
-		}  else if (spec.equalsIgnoreCase("motionBlur")) {
+		} else if (spec.equalsIgnoreCase("motionBlur")) {
 			var mb = new MotionBlur();
-			if(args.size() > 0 && !args.get(0).equals("")) {
+			if (args.size() > 0 && !args.get(0).equals("")) {
 				mb.setAngle(Double.parseDouble(args.get(0)));
 			}
-			if(args.size() > 1 && !args.get(1).equals("")) {
+			if (args.size() > 1 && !args.get(1).equals("")) {
 				mb.setRadius(Double.parseDouble(args.get(1)));
 			}
 			mb.setInput(input);
 			return mb;
 		} else if (spec.equalsIgnoreCase("perspectiveTransform")) {
 			var mb = new PerspectiveTransform();
-			if(args.size() > 0 && !args.get(0).equals("")) {
+			if (args.size() > 0 && !args.get(0).equals("")) {
 				mb.setLlx(Double.parseDouble(args.get(0)));
 			}
-			if(args.size() > 1 && !args.get(1).equals("")) {
+			if (args.size() > 1 && !args.get(1).equals("")) {
 				mb.setLly(Double.parseDouble(args.get(1)));
 			}
-			if(args.size() > 2 && !args.get(2).equals("")) {
+			if (args.size() > 2 && !args.get(2).equals("")) {
 				mb.setLrx(Double.parseDouble(args.get(2)));
 			}
-			if(args.size() > 3 && !args.get(3).equals("")) {
+			if (args.size() > 3 && !args.get(3).equals("")) {
 				mb.setLry(Double.parseDouble(args.get(3)));
 			}
-			if(args.size() > 4 && !args.get(4).equals("")) {
+			if (args.size() > 4 && !args.get(4).equals("")) {
 				mb.setUlx(Double.parseDouble(args.get(4)));
 			}
-			if(args.size() > 5 && !args.get(5).equals("")) {
+			if (args.size() > 5 && !args.get(5).equals("")) {
 				mb.setUly(Double.parseDouble(args.get(5)));
 			}
-			if(args.size() > 6 && !args.get(6).equals("")) {
+			if (args.size() > 6 && !args.get(6).equals("")) {
 				mb.setUrx(Double.parseDouble(args.get(6)));
 			}
-			if(args.size() > 7 && !args.get(7).equals("")) {
+			if (args.size() > 7 && !args.get(7).equals("")) {
 				mb.setUry(Double.parseDouble(args.get(7)));
 			}
 			mb.setInput(input);
 			return mb;
 		} else if (spec.equalsIgnoreCase("perspectiveTransform")) {
 			var ref = new Reflection();
-			if(args.size() > 0 && !args.get(0).equals("")) {
+			if (args.size() > 0 && !args.get(0).equals("")) {
 				ref.setBottomOpacity(Double.parseDouble(args.get(0)));
 			}
-			if(args.size() > 1 && !args.get(1).equals("")) {
+			if (args.size() > 1 && !args.get(1).equals("")) {
 				ref.setFraction(Double.parseDouble(args.get(1)));
 			}
-			if(args.size() > 2 && !args.get(2).equals("")) {
+			if (args.size() > 2 && !args.get(2).equals("")) {
 				ref.setTopOffset(Double.parseDouble(args.get(2)));
 			}
-			if(args.size() > 3 && !args.get(3).equals("")) {
+			if (args.size() > 3 && !args.get(3).equals("")) {
 				ref.setTopOpacity(Double.parseDouble(args.get(3)));
 			}
 			ref.setInput(input);
@@ -277,33 +278,33 @@ public class TerminalTheme {
 		} else if (spec.equalsIgnoreCase("shadow")) {
 			var is = new Shadow();
 			is.setInput(input);
-			
-			if(args.size() > 0 && !args.get(0).equals("")) {
+
+			if (args.size() > 0 && !args.get(0).equals("")) {
 				is.setWidth(Double.parseDouble(args.get(0)));
 			}
-			if(args.size() > 1 && !args.get(1).equals("")) {
+			if (args.size() > 1 && !args.get(1).equals("")) {
 				is.setHeight(Double.parseDouble(args.get(1)));
 			}
-			if(args.size() > 2 && !args.get(2).equals("")) {
+			if (args.size() > 2 && !args.get(2).equals("")) {
 				is.setRadius(Double.parseDouble(args.get(2)));
 			}
-			if(args.size() > 3 && !args.get(3).equals("")) {
+			if (args.size() > 3 && !args.get(3).equals("")) {
 				is.setBlurType(BlurType.valueOf(args.get(3).toUpperCase()));
 			}
-			if(args.size() > 4 && !args.get(4).equals("")) {
+			if (args.size() > 4 && !args.get(4).equals("")) {
 				is.setColor(app.getUiToolkit().localColorToNativeColor(fromString(args.get(4))));
 			}
 			return is;
-		}else {
+		} else {
 			throw new IllegalArgumentException("Unknown effect spec " + spec);
 		}
 	}
-	
+
 	private List<String> parseArgs(String spec) {
-		if(spec.startsWith("(") && spec.endsWith(")")) {
-			var val = Arrays.asList(spec.substring(1, spec.length() - 2).trim().split(",")); 
+		if (spec.startsWith("(") && spec.endsWith(")")) {
+			var val = Arrays.asList(spec.substring(1, spec.length() - 2).trim().split(","));
 			var lst = val.stream().map(String::trim).toList();
-			if(!lst.get(0).equals("")) {
+			if (!lst.get(0).equals("")) {
 				return lst;
 			}
 		}
@@ -410,21 +411,34 @@ public class TerminalTheme {
 		if (secOr.isPresent()) {
 			var sec = secOr.get();
 			var allColors = new VDUColor[16];
+			var sz = sec.keys().size();
 			if (sec.contains("*")) {
-				return generate(sec, allColors, Colors.PAL16_DEFAULT.getColors());
-			} else if (sec.keys().size() == 16 || sec.keys().size() == 8) {
-				var colors = sec.keys().stream().map(k -> fromString(sec.get(k))).toList().toArray(new VDUColor[0]);
-				if (colors.length == 8) {
-					System.arraycopy(colors, 0, allColors, 0, 8);
-					for (int i = 0; i < 8; i++) {
-						allColors[i + 8] = allColors[i].brighter();
-					}
-					colors = allColors;
-				}
-				return Optional.of(colors);
+				generate(sec, allColors, Colors.PAL16_DEFAULT.getColors());
+				sz--;
 			} else {
-				LOG.warn("If the 'palette' section is present, it must have either 8 or 16 entries.");
+				System.arraycopy(Colors.PAL16_DEFAULT.getColors(), 0, allColors, 0, allColors.length);
 			}
+			if (sz != 16 && sz != 8 && sz != 0) {
+				LOG.warn("If the 'palette' section is present, it must have ideally either 8 or 16 entries.");
+			}
+			sec.keys().stream().filter(k -> !k.equals("*")).forEach(k -> {
+				try {
+					var idx = Integer.parseInt(k);
+					if (idx < 0 || idx > 16)
+						throw new IllegalArgumentException("Index out of range.");
+					allColors[idx] = fromString(sec.get(k));
+				} catch (Exception e) {
+					LOG.warn("Bad color entry or index @ {}. {}", k, e.getMessage());
+				}
+			});
+			if (!sec.contains("*")) {
+				for (int i = 8; i < 16; i++) {
+					if (!sec.contains(String.valueOf(i))) {
+						allColors[i] = allColors[i - 8].brighter();
+					}
+				}
+			}
+			return Optional.of(allColors);
 		}
 		return Optional.empty();
 
@@ -435,17 +449,24 @@ public class TerminalTheme {
 		var secOr = tprops.sectionOr("palette-256");
 		if (secOr.isPresent()) {
 			var sec = secOr.get();
+			var newCols = new VDUColor[256];
 			if (sec.contains("*")) {
-				return generate(sec, new VDUColor[256], Colors.PAL256_DEFAULT.getColors());
+				generate(sec, newCols, Colors.PAL256_DEFAULT.getColors());
 			} else {
-				var cols = Colors.PAL256_DEFAULT.getColors();
-				var newCols = new VDUColor[256];
-				System.arraycopy(cols, 0, newCols, 0, newCols.length);
-				sec.keys().stream().forEach(k -> {
-					newCols[Integer.parseInt(k)] = fromString(sec.get(k));
-				});
-				return Optional.of(newCols);
+				System.arraycopy(Colors.PAL256_DEFAULT.getColors(), 0, newCols, 0, newCols.length);
 			}
+
+			sec.keys().stream().filter(k -> !k.equals("*")).forEach(k -> {
+				try {
+					var idx = Integer.parseInt(k);
+					if (idx < 0 || idx > 255)
+						throw new IllegalArgumentException("Index out of range.");
+					newCols[idx] = fromString(sec.get(k));
+				} catch (Exception e) {
+					LOG.warn("Bad color entry or index @ {}. {}", k, e.getMessage());
+				}
+			});
+			return Optional.of(newCols);
 		}
 		return Optional.empty();
 
@@ -466,7 +487,7 @@ public class TerminalTheme {
 		return name;
 	}
 
-	protected Optional<VDUColor[]> generate(Section sec, VDUColor[] allColors, VDUColor[] defaultCols) {
+	protected void generate(Section sec, VDUColor[] allColors, VDUColor[] defaultCols) {
 		var val = sec.get("*");
 		var spec = new ArrayList<>(Arrays.asList(val.split("\\s+")));
 		var firstVal = spec.remove(0);
@@ -493,10 +514,6 @@ public class TerminalTheme {
 				allColors[i] = col;
 			}
 		}
-		return Optional.of(allColors);
 	}
 
-	private String printHsl(int[] hsl) {
-		return String.format("%d,%d,%d", hsl[0], hsl[1], hsl[2]);
-	}
 }

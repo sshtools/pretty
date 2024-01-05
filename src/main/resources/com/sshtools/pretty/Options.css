@@ -1,3 +1,7 @@
 .theme-cell {
 	-fx-background-color: transparent !important;
 }
+
+#terminal-root {	
+	-fx-background-radius: 14px;
+} 

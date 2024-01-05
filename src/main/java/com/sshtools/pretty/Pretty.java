@@ -1,5 +1,6 @@
 package com.sshtools.pretty;
 
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.ResourceBundle;
@@ -51,6 +52,9 @@ public class Pretty extends JajaApp<PrettyApp> {
 
 	@Option(names = { "-L", "--log-level" }, description = "Logging level.")
 	private Optional<Level> logLevel;
+
+	@Option(names = { "-c", "--cwd" }, description = "Working directory for local shells.")
+	private Optional<Path> workingDirectory;
 
 	private final Configuration configuration;
 
@@ -104,6 +108,10 @@ public class Pretty extends JajaApp<PrettyApp> {
 				return true;
 			}
 		};
+	}
+	
+	public Path getDefaultWorkingDirectory() {
+		return workingDirectory.orElseGet(() -> Paths.get(System.getProperty("user.dir")));
 	}
 	
 	public Configuration getConfiguration() {

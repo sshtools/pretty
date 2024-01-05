@@ -240,7 +240,9 @@ public class TTY extends StackPane implements Closeable {
 		/* Used to prompt for some connection parameters */
 		new Thread(() -> {
 			try {
-				protocol(new ConsoleProtocol.Builder().build());
+				protocol(new ConsoleProtocol.Builder().
+						withPath(app.getContainer().getDefaultWorkingDirectory()).
+						build());
 				LOG.info("Main loop exited normally.");	
 			}
 			catch(Throwable e) {
@@ -670,10 +672,11 @@ public class TTY extends StackPane implements Closeable {
 
 	private String getCustomJavaFXCSSResource() {
 		var bui = new StringBuilder();
-		var bgCol = terminalPanel.getDefaultBackground();
+		var colors = terminalPanel.getViewport().getColors();
+		var bgCol = colors.getBG();
 		var bgStr = app.getContainer().isDecorated() ? bgCol.toCSSRGB() :  bgCol.toCSSRGBA();
 		var bgOpaqueStr = app.getContainer().isDecorated() ? bgCol.toCSSRGB() :  bgCol.toCSSRGBA();
-		var fgCol = terminalPanel.getDefaultForeground();
+		var fgCol = colors.getFG();
 		var fgStr = fgCol.toHTMLColor();
 		var uiToolkit = terminalPanel.getUIToolkit();
 		var aStr = Colors.toHex(
@@ -702,7 +705,7 @@ public class TTY extends StackPane implements Closeable {
 	}
 	
 	private int getBackgroundOpacity() {
-		return (int)((float)terminalPanel.getDefaultBackground().getAlphaRatio() * 100f);
+		return (int)((float)terminalPanel.getViewport().getColors().getBG().getAlphaRatio() * 100f);
 	}
 
 	private void setBackgroundOpacity(int opacity) {

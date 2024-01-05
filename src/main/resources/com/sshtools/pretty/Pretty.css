@@ -7,3 +7,11 @@
 .title-bar FontIcon {
 	-fx-icon-size: 20px;
 }
+
+.borderless-root #terminal-root {	
+	-fx-background-radius: 0 0 8px 8px;
+} 
+
+.borderless-root .title-bar {	
+	-fx-background-radius: 8px 8px 0 0;
+}

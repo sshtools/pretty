@@ -1,31 +1,11 @@
-#terminal-root {
+.terminal-roots {
 	-fx-background-color: -fx-terminal-bg;
 }
 
-#terminal-anchor {	
-}
-
-#terminal-container {
-	-fx-padding: 0 4px 4px 4px;
+.terminal-anchors {	
 }
 
 #terminal-tabs .tab-header-background {
 	-fx-background-insets: 0 0 0 0;
 	-fx-background-color: -fx-terminal-bg;
 }
-
-#terminal-canvas {
-	-fx-padding: 8px;
-}
-
-/*
-#terminal-root {
-    -fx-background-color:  -fx-terminal-bg;
-	
-}
-
-#terminal-canvas {
-    -fx-background-color:  -fx-terminal-bg;
-}
-
-*/

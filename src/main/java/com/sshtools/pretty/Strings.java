@@ -1,5 +1,8 @@
 package com.sshtools.pretty;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Strings {
 	
 	public static String trimPad(String str, int len) {
@@ -37,6 +40,40 @@ public class Strings {
 		} else {
 			throw new IllegalArgumentException("Illeged character spec.");
 		}
+	}
+	
+	public static List<String> parseQuotedString(String command) {
+		var args = new ArrayList<String>();
+		var escaped = false;
+		var quoted = false;
+		var word = new StringBuilder();
+		for (int i = 0; i < command.length(); i++) {
+			char c = command.charAt(i);
+			if (c == '"' && !escaped) {
+				if (quoted) {
+					quoted = false;
+				} else {
+					quoted = true;
+				}
+			} else if (c == '"' && !escaped) {
+				escaped = true;
+			} else if (c == ' ' && !escaped && !quoted) {
+				if (word.length() > 0) {
+					args.add(word.toString());
+					word.setLength(0);
+					;
+				}
+			} else {
+				word.append(c);
+			}
+		}
+		if(escaped)
+			throw new IllegalArgumentException("Invalid escape.");
+		if(quoted)
+			throw new IllegalArgumentException("Unbalanced quotes.");
+		if (word.length() > 0)
+			args.add(word.toString());
+		return args;
 	}
 
 	public static boolean parseBooleanSpec(String s) {

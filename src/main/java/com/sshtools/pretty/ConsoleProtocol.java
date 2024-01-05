@@ -241,7 +241,7 @@ public class ConsoleProtocol implements TerminalProtocol, ResizeListener, Elemen
 	}
 
 	@Override
-	public void bufferResized(TerminalViewport terminal, int columns, int rows, boolean remote) {
+	public void bufferResized(TerminalViewport<?,?,?> terminal, int columns, int rows, boolean remote) {
 		if (!remote)
 			pty.setWinSize(new WinSize(columns, rows));
 		

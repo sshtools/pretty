@@ -11,6 +11,7 @@ import com.sshtools.terminal.emulation.emulator.DECPage;
 
 import javafx.application.Platform;
 import picocli.CommandLine.Command;
+import picocli.CommandLine.Parameters;
 import picocli.CommandLine.ParentCommand;
 
 @Command(name = "debug", 
@@ -19,7 +20,7 @@ import picocli.CommandLine.ParentCommand;
          usageHelpAutoWidth = true, 
          mixinStandardHelpOptions = true, 
          description = "Debug actions.", 
-         subcommands = {Debug.Pack.class, Debug.Emulator.class})
+         subcommands = {Debug.Pack.class, Debug.Emulator.class,Debug.Open.class})
 public class Debug implements Callable<Integer> {
 
 	@ParentCommand
@@ -71,6 +72,23 @@ public class Debug implements Callable<Integer> {
 		}
 
 	}
+	
+	@Command(name = "open", aliases = {"o"}, usageHelpAutoWidth = true, mixinStandardHelpOptions = true, description = "Parse argument string as if called remotely.")
+	public final static class Open implements Callable<Integer> {
+
+		@ParentCommand
+		private Debug parent;
+		
+		@Parameters
+		private String[] args;
+		
+		@Override
+		public Integer call() throws Exception {
+			parent.parent.ttyContext().getContainer().open(args == null ? new String[0] : args);
+			return 0;
+		}
+
+	}
 
 	@Command(name = "emulator", aliases = {"e", "em"}, usageHelpAutoWidth = true, mixinStandardHelpOptions = true, description = "Show information about the state of the emulator.")
 	public final static class Emulator implements Callable<Integer> {
@@ -86,13 +104,17 @@ public class Debug implements Callable<Integer> {
 			var emu = (DECEmulator<?>)dpy.getViewport(); 
 			var page = emu.getPage();
 			var modes = emu.getModes();
+			var colors = emu.getColors();
 
 			printTitle(jline, "Display");
-			printRow(jline, "Default Background", String.valueOf(dpy.getDefaultBackground().toRGBAHTMLColor()));
-			printRow(jline, "Default Foreground", String.valueOf(dpy.getDefaultForeground().toRGBAHTMLColor()));
 			printRow(jline, "Character Height", String.valueOf(dpy.getFontManager().getDefault().charHeight()));
 			printRow(jline, "Character Width", String.valueOf(dpy.getFontManager().getDefault().charWidth()));
 			printRow(jline, "Character Decent", String.valueOf(dpy.getFontManager().getDefault().charDescent()));
+			jline.writer().println();
+
+			printTitle(jline, "Colors");
+			printRow(jline, "Default Background", String.valueOf(colors.getBG().toRGBAHTMLColor()));
+			printRow(jline, "Default Foreground", String.valueOf(colors.getFG().toRGBAHTMLColor()));
 			jline.writer().println();
 			
 			printTitle(jline, "Emulator");

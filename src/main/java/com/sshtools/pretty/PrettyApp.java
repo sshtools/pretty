@@ -4,11 +4,13 @@ import static com.sshtools.jajafx.FXUtil.maybeQueue;
 import static javafx.application.Platform.runLater;
 
 import java.net.URL;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.concurrent.Callable;
 import java.util.prefs.Preferences;
 
 import org.kordamp.ikonli.fontawesome5.FontAwesomeSolid;
@@ -51,6 +53,9 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.Window;
 import javafx.util.Pair;
+import picocli.CommandLine;
+import picocli.CommandLine.Command;
+import picocli.CommandLine.Option;
 import uk.co.bithatch.nativeimage.annotations.Bundle;
 import uk.co.bithatch.nativeimage.annotations.Reflectable;
 import uk.co.bithatch.nativeimage.annotations.Resource;
@@ -143,17 +148,41 @@ public class PrettyApp extends JajaFXApp<Pretty> implements Listener {
 
 	@Override
 	public void startupPerformed(String parameters) {
-		Platform.runLater(() -> {
-			var stage = new Stage();
-			appContext.newAppWindow(stage);
-			stage.sizeToScene();
-			stage.show();
-		});
+		var cmdline = new CommandLine(new RemoteCommand(appContext));
+		cmdline.execute(Strings.parseQuotedString(parameters).toArray(new String[0]));
+//		
 	}
 
 	@Override
 	protected void listenForDarkModeChanges() {
 		darkModeProperty.addListener((c,o,n) -> updateDarkMode());
+	}
+
+	@Command(name = "pretty-remote", mixinStandardHelpOptions = true, description = "Remote control of pretty", versionProvider = Pretty.Version.class)
+	public final static class RemoteCommand implements Callable<Integer> {
+		
+		@Option(names = { "-s", "--size" }, description = "Size of window, in the format <width>X<height>.")
+		private String size;
+	
+		@Option(names = { "-c", "--cwd" }, description = "Working directory for local shells.")
+		private Optional<Path> workingDirectory;
+
+		private final AppContext appContext;
+
+		public RemoteCommand(AppContext appContext) {
+			this.appContext = appContext;
+		}
+
+		@Override
+		public Integer call() throws Exception {
+			Platform.runLater(() -> {
+				var stage = new Stage();
+				appContext.newAppWindow(stage);
+				stage.sizeToScene();
+				stage.show();
+			});
+			return 0;
+		}
 	}
 
 	class AppContextImpl implements AppContext {
@@ -194,7 +223,7 @@ public class PrettyApp extends JajaFXApp<Pretty> implements Listener {
 					var window = dialog.getDialogPane().getScene().getWindow();
 					dialog.setTitle(" ");
 					window.setOnCloseRequest(event -> window.hide());
-					PrettyApp.this.updateDarkMode(window.getScene().getRoot());
+					PrettyApp.this.updateRootStyles(window.getScene().getRoot());
 					
 					try {
 						if(Boolean.getBoolean("jaja.debugScene"))
@@ -292,6 +321,16 @@ public class PrettyApp extends JajaFXApp<Pretty> implements Listener {
 		@Override
 		public Themes getThemes() {
 			return themes;
+		}
+
+		@Override
+		public Path getDefaultWorkingDirectory() {
+			return PrettyApp.this.getContainer().getDefaultWorkingDirectory();
+		}
+
+		@Override
+		public void open(String... args) {
+			PrettyApp.this.startupPerformed(String.join(",", Arrays.asList(args).stream().map(s -> "\"" + s + "\"").toList()));
 		}
 	}
 

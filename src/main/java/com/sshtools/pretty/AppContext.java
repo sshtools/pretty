@@ -1,6 +1,7 @@
 package com.sshtools.pretty;
 
 import java.net.URL;
+import java.nio.file.Path;
 import java.util.prefs.Preferences;
 
 import com.sshtools.jajafx.JajaFXAppWindow;
@@ -45,4 +46,8 @@ public interface AppContext {
 	boolean isDecorated();
 
 	PrettyAppWindow newAppWindow(Stage stage);
+
+	Path getDefaultWorkingDirectory();
+
+	void open(String... args);
 }

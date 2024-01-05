@@ -140,7 +140,7 @@ public final class Pricli {
 		
 		overlay = new Pane();
 		overlay.setBackground(new Background(new BackgroundFill(
-				ttyContext.getContainer().getUiToolkit().localColorToNativeColor(term.getDefaultBackground()),
+				ttyContext.getContainer().getUiToolkit().localColorToNativeColor(term.getViewport().getColors().getBG()),
 				CornerRadii.EMPTY, null)));
 		overlay.setOnMouseClicked(e->close());
 		overlay.setOpacity(0);

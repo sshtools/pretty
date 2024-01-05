@@ -41,7 +41,7 @@
     </entries>
   </files>
   <launchers>
-    <launcher name="pretty" id="52" menuName="Push SFTP GUI">
+    <launcher name="pretty" id="52" menuName="Push SFTP GUI" addMacApplicationCategory="true" macApplicationCategory="public.app-category.utilities">
       <executable name="pretty" iconSet="true" executableDir="." stderrFile="toolbox.log" redirectStdout="true" stdoutFile="toolbox.log" executableMode="gui" singleInstance="true" />
       <java mainClass="com.sshtools.pretty/com.sshtools.pretty.Pretty" mainMode="module" vmParameters="-Dinstall4j.installationDir=${installer:sys.installationDir}">
         <modulePath>
@@ -66,9 +66,6 @@ Comment=Terminal emulator with built in SSH and Serial support </desktopFile>
         <file path="../resources/com/sshtools/pretty/icon-128.png" />
         <file path="../resources/com/sshtools/pretty/icon-256.png" />
       </iconImageFiles>
-      <macStaticAssociations>
-        <urlHandler scheme="jaul" />
-      </macStaticAssociations>
     </launcher>
   </launchers>
   <installerGui autoUpdateDescriptorUrl="https://sshtools-public.s3.eu-west-1.amazonaws.com/pretty/${compiler:build.phase}/updates.xml" useAutoUpdateBaseUrl="true" autoUpdateBaseUrl="https://sshtools-public.s3.eu-west-1.amazonaws.com/pretty/${compiler:sys.version}/">
