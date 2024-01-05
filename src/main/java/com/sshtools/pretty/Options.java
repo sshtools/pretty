@@ -117,7 +117,7 @@ public class Options extends StackPane implements Closeable {
 
 		
 		/* Preview terminal */
-		var emulator = new DECEmulator<JavaFXTerminalPanel>(XTERM256Color.ID, 20, 10);
+		var emulator = new DECEmulator<JavaFXTerminalPanel>(XTERM256Color.ID, 33, 14);
 		var panel = new JavaFXTerminalPanel.Builder().
 				withUiToolkit(app.getUiToolkit()).
 				withFontManager(app.getFontManager()).
