@@ -158,7 +158,7 @@ public abstract class AbstractSshCommand implements Callable<Integer> {
 			sshInstance = new SshInstance(connector(), ssh);
 		}
 	}
-
+	
 	protected abstract int runCommand() throws Exception;
 
 	protected void beforeCommand() {

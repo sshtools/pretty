@@ -147,4 +147,8 @@ public class SerialProtocol implements TerminalProtocol, Status.Element {
 		b.append(fc[1].toMnemonic());
 		return b.toString();
 	}
+
+	@Override
+	public void cwd(String cwd) {		
+	}
 }

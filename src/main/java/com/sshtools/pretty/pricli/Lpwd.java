@@ -14,7 +14,7 @@ public class Lpwd extends LocalFileCommand {
 
 	@Override
 	public Integer call() throws Exception {
-		Styling.styled(MessageFormat.format(RESOURCES.getString("lpwd"), parent.cli().getWorkingDirectory()))
+		Styling.styled(MessageFormat.format(RESOURCES.getString("lpwd"), parent.cli().cwd()))
 				.println(parent.cli().jline());
 		return 0;
 	}

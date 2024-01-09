@@ -110,7 +110,7 @@ public final class Pricli {
 
 		term = new JavaFXTerminalPanel.Builder().
 				withUiToolkit(ttyContext.getContainer().getUiToolkit()).
-				withFontManager(ttyContext.getContainer().getFontManager()).
+				withFontManager(ttyContext.getContainer().getFonts().getFontManager()).
 				withBuffer(buf).
 				build();
 
@@ -234,11 +234,11 @@ public final class Pricli {
 		systemRegistry.setCommandRegistries(this.commandRegistries.toArray(new CommandRegistry[0]));
 	}
 	
-	public Path getWorkingDirectory() {
+	public Path cwd() {
 		return workingDirectory;
 	}
 	
-	public void setWorkingDirectory(Path workingDirectory) {
+	public void cwd(Path workingDirectory) {
 		this.workingDirectory = workingDirectory;
 	}
 

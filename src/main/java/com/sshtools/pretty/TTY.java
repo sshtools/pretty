@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.Stack;
@@ -93,15 +94,15 @@ public class TTY extends StackPane implements Closeable {
 	private final StringProperty shortTitle = new SimpleStringProperty(RESOURCES.getString("appType"));
 	private final Consumer<TTY> onClose;
 	private final Status status = new Status();
-
 	private boolean closed;
-
 	private JavaFXScrollBar scroller;
 	private Transition resizeFade;
+	private Path cwd;
 
 	public TTY(TTYContext app, Consumer<TTY> onClose) {
 		this.app = app;
 		this.onClose = onClose;
+		this.cwd = Paths.get(System.getProperty("user.dir"));
 		theme = app.getContainer().getSelectedTheme();
 		
 		var cfg = app.getContainer().getConfiguration();
@@ -129,7 +130,7 @@ public class TTY extends StackPane implements Closeable {
 		terminalPanel = new JavaFXTerminalPanel.Builder().
 				withAudioSystem(new TTYAudioSystem(this)).
 				withUiToolkit(app.getContainer().getUiToolkit()).
-				withFontManager(app.getContainer().getFontManager()).
+				withFontManager(app.getContainer().getFonts().getFontManager()).
 				withBuffer(emulator)
 				.build();
 		theme.apply(terminalPanel, getBackgroundOpacity());
@@ -141,6 +142,9 @@ public class TTY extends StackPane implements Closeable {
 		resizeInfo.getStyleClass().add("resize-info");
 		
 		/* Configure terminal's buffer */
+		emulator.addCWDChangeListener((vp, cwd) -> {
+			protocol().cwd(cwd);
+		});
 		emulator.getTransferManager().addTransferListener(new TransferHandler(this));
 		emulator.addTitleChangeListener((t, title) -> runLater(() -> this.title.setValue(title)));
 		emulator.setNotifications(new TwoSlicesNotificattions());
@@ -197,7 +201,7 @@ public class TTY extends StackPane implements Closeable {
 			cfg.bindString(emulator::setTerminalType, emulator.getTerminalType()::getId, "type", Constants.TERMINAL_SECTION),  
 			cfg.bindString((nsz) -> updateAppearance(), () -> String.format("%dx%d", emulator.getColumns(), emulator.getRows()), "screen-size", Constants.TERMINAL_SECTION),
 			cfg.bindInteger(this::setFontSize, terminalPanel.getFontManager().getDefault().spec()::getSize, "font-size", Constants.TERMINAL_SECTION),
-			cfg.bindStrings(this::setFonts, this::getFonts, "fonts", Constants.TERMINAL_SECTION),
+			cfg.bindStrings(this::setFonts, app.getContainer().getFonts()::getFonts, "fonts", Constants.TERMINAL_SECTION),
 			cfg.bindStrings((s) -> updateFeatures(), this::getEnabledFeatures, "enabled-features", Constants.TERMINAL_SECTION), 
 			cfg.bindStrings((s) -> updateFeatures(), this::getDisabledFeatures, "disabled-features", Constants.TERMINAL_SECTION),
 			cfg.bindString(this::setThemeName, this::getThemeName, Constants.THEME_KEY, Constants.TERMINAL_SECTION),
@@ -266,6 +270,15 @@ public class TTY extends StackPane implements Closeable {
 		catch(Exception e) {
 			LOG.error("Failed to start protocol.", e);
 			runProtocol(new ErrorProtocol(RESOURCES.getString("failedToStartShell"), e));
+		}
+	}
+
+	public void cwd(Path cwd) {
+		if(!Objects.equals(this.cwd, cwd)) {
+			this.cwd = cwd;
+			if(pricli != null) {
+				pricli.cwd(cwd);
+			}
 		}
 	}
 
@@ -362,7 +375,7 @@ public class TTY extends StackPane implements Closeable {
 				LOG.error("Protocol failed.", re);
 				throw re;
 			}
-			catch(Exception re) {
+			catch(Throwable re) {
 				LOG.error("Protocol failed.", re);
 				throw new IllegalStateException(re);
 			}
@@ -431,6 +444,7 @@ public class TTY extends StackPane implements Closeable {
 	public Pricli cli() {
 		if(pricli == null) {
 			pricli = new Pricli(this);
+			pricli.cwd(cwd);
 		}
 		return pricli;
 	}
@@ -567,25 +581,8 @@ public class TTY extends StackPane implements Closeable {
 		return terminalPanel.getViewport().enabled().stream().map(Feature::toString).toList().toArray(new String[0]);
 	}
 	
-	private String[] getFonts() {
-		var fnts = terminalPanel.getFontManager().getFonts(true);
-		var nl = fnts.stream().map(mf -> mf.spec().getName()).toList();
-		return nl.toArray(new String[0]);
-	}
-	
 	private void setFonts(String[] fonts) {
-		var fmgr = terminalPanel.getFontManager();
-		var i = 0;
-		if(fonts == null || fonts.length == 0 || (/* TODO don't like this */ fonts.length == 1 && fonts[0].equals(""))) {
-			fonts = getFonts();
-		}
-		for(var name : fonts) {
-			var fnt = fmgr.getFont(name);
-			if(fnt == null)
-				LOG.warn("No such font as {}", fonts[i]);
-			else
-				fmgr.move(fnt, i++);
-		}
+		app.getContainer().getFonts().setFonts(fonts);
 		updateFont();
 	}
 	
@@ -618,7 +615,7 @@ public class TTY extends StackPane implements Closeable {
 
 					statusTerminal = new JavaFXTerminalPanel.Builder().
 							withUiToolkit(app.getContainer().getUiToolkit()).
-							withFontManager(app.getContainer().getFontManager()).
+							withFontManager(app.getContainer().getFonts().getFontManager()).
 							withBuffer(emulator)
 							.build();
 					statusTerminal.setResizeStrategy(ResizeStrategy.SCREEN);

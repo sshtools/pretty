@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.prefs.Preferences;
 
 import org.kordamp.ikonli.fontawesome5.FontAwesomeSolid;
@@ -28,8 +29,6 @@ import com.sshtools.jajafx.JajaFXAppWindow;
 import com.sshtools.jaul.UpdateService;
 import com.sshtools.jini.Data.Handle;
 import com.sshtools.terminal.emulation.UIToolkit;
-import com.sshtools.terminal.emulation.fonts.FontManager;
-import com.sshtools.terminal.fonts.EmojiFonts;
 import com.sshtools.terminal.vt.javafx.JavaFXUIToolkit;
 
 import javafx.application.HostServices;
@@ -72,21 +71,21 @@ public class PrettyApp extends JajaFXApp<Pretty> implements Listener {
 	private final static ResourceBundle RESOURCES = ResourceBundle.getBundle(PrettyApp.class.getName());
 
 	private final JavaFXUIToolkit uiToolkit;
-	private final FontManager<Font> fontManager;
 	private final AppContextImpl appContext;
 	private final ObjectProperty<DarkMode> darkModeProperty;
+	private final Fonts fonts;
 
 	private boolean optionsVisible; 
 
 	public PrettyApp() {
 		super(PrettyApp.class.getResource("icon.png"), RESOURCES.getString("title"), (Pretty) Pretty.getInstance());
 		uiToolkit = new JavaFXUIToolkit();
-		fontManager = new FontManager<>(uiToolkit);
 		appContext = new AppContextImpl();
+		fonts = new Fonts(appContext, uiToolkit);
 		setDefaultStandardWindowDecorations(false);
 		setShowFrameTitle(true);
 		darkModeProperty = getContainer().getConfiguration().getEnumProperty(DarkMode.class, Constants.DARK_MODE_KEY, Constants.UI_SECTION);
-		new EmojiFonts<Font>(fontManager);
+//		new EmojiFonts<Font>(fontManager);
 		StartupNotification.registerStartupListener(this);
 	}
 
@@ -189,10 +188,23 @@ public class PrettyApp extends JajaFXApp<Pretty> implements Listener {
 
 		private final Themes themes;
 		private final Shells shells;
+		private final Monitor monitor;
 
 		AppContextImpl() {
 			themes = new Themes(this);
 			shells = new Shells();
+			monitor = new Monitor(this);
+			getConfiguration().monitor(monitor);
+		}
+
+		@Override
+		public ScheduledExecutorService scheduler() {
+			return PrettyApp.this.getContainer().getScheduler();
+		}
+
+		@Override
+		public Monitor monitor() {
+			return monitor;
 		}
 
 		@Override
@@ -291,8 +303,8 @@ public class PrettyApp extends JajaFXApp<Pretty> implements Listener {
 		}
 
 		@Override
-		public FontManager<Font> getFontManager() {
-			return fontManager;
+		public Fonts getFonts() {
+			return fonts;
 		}
 
 		@Override
@@ -555,24 +567,24 @@ public class PrettyApp extends JajaFXApp<Pretty> implements Listener {
 				var idx = ttys.indexOf(tty);
 				if (idx > -1) {
 					var first = getChildren().get(0);
-					if (getChildren().size() == 1) {
-						if (first instanceof TabPane) {
-							/*
-							 * Now just a single tab, switch back to adding the tty directly to the frames
-							 * stack
-							 */
-							var tabPane = (TabPane) first;
+					if (first instanceof TabPane) {
+						/*
+						 * Now just a single tab, switch back to adding the tty directly to the frames
+						 * stack
+						 */
+						var tabPane = (TabPane) first;
+						if(tabPane.getTabs().size() == 2) {
 							((Handle) tabPane.getUserData()).close();
 							var firstTab = tabPane.getTabs().get(0);
 							getChildren().remove(first);
 							getChildren().add((TTY) firstTab.getUserData());
-						} else {
-							stage.close();
+						}
+						else {
+							var tab = tabPane.getTabs().get(idx);
+							tabPane.getTabs().remove(tab);		
 						}
 					} else {
-						var tabPane = (TabPane) first;
-						var tab = tabPane.getTabs().get(idx);
-						tabPane.getTabs().remove(tab);
+						stage.close();
 					}
 					updateStageTitle();
 				}

@@ -18,4 +18,6 @@ public interface TerminalProtocol extends Closeable {
 
 	boolean isAttached();
 
+	void cwd(String cwd);
+
 }

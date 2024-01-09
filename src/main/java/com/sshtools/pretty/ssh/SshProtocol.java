@@ -156,4 +156,10 @@ public final class SshProtocol implements TerminalProtocol, ResizeListener, Elem
 	public SshInstance getInstance() {
 		return instance;
 	}
+
+	@Override
+	public void cwd(String cwd) {
+		// TODO Set the remote sftp path
+		
+	}
 }

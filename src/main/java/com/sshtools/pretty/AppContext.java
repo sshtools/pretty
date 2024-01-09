@@ -2,12 +2,12 @@ package com.sshtools.pretty;
 
 import java.net.URL;
 import java.nio.file.Path;
+import java.nio.file.WatchService;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.prefs.Preferences;
 
-import com.sshtools.jajafx.JajaFXAppWindow;
 import com.sshtools.jaul.UpdateService;
 import com.sshtools.terminal.emulation.UIToolkit;
-import com.sshtools.terminal.emulation.fonts.FontManager;
 
 import javafx.application.HostServices;
 import javafx.collections.ObservableList;
@@ -17,6 +17,8 @@ import javafx.stage.Stage;
 
 public interface AppContext {
 
+	Monitor monitor();
+	
 	void options(Stage owner);
 
 	TerminalTheme getSelectedTheme();
@@ -33,7 +35,7 @@ public interface AppContext {
 
 	UIToolkit<Font, Color> getUiToolkit();
 
-	FontManager<Font> getFontManager();
+	Fonts getFonts();
 
 	HostServices getHostServices();
 
@@ -52,4 +54,6 @@ public interface AppContext {
 	Shells getShells();
 
 	void open(String... args);
+
+	ScheduledExecutorService scheduler();
 }

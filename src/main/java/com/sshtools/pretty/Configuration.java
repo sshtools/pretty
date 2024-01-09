@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.function.Consumer;
@@ -31,7 +32,6 @@ import com.sshtools.jini.Data.ValueUpdateEvent;
 import com.sshtools.jini.INI;
 import com.sshtools.jini.INI.Section;
 import com.sshtools.jini.INIReader;
-import com.sshtools.jini.INIReader.Builder;
 import com.sshtools.jini.INIReader.MultiValueMode;
 import com.sshtools.jini.INIWriter;
 
@@ -92,14 +92,38 @@ public final class Configuration {
 	public Configuration(Path dir) {
 		this.dir = dir;
 		try (var in = Configuration.class.getResourceAsStream("Configuration.ini")) {
-			defaultConfiguration = configuredBuilder(new INIReader.Builder()).build().read(new InputStreamReader(in)).readOnly();
+			defaultConfiguration = createINIReader().read(new InputStreamReader(in)).readOnly();
 		} catch (IOException ioe) {
 			throw new UncheckedIOException(ioe);
 		} catch (ParseException e) {
 			throw new IllegalStateException(e);
 		}
 		configuration = dir.resolve("pretty.ini");
+		reload();
+	}
+
+	public static INIReader createINIReader() {
+		var bldr = new INIReader.Builder();
+		bldr.withMultiValueMode(MultiValueMode.SEPARATED);
+		return bldr.build();
+	}
+	
+	public void monitor(Monitor monitor) {
+		monitor.monitor(dir, (evt) -> {
+			/* TODO fire change events */
+			if(evt.context().equals(configuration.getFileName())) {
+				LOG.info("Configuration file change detected");
+				reload();
+			}
+		});
+	}
+
+	public void reload() {
+		var was = ini;
 		load();
+		if(!Objects.equals(was, ini)) {
+			
+		}
 	}
 	
 	public Path dir() {
@@ -271,7 +295,7 @@ public final class Configuration {
 		}
 		if (Files.exists(configuration)) {
 			try {
-				ini = configuredBuilder(new  INIReader.Builder()).build().read(configuration);
+				ini = createINIReader().read(configuration);
 			} catch (IOException e) {
 				throw new UncheckedIOException(e);
 			} catch (ParseException e) {
@@ -308,6 +332,11 @@ public final class Configuration {
 			onSectionUpdate = ini.onSectionUpdate(evt -> {
 				// TODO
 			});
+		}
+		else if(ini != null) {
+			/* TODO: Config file removed, everything returns to defaults, so check 
+			 * for changes
+			 */
 		}
 	}
 	
@@ -576,11 +605,6 @@ public final class Configuration {
 			LOG.info("Setting {} to '{}'", key, value);
 		else
 			LOG.info("Setting [{}].{} to '{}'", String.join(".", path), key, value);
-	}
-
-	private Builder configuredBuilder(Builder bldr) {
-		bldr.withMultiValueMode(MultiValueMode.SEPARATED);
-		return bldr;
 	}
 
 }

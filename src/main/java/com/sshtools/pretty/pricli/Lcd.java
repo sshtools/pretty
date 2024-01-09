@@ -21,7 +21,7 @@ public class Lcd extends LocalFileCommand {
 	@Override
 	public Integer call() throws Exception {
 		var resolvedPath = expandLocalSingle(path);
-		parent.cli().setWorkingDirectory(resolvedPath);
+		parent.cli().cwd(resolvedPath);
 		parent.cli().result(resolvedPath.toString());
 		return 0;
 	}

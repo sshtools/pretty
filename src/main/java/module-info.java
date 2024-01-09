@@ -7,6 +7,7 @@ open module com.sshtools.pretty {
 	requires org.freedesktop.dbus.transport.jre;
 	requires javafx.fxml;
 	requires pty4j;
+//	requires com.sshtools.pty4j;
 	requires transitive com.sshtools.terminal.vt.javafx;
 	requires transitive java.prefs;
 	requires transitive com.sshtools.jini;
@@ -29,5 +30,6 @@ open module com.sshtools.pretty {
 	requires com.sshtools.agent;
 	requires me.tongfei.progressbar;
 	requires jsyn;
-	requires static org.scenicview.scenicview; 
+	requires org.scenicview.scenicview;
+	requires java.scripting; 
 }

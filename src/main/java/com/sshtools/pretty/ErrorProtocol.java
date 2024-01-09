@@ -94,4 +94,8 @@ public class ErrorProtocol implements TerminalProtocol, ResizeListener {
 		jline.setSize(new Size(columns, rows));
 	}
 
+	@Override
+	public void cwd(String cwd) {
+	}
+
 }

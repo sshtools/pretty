@@ -55,7 +55,7 @@ public abstract class LocalFileCommand implements Callable<Integer> {
 	}
 
 	protected Path expandLocalSingle(Optional<Path> path) throws IOException {
-		return expandLocalSingleOr(path).orElseGet(parent.cli()::getWorkingDirectory);
+		return expandLocalSingleOr(path).orElseGet(parent.cli()::cwd);
 	}
 
 	protected Optional<Path> expandLocalSingleOr(Optional<Path> path) throws IOException {
@@ -90,7 +90,7 @@ public abstract class LocalFileCommand implements Callable<Integer> {
 
 	protected void expandLocalAndDo(PathOp op, boolean recurse, Path... paths) throws IOException {
 
-		var lcwd = parent.cli().getWorkingDirectory();
+		var lcwd = parent.cli().cwd();
 
 		for (var path : paths) {
 

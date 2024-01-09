@@ -168,7 +168,7 @@ public class Options extends StackPane implements Closeable {
 		var emulator = new DECEmulator<JavaFXTerminalPanel>(XTERM256Color.ID, 33, 14);
 		var panel = new JavaFXTerminalPanel.Builder().
 				withUiToolkit(app.getUiToolkit()).
-				withFontManager(app.getFontManager()).
+				withFontManager(app.getFonts().getFontManager()).
 				withBuffer(emulator)
 				.build();
 		emulator.getModes().setCursorBlink(true);
@@ -213,7 +213,7 @@ public class Options extends StackPane implements Closeable {
 			}
 		});
 		
-		fontName.getItems().addAll(app.getFontManager().getFontSpecs());
+		fontName.getItems().addAll(app.getFonts().getFontManager().getFontSpecs());
 		fontName.setConverter(new StringConverter<FontSpec>() {
 			@Override
 			public String toString(FontSpec object) {
@@ -222,7 +222,7 @@ public class Options extends StackPane implements Closeable {
 
 			@Override
 			public FontSpec fromString(String name) {
-				return app.getFontManager().getFont(name).spec();
+				return app.getFonts().getFontManager().getFont(name).spec();
 			}
 		});
 		
