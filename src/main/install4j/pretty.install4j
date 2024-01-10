@@ -15,6 +15,7 @@
         <entry>*pty4j*</entry>
         <entry>install4j-*</entry>
         <entry>jline-native*</entry>
+        <entry>jkeychain*</entry>
       </macSearchedJars>
     </codeSigning>
     <jreBundles jdkProviderId="AdoptOpenJDK" release="21/jdk-21.0.1+12">
