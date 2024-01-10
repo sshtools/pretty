@@ -31,5 +31,6 @@ open module com.sshtools.pretty {
 	requires me.tongfei.progressbar;
 	requires jsyn;
 	requires org.scenicview.scenicview;
-	requires java.scripting; 
+	requires java.scripting;
+	requires java.keyring; 
 }

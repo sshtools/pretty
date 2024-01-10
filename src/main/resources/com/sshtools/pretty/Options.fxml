@@ -5,10 +5,12 @@
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.RadioButton?>
 <?import javafx.scene.control.Spinner?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.ToggleGroup?>
 <?import javafx.scene.control.Tooltip?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
@@ -173,6 +175,23 @@
                                     <String fx:value="lpad" />
                                     <String fx:value="spaced" />
                                  </styleClass>
+                              </VBox>
+                              <Label layoutX="10.0" layoutY="68.0" text="%passwords">
+                                 <styleClass>
+                                    <String fx:value="h3" />
+                                    <String fx:value="tpad" />
+                                 </styleClass>
+                              </Label>
+                              <VBox styleClass="spaced">
+                                 <children>
+                                    <RadioButton fx:id="store" mnemonicParsing="false" styleClass="lpad" text="%store">
+                                       <toggleGroup>
+                                          <ToggleGroup fx:id="passwords" />
+                                       </toggleGroup>
+                                    </RadioButton>
+                                    <RadioButton fx:id="session" layoutX="10.0" layoutY="10.0" mnemonicParsing="false" styleClass="lpad" text="%session" toggleGroup="$passwords" />
+                                    <RadioButton fx:id="prompt" mnemonicParsing="false" styleClass="lpad" text="%prompt" toggleGroup="$passwords" />
+                                 </children>
                               </VBox>
                               <Label text="%shell">
                                  <styleClass>

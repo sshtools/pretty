@@ -48,7 +48,7 @@ public class Update implements Callable<Integer> {
 		@Override
 		public Integer call() throws Exception {
 			var cli = parent.parent.cli();
-			var app = cli.tty().getTTYContext().getContainer();
+			var app = cli.tty().ttyContext().getContainer();
 			var updateService = app.getUpdateService();
 			updateService.checkForUpdate();
 			if(updateService.isNeedsUpdating()) {
@@ -70,7 +70,7 @@ public class Update implements Callable<Integer> {
 		public Integer call() throws Exception {
 
 			var cli = parent.parent.cli();
-			var app = cli.tty().getTTYContext().getContainer();
+			var app = cli.tty().ttyContext().getContainer();
 			var updateService = app.getUpdateService();
 			
 			updateService.checkForUpdate();
@@ -96,7 +96,7 @@ public class Update implements Callable<Integer> {
 		@Override
 		public Integer call() throws Exception {
 			var cli = parent.parent.cli();
-			var app = cli.tty().getTTYContext().getContainer();
+			var app = cli.tty().ttyContext().getContainer();
 			var updateService = app.getUpdateService();
 			phase.ifPresentOrElse(p -> updateService.getContext().setPhase(p),
 					() -> cli.result(styled(format(RESOURCES.getString("phase"), updateService.getContext().getPhase())).toAttributedString()));
@@ -117,7 +117,7 @@ public class Update implements Callable<Integer> {
 		@Override
 		public Integer call() throws Exception {
 			var cli = parent.parent.cli();
-			var app = cli.tty().getTTYContext().getContainer();
+			var app = cli.tty().ttyContext().getContainer();
 			var updateService = app.getUpdateService();
 			for(var p : updateService.getPhases()) {
 				cli.print(p.name());

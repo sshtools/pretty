@@ -155,7 +155,7 @@ public class TransferHandler implements TransferListener {
 		    
 			Platform.runLater(() -> {
 					var alert = new Alert(AlertType.CONFIRMATION);
-					alert.initOwner(tty.getTTYContext().stage());
+					alert.initOwner(tty.ttyContext().stage());
 					alert.setTitle(RESOURCES.getString("downloadTitle"));
 					alert.setHeaderText(RESOURCES.getString("download"));
 					alert.setContentText(MessageFormat.format(RESOURCES.getString("downloadText"), file.getFileName()));
@@ -251,11 +251,11 @@ public class TransferHandler implements TransferListener {
 	private void moveAccepted(Transfer transfer, ActiveTransfer active) {
 		LOG.info("Moving temporary download file {} to target {}", active.tmpfile, active.targetfile);
 		try {
-			if(tty.getTTYContext().getContainer().getConfiguration().getBoolean("notifications", TRANSFERS_SECTION)) {
+			if(tty.ttyContext().getContainer().getConfiguration().getBoolean("notifications", TRANSFERS_SECTION)) {
 				new ToastBuilder().
 					type(ToastType.INFO).
 					action(RESOURCES.getString("openFolder"), () -> {
-						tty.getTTYContext().getContainer().getHostServices().showDocument(active.targetfile.getParent().toUri().toString());
+						tty.ttyContext().getContainer().getHostServices().showDocument(active.targetfile.getParent().toUri().toString());
 					}).
 					title(RESOURCES.getString("downloadComplete")).
 					content(MessageFormat.format(RESOURCES.getString("downloadCompleteText"), transfer.filename().orElse(RESOURCES.getString("unknownFile")))).

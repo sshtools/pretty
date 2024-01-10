@@ -2,7 +2,6 @@ package com.sshtools.pretty;
 
 import java.net.URL;
 import java.nio.file.Path;
-import java.nio.file.WatchService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.prefs.Preferences;
 
@@ -16,6 +15,8 @@ import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
 public interface AppContext {
+	
+	SecretStorage passwords();
 
 	Monitor monitor();
 	

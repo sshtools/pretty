@@ -35,7 +35,7 @@ public class TTYAudioSystem extends JavaFXAudioSystem {
 
 	@Override
 	protected void playBeep() {
-		var aw = (PrettyAppWindow) tty.getTTYContext().appWindow();
+		var aw = (PrettyAppWindow) tty.ttyContext().appWindow();
 		aw.animateBell();
 		if (!isMuted()) {
 			super.playBeep();
@@ -43,7 +43,7 @@ public class TTYAudioSystem extends JavaFXAudioSystem {
 	}
 
 	protected boolean isMuted() {
-		return tty.getTTYContext().getContainer().getConfiguration().getBoolean(Constants.MUTE_KEY,
+		return tty.ttyContext().getContainer().getConfiguration().getBoolean(Constants.MUTE_KEY,
 				Constants.UI_SECTION);
 	}
 

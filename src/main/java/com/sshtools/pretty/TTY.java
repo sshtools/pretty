@@ -507,7 +507,7 @@ public class TTY extends StackPane implements Closeable {
 		}
 	}
 
-	public TTYContext getTTYContext() {
+	public TTYContext ttyContext() {
 		return app;
 	}
 

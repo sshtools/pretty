@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import com.sshtools.terminal.emulation.UIToolkit;
 import com.sshtools.terminal.emulation.fonts.FontManager;
 import com.sshtools.terminal.emulation.fonts.FontManager.ManagedFont;
+import com.sshtools.terminal.fonts.TrueTypeFonts;
 
 import javafx.scene.text.Font;
 
@@ -22,45 +23,35 @@ public class Fonts {
 	static Logger LOG = LoggerFactory.getLogger(Fonts.class);
 
 	private final FontManager<Font> fontManager;
-	private final Path path;
 	private final Map<String, ManagedFont<Font, ?>> userFonts = new HashMap<>();
+	private final TrueTypeFonts<Font> trueTypeFonts;
 
 	public Fonts(AppContext ctx, UIToolkit<Font, ?> uiToolkit) {
 		fontManager = new FontManager.Builder<>(uiToolkit).build();
-		path = ctx.getConfiguration().dir().resolve("fonts");
+		
+		trueTypeFonts = new TrueTypeFonts<>(fontManager, uiToolkit);
+		
+		var primaryFontsPath = ctx.getConfiguration().dir().resolve("fonts");
+		var supplementalFontsPath = ctx.getConfiguration().dir().resolve("supplemental-fonts");
 		try {
-			if (!Files.exists(path)) {
-				Files.createDirectories(path);
-			}
-			ctx.monitor().monitor(path, cb -> {
-				var fileChanged = path.resolve(cb.context());
-				LOG.info("Watched file changed {}. {}", fileChanged, cb.kind());
-				if (cb.kind() == StandardWatchEventKinds.ENTRY_CREATE) {
-					if (isFontFile(fileChanged)) {
-						uiToolkit.runOnToolkitThread(() -> {
-							loadFont(uiToolkit, fileChanged);
-							ctx.getConfiguration().put(Constants.FONTS_KEY, getFonts(), Constants.TERMINAL_SECTION);
-						});
-					}
-				} else if (cb.kind() == StandardWatchEventKinds.ENTRY_DELETE) {
-					if (isFontFile(fileChanged)) {
-						var fnt = userFonts.get(fileChanged.toString());
-						if(fnt != null) {
-							fontManager.removeFont(fnt);
-							LOG.info("User font {} removed.", fileChanged);
-							ctx.getConfiguration().put(Constants.FONTS_KEY, getFonts(), Constants.TERMINAL_SECTION);
-						}
-					}
-				}
-			});
-
-			for (var fntfile : Files.newDirectoryStream(path, p -> isFontFile(p))) {
-				loadFont(uiToolkit, fntfile);
-			}
+			maybeMkdir(primaryFontsPath, supplementalFontsPath);
+			
+			loadAndMonitorDir(ctx, uiToolkit, primaryFontsPath, false);
+			loadAndMonitorDir(ctx, uiToolkit, supplementalFontsPath, true);
 
 		} catch (IOException e) {
 			throw new UncheckedIOException(e);
 		}
+	}
+
+	public FontManager<Font> getFontManager() {
+		return fontManager;
+	}
+
+	public String[] getFonts() {
+		var fnts = fontManager.getFonts(true);
+		var nl = fnts.stream().map(mf -> mf.spec().getName()).toList();
+		return nl.toArray(new String[0]);
 	}
 
 	public void setFonts(String[] fonts) {
@@ -78,26 +69,50 @@ public class Fonts {
 		
 	}
 	
-	public String[] getFonts() {
-		var fnts = fontManager.getFonts(true);
-		var nl = fnts.stream().map(mf -> mf.spec().getName()).toList();
-		return nl.toArray(new String[0]);
-	}
-
 	private boolean isFontFile(Path fileChanged) {
 		return fileChanged.getFileName().toString().toLowerCase().endsWith(".ttf") || fileChanged.getFileName().toString().toLowerCase().endsWith(".otf");
 	}
 
-	private ManagedFont<Font,?> loadFont(UIToolkit<Font, ?> uiToolkit, Path fileChanged) {
+	private void loadAndMonitorDir(AppContext ctx, UIToolkit<Font, ?> uiToolkit, Path fontsPath,
+			boolean supplemental) throws IOException {
+		ctx.monitor().monitor(fontsPath, cb -> {
+			var fileChanged = fontsPath.resolve(cb.context());
+			LOG.info("Watched file changed {}. {}", fileChanged, cb.kind());
+			if (cb.kind() == StandardWatchEventKinds.ENTRY_CREATE) {
+				if (isFontFile(fileChanged)) {
+					uiToolkit.runOnToolkitThread(() -> {
+						loadFont(uiToolkit, supplemental, fileChanged);
+						ctx.getConfiguration().put(Constants.FONTS_KEY, getFonts(), Constants.TERMINAL_SECTION);
+					});
+				}
+			} else if (cb.kind() == StandardWatchEventKinds.ENTRY_DELETE) {
+				if (isFontFile(fileChanged)) {
+					var fnt = userFonts.remove(fileChanged.toString());
+					if(fnt != null) {
+						fontManager.removeFont(fnt);
+						LOG.info("User font {} removed.", fileChanged);
+						ctx.getConfiguration().put(Constants.FONTS_KEY, getFonts(), Constants.TERMINAL_SECTION);
+					}
+				}
+			}
+		});
+
+		for (var fntfile : Files.newDirectoryStream(fontsPath, p -> isFontFile(p))) {
+			loadFont(uiToolkit, supplemental, fntfile);
+		}
+	}
+
+	private ManagedFont<Font,?> loadFont(UIToolkit<Font, ?> uiToolkit, boolean supplemental, Path fileChanged) {
 		var fnt = userFonts.get(fileChanged.toString());
 		try {
 			if (fnt != null) {
 				LOG.warn("Font at {} already registered.", fileChanged);
 			} else {
 				/* TODO: This deprecated toURL() works, but fileChanged.toUri().toString() does not, investigate */
-				var tkFont = uiToolkit.loadFont(null, fileChanged.toFile().toURL().toString(), FontManager.DEFAULT_FONT_SIZE);
-				fnt = new FontManager.ToolkitFont<Font>(uiToolkit, false, tkFont);
-				fontManager.addFont(0, fnt);
+//				var tkFont = uiToolkit.loadFont(null, fileChanged.toFile().toURL().toString(), FontManager.DEFAULT_FONT_SIZE);
+//				fnt = new FontManager.ToolkitFont<Font>(uiToolkit, supplemental, tkFont);
+//				fontManager.addFont(0, fnt);
+				fnt = trueTypeFonts.addFontResource(null, fileChanged.toFile().toURL().toString(), FontManager.DEFAULT_FONT_SIZE, supplemental);
 				userFonts.put(fileChanged.toString(), fnt);
 				LOG.info("User font {} added.", fileChanged);
 			}
@@ -107,11 +122,11 @@ public class Fonts {
 		return fnt;
 	}
 
-	public Path path() {
-		return path;
-	}
-
-	public FontManager<Font> getFontManager() {
-		return fontManager;
+	private void maybeMkdir(Path... paths) throws IOException {
+		for(var path  : paths) {
+			if (!Files.exists(path)) {
+				Files.createDirectories(path);
+			}
+		}
 	}
 }

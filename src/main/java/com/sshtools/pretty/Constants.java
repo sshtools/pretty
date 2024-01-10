@@ -21,6 +21,7 @@ public class Constants {
 	// UI
 	public static final String DARK_MODE_KEY = "dark-mode";
 	public static final String MUTE_KEY = "mute";
+	public static final String PASSWORD_MODE_KEY = "password-mode";
 	
 	// DEBUG
 	public static final String VERBOSE_EXCEPTIONS_KEY = "verbose-exceptions";

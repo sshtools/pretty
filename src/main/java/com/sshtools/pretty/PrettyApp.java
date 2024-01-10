@@ -189,12 +189,19 @@ public class PrettyApp extends JajaFXApp<Pretty> implements Listener {
 		private final Themes themes;
 		private final Shells shells;
 		private final Monitor monitor;
+		private final SecretStorage passwords;
 
 		AppContextImpl() {
 			themes = new Themes(this);
 			shells = new Shells();
 			monitor = new Monitor(this);
+			passwords = new DefaultSecretStorage(this);
 			getConfiguration().monitor(monitor);
+		}
+
+		@Override
+		public SecretStorage passwords() {
+			return passwords;
 		}
 
 		@Override

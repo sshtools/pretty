@@ -3,6 +3,7 @@ package com.sshtools.pretty.ssh;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Base64;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.ResourceBundle;
@@ -24,6 +25,8 @@ import com.sshtools.common.knownhosts.KnownHostsFile;
 import com.sshtools.common.publickey.SshPrivateKeyFileFactory;
 import com.sshtools.common.ssh.SecurityLevel;
 import com.sshtools.common.ssh.SshException;
+import com.sshtools.pretty.SecretStorage;
+import com.sshtools.pretty.SecretStorage.Key;
 import com.sshtools.synergy.ssh.SshContext;
 
 public class SshConnector {
@@ -49,6 +52,7 @@ public class SshConnector {
 		private Optional<Function<String, String>> onPrompt = Optional.empty();
 		private long authenticationTimeout = 120;
 		private Optional<HostKeyVerification> hostKeyVerification = Optional.empty();
+		private Optional<SecretStorage> passwordStorage = Optional.empty();
 
 		public Builder(String hostname, String username, int port) {
 			this.hostname = hostname;
@@ -96,6 +100,11 @@ public class SshConnector {
 
 		public Builder withIgnoreIdentities(boolean ignoreIdentities) {
 			this.ignoreIdentities = ignoreIdentities;
+			return this;
+		}
+
+		public Builder withPasswordStorage(SecretStorage passwordStorage) {
+			this.passwordStorage = Optional.of(passwordStorage);
 			return this;
 		}
 
@@ -198,11 +207,10 @@ public class SshConnector {
 	private final Optional<BiConsumer<String, Object[]>> onMessage;
 	private final long authenticationTimeout;
 	private final HostKeyVerification hkv;
-
-	private char[] cachedPassword;
-	private char[] cachedPassphrase;
+	private final Optional<SecretStorage> passwordStorage;
 
 	private SshConnector(Builder bldr) {
+		passwordStorage = bldr.passwordStorage;
 		authenticationTimeout = bldr.authenticationTimeout;
 		disableAgent = bldr.disableAgent;
 		ignoreIdentities = bldr.ignoreIdentities;
@@ -319,18 +327,17 @@ public class SshConnector {
 			}
 
 			var buf = new StringBuffer();
-			if (ssh.authenticate(new IdentityFileAuthenticator((keyinfo) -> {
+			var authenticator = new IdentityFileAuthenticator((keyinfo) -> {
 				if (verbose)
 					onMessage.ifPresent(c -> c.accept("acceptableKey", new Object[] { keyinfo }));
-				if (cachedPassphrase != null) {
-					return new String(cachedPassphrase);
-				}
-				var tmp = getCachedPassphraseOrPrompt(RESOURCES.getString("passphrase"));
+				var storageServiceName = keyinfo + "@" + hostname + (port == 22 ? "" : ":" + port);
+				var tmp = getCachedSecretOrPrompt(new Key("ssh", username, storageServiceName), RESOURCES.getString("passphrase"));
 				buf.setLength(0);
-				buf.append(tmp);
+				buf.append(storageServiceName);
 				return tmp;
-			}), TimeUnit.SECONDS.toMillis(authenticationTimeout))) {
-				cachedPassphrase = buf.toString().toCharArray();
+			});
+			if (!ssh.authenticate(authenticator, TimeUnit.SECONDS.toMillis(authenticationTimeout))) {
+				passwordStorage.ifPresent(ps -> ps.reset(new Key("ssh", username, buf.toString())));
 			}
 		}
 
@@ -342,21 +349,20 @@ public class SshConnector {
 			} else {
 				var file = SshPrivateKeyFileFactory.parse(identityFile);
 				String passphrase = null;
+				var storageServiceName = Base64.getEncoder().encodeToString(file.getFormattedKey());
+				var key = new Key("ssh", username, storageServiceName);
 
 				if (file.isPassphraseProtected()) {
-					passphrase = getCachedPassphraseOrPrompt(RESOURCES.getString("passphrase"));
+					passphrase = getCachedSecretOrPrompt(key, RESOURCES.getString("passphrase"));
 				}
 
 				if (!ssh.isConnected()) {
 					ssh = bldr.build();
 				}
 
-				if (ssh.authenticate(new PrivateKeyFileAuthenticator(identityFile, passphrase),
+				if (!ssh.authenticate(new PrivateKeyFileAuthenticator(identityFile, passphrase),
 						TimeUnit.SECONDS.toMillis(authenticationTimeout))) {
-					if (passphrase != null) {
-						cachedPassphrase = passphrase.toCharArray();
-					}
-				} else {
+					passwordStorage.ifPresent(ps -> ps.reset(key));
 					if (verbose)
 						onError.ifPresent(c -> c.accept("identityFileCouldNotAuthenticate", null));
 				}
@@ -371,19 +377,14 @@ public class SshConnector {
 					if (!ssh.isConnected()) {
 						ssh = bldr.build();
 					}
+					var key = new Key("ssh", username, hostname + (port == 22 ? "" : ":" + port));
 
 					for (int i = 0; i < 3; i++) {
 						while (ssh.isConnected() && !ssh.isAuthenticated()) {
-							var buf = new StringBuffer();
-							if (ssh.authenticate(PasswordAuthenticator.of(() -> {
-								var tmp = getCachedPasswordOrPrompt(RESOURCES.getString("password"));
-								buf.setLength(0);
-								buf.append(tmp);
-								return tmp;
+							if (!ssh.authenticate(PasswordAuthenticator.of(() -> {
+								return getCachedSecretOrPrompt(key, RESOURCES.getString("password"));
 							}), TimeUnit.SECONDS.toMillis(authenticationTimeout))) {
-								if (cachedPassword == null) {
-									cachedPassword = buf.toString().toCharArray();
-								}
+								passwordStorage.ifPresent(ps -> ps.reset(key));
 								break;
 							}
 						}
@@ -406,20 +407,16 @@ public class SshConnector {
 		return ssh;
 	}
 
-	private String getCachedPasswordOrPrompt(String prompt) {
-		if (cachedPassword != null) {
-			return new String(cachedPassword);
-		} else {
-			return onPrompt.orElseThrow(() -> new IllegalStateException("No prompt callback set.")).apply(prompt);
+	private String getCachedSecretOrPrompt(Key key, String prompt) {
+		if(!passwordStorage.isEmpty()) {
+			var ps = passwordStorage.get();
+			var pw = ps.secret(key, () -> {
+				var str = onPrompt.orElseThrow(() -> new IllegalStateException("No prompt callback set.")).apply(prompt);
+				return str == null ? null : str.toCharArray(); 
+			});
+			return pw == null ? null : new String(pw); 
 		}
-	}
-
-	private String getCachedPassphraseOrPrompt(String prompt) {
-		if (cachedPassphrase != null) {
-			return new String(cachedPassphrase);
-		} else {
-			return onPrompt.orElseThrow(() -> new IllegalStateException("No prompt callback set.")).apply(prompt);
-		}
+		return onPrompt.orElseThrow(() -> new IllegalStateException("No prompt callback set.")).apply(prompt);
 	}
 
 }

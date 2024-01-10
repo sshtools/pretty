@@ -7,6 +7,8 @@ import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.jline.utils.Log;
+
 import com.sshtools.client.tasks.ShellTask;
 import com.sshtools.pretty.pricli.PicocliCommandRegistry;
 import com.sshtools.pretty.pricli.Styling;
@@ -93,6 +95,11 @@ public class Ssh extends AbstractSshCommand {
 					if (!closed.get()) {
 						// TODO on remote close?
 //					tty.popProtocol();
+					}
+					
+					if(session.getConnectionProtocol().getActiveChannels().isEmpty()) {
+						Log.info("Disconnecting, last session closed.");
+						ssh.disconnect();
 					}
 				}).onTask((task, session) -> {
 

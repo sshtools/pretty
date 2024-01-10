@@ -66,7 +66,7 @@ public class Debug implements Callable<Integer> {
 		
 		@Override
 		public Integer call() throws Exception {
-			Platform.runLater(() -> parent.parent.tty().getTTYContext().stage().sizeToScene());
+			Platform.runLater(() -> parent.parent.tty().ttyContext().stage().sizeToScene());
 			parent.parent.cli().result("Window packed");
 			return 0;
 		}

@@ -87,7 +87,7 @@ public abstract class AbstractSshCommand implements Callable<Integer> {
 		afterCommand();
 		return exitCode;
 	}
-
+	
 	protected abstract void processArguments() throws Exception;
 
 	protected abstract SshConnector.Builder createConnectorBuilder();
@@ -105,6 +105,7 @@ public abstract class AbstractSshCommand implements Callable<Integer> {
 		builder.withIdentityFile(identityFile);
 		builder.withCipher(cipher);
 		builder.withCompression(compression);
+		builder.withPasswordStorage(parent.cli().tty().ttyContext().getContainer().passwords());
 		builder.withKex(kex);
 		builder.withMac(kex);
 		builder.withSecurityLevel(securityLevel);
@@ -145,6 +146,8 @@ public abstract class AbstractSshCommand implements Callable<Integer> {
 									connector.username(), connector.hostname(), connector.port())).println(term);
 						}
 					});
+					
+					sshInstance = null;
 
 					/*
 					 * TODO: note, this may be called as a result of a shutdown hook, itself the

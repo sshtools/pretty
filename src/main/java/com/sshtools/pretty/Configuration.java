@@ -364,7 +364,7 @@ public final class Configuration {
 	public Handle bindInteger(Consumer<Integer> setter, Supplier<Integer> getter, String key, String... path) {
 		var prop = getIntProperty(key, path);
 		ChangeListener<? super Number> lsnr = (c,o,n) -> {
-			if(!getter.get().equals(n)) {
+			if(!Objects.equals(n, getter.get())) {
 				setter.accept((Integer)n);	
 			}
 		};
@@ -376,7 +376,7 @@ public final class Configuration {
 	public Handle bindFloat(Consumer<Float> setter, Supplier<Float> getter, String key, String... path) {
 		var prop = getFloatProperty(key, path);
 		ChangeListener<? super Number> lsnr = (c,o,n) -> {
-			if(!getter.get().equals(n)) {
+			if(!Objects.equals(n, getter.get())) {
 				setter.accept((Float)n);	
 			}
 		};
@@ -388,7 +388,7 @@ public final class Configuration {
 	public Handle bindString(Consumer<String> setter, Supplier<String> getter, String key, String... path) {
 		var prop = getStringProperty(key, path);
 		ChangeListener<String> lsnr = (c,o,n) -> {
-			if(!getter.get().equals(n)) {
+			if(!Objects.equals(n, getter.get())) {
 				setter.accept(n);	
 			}
 		};
@@ -400,7 +400,7 @@ public final class Configuration {
 	public Handle bindStrings(Consumer<String[]> setter, Supplier<String[]> getter, String key, String... path) {
 		var prop = getStringsProperty(key, path);
 		ChangeListener<String[]> lsnr = (c,o,n) -> {
-			if(!getter.get().equals(n)) {
+			if(!Objects.equals(n, getter.get())) {
 				setter.accept(n);	
 			}
 		};
@@ -412,7 +412,7 @@ public final class Configuration {
 	public <E extends Enum<E>> Handle bindEnum(Class<E> clazz, Consumer<E> setter, Supplier<E> getter, String key, String... path) {
 		var prop = getEnumProperty(clazz, key, path);
 		ChangeListener<E> lsnr = (c,o,n) -> {
-			if(!getter.get().equals(n)) {
+			if(!Objects.equals(n, getter.get())) {
 				setter.accept(n);	
 			}
 		};
@@ -424,7 +424,7 @@ public final class Configuration {
 	public Handle bindBoolean(Consumer<Boolean> setter, Supplier<Boolean> getter, String key, String... path) {
 		var prop = getBooleanProperty(key, path);
 		ChangeListener<Boolean> lsnr = (c,o,n) -> {
-			if(!getter.get().equals(n)) {
+			if(!Objects.equals(n, getter.get())) {
 				setter.accept(n);	
 			}
 		};
@@ -439,6 +439,10 @@ public final class Configuration {
 
 	public SectionMeta meta() {
 		return sectionMeta(defaultConfiguration);
+	}
+
+	public <E extends Enum<?>> void put(String key, E value, String... path) {
+		put(key, value.name(), path);
 	}
 
 	public void put(String key, String value, String... path) {

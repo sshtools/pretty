@@ -36,10 +36,12 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
+import javafx.scene.control.RadioButton;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
@@ -75,6 +77,12 @@ public class Options extends StackPane implements Closeable {
 	@FXML
 	private ComboBox<String> screenSize;
 	@FXML
+	private RadioButton store;
+	@FXML
+	private RadioButton session;
+	@FXML
+	private RadioButton prompt;
+	@FXML
 	private ListView<TerminalTheme> themes;
 	@FXML
 	private StackPane preview;
@@ -82,6 +90,8 @@ public class Options extends StackPane implements Closeable {
 	private HBox customCommandOptions;
 	@FXML
 	private TextArea customCommand;
+	@FXML
+	private ToggleGroup passwords;
 
 	private final PrefBind prefBind;
 	private final Preferences prefs;
@@ -163,6 +173,32 @@ public class Options extends StackPane implements Closeable {
 		customCommandOptions.managedProperty().bind(customCommandOptions.visibleProperty());
 		customCommand.setPromptText(app.getShells().getDefault().map(Shell::toFullCommandText).orElse(RESOURCES.getString("noDefaultShell")));
 		customCommandOptions.visibleProperty().bind(Bindings.isNull(defaultShell.getSelectionModel().selectedItemProperty()));
+		
+		/* Passwords */
+		var passwordModeProperty = cfg.getEnumProperty(PasswordMode.class, Constants.PASSWORD_MODE_KEY, Constants.UI_SECTION);
+		store.setUserData(PasswordMode.STORE);
+		session.setUserData(PasswordMode.SESSION);
+		prompt.setUserData(PasswordMode.PROMPT);
+		Runnable selectPasswordModeRadios = () -> { 
+			switch(passwordModeProperty.get()) {
+			case STORE:
+				passwords.selectToggle(store);
+				break;
+			case SESSION:
+				passwords.selectToggle(session);
+				break;
+			default:
+				passwords.selectToggle(prompt);
+				break;
+			}
+		};
+		passwords.selectedToggleProperty().addListener((c,o,n) -> {
+			cfg.put(Constants.PASSWORD_MODE_KEY, (PasswordMode)n.getUserData(), Constants.UI_SECTION);
+		});
+		passwordModeProperty.addListener((c,o,n) -> {
+			selectPasswordModeRadios.run();
+		});
+		selectPasswordModeRadios.run();
 		
 		/* Themes and Preview terminal */
 		var emulator = new DECEmulator<JavaFXTerminalPanel>(XTERM256Color.ID, 33, 14);

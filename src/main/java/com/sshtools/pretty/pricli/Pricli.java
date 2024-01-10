@@ -102,7 +102,7 @@ public final class Pricli {
 
 	public Pricli(TTY tty) {
 		this.tty = tty;
-		this.ttyContext = tty.getTTYContext();
+		this.ttyContext = tty.ttyContext();
 
 		var cfg = ttyContext.getContainer().getConfiguration();
 		var parser = new DefaultParser(); /* TODO windows / unix path parsing mode */
@@ -188,7 +188,7 @@ public final class Pricli {
 			}
 		});
 		
-		exceptionHandler = new ExceptionHandler(jline, () -> tty.getTTYContext().getContainer().getConfiguration().getBoolean(Constants.VERBOSE_EXCEPTIONS_KEY,  Constants.DEBUG_SECTION)); 
+		exceptionHandler = new ExceptionHandler(jline, () -> tty.ttyContext().getContainer().getConfiguration().getBoolean(Constants.VERBOSE_EXCEPTIONS_KEY,  Constants.DEBUG_SECTION)); 
 
 		factory = new PicocliCommandsFactory();
 		var cmd = newCommand(new PricliCommands(ttyContext, this, tty));
