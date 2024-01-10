@@ -1343,4 +1343,5 @@ return true;</property>
       <jreBundle platform="linux-aarch64" />
     </linuxRPM>
   </mediaSets>
+  <buildOptions verbose="true" />
 </install4j>
