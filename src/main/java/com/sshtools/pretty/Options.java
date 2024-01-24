@@ -96,8 +96,6 @@ public class Options extends StackPane implements Closeable {
 	private final PrefBind prefBind;
 	private final Preferences prefs;
 
-//	private BooleanProperty scrollBarProperty;
-
 	private final IntegerProperty bufferSizeProperty;
 	private final IntegerProperty fontSizeProperty;
 	private final ObjectProperty<DarkMode> darkModeproperty;
@@ -281,11 +279,13 @@ public class Options extends StackPane implements Closeable {
 			}
 		});
 		
+		showScrollBar.selectedProperty().bind(cfg.getBooleanProperty(Constants.SCROLL_BACK_KEY, Constants.TERMINAL_SECTION));
+		
 		fontSizeProperty = cfg.getIntProperty("font-size", Constants.TERMINAL_SECTION);
 		fontSize.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(6, 256, fontSizeProperty.get()));
 		fontSizeProperty.bind(IntegerProperty.integerProperty(fontSize.getValueFactory().valueProperty()));
 		
-		bufferSizeProperty = cfg.getIntProperty("buffer-size", Constants.TERMINAL_SECTION);
+		bufferSizeProperty = cfg.getIntProperty(Constants.SCROLL_BACK_SIZE_KEY, Constants.TERMINAL_SECTION);
 		bufferSize.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, Integer.MAX_VALUE, bufferSizeProperty.get()));
 		bufferSizeProperty.bind(IntegerProperty.integerProperty(bufferSize.getValueFactory().valueProperty()));
 		
@@ -336,7 +336,6 @@ public class Options extends StackPane implements Closeable {
 		fontSizeProperty.unbind();
 		bufferSizeProperty.unbind();
 		darkModeproperty.unbind();
-//		scrollBarProperty.unbind();
 		prefBind.close();
 	}
 

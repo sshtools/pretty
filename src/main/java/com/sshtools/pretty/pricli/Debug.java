@@ -178,7 +178,7 @@ public class Debug implements Callable<Integer> {
 			printTitle(jline, prefix + "Buffer Data");
 			printRow(jline, "Size", String.format("%d x %d", buf.getWidth(), buf.getSize()));
 			printRow(jline, "Limit", String.valueOf(buf.getLimit()));
-			printRow(jline, "Max Size", String.format("%d x %d", buf.getMaximumWidth(), buf.getMaximumSize()));
+			printRow(jline, "Max Size", String.format("%d x %d", buf.getMaximumWidth(), buf.getDefaultMaximumSize()));
 		}
 
 		private void printTitle(Terminal jline, String title) {

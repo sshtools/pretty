@@ -13,12 +13,10 @@ import com.sshtools.pretty.PrettyApp.TTYContextImpl;
 
 import javafx.animation.FadeTransition;
 import javafx.beans.property.BooleanProperty;
-import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
-import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -39,6 +37,31 @@ public class PrettyAppWindow extends JajaFXAppWindow {
 
 		scene.getRoot().getStyleClass().add("pretty");
 		scene.setFill(Color.TRANSPARENT);
+	}
+
+	public void animateBell() {
+		if (bell != null) {
+			var ft = new FadeTransition(Duration.millis(250));
+			bell.getStyleClass().add("icon-accent");
+			ft.setFromValue(1);
+			ft.setToValue(0.25f);
+			ft.setCycleCount(1);
+			ft.setNode(bell);
+			ft.setOnFinished(e -> bell.getStyleClass().remove("icon-accent"));
+			ft.play();
+		}
+	}
+	
+	@Override
+	public StageStyle borderlessStageStyle() {
+		return StageStyle.TRANSPARENT;
+	}
+
+	public void updateUpdatesState() {
+		var tb = titleBar();
+		if (tb != null) {
+			doUpdateUpdatesState(tb);
+		}
 	}
 
 	@Override
@@ -67,25 +90,11 @@ public class PrettyAppWindow extends JajaFXAppWindow {
 		newTab.setOnMouseClicked(evt -> ((TTYContextImpl) content).newTab());
 		newTab.setIconCode(FontAwesomeSolid.PLUS);
 
-		title.getAccessories().getChildren().addAll(wrapIcon(bell), wrapIcon(shell), wrapIcon(newTab));
+		title.addAccessories(bell, shell, newTab);
 
 		doUpdateUpdatesState(title);
 
 		return title;
-	}
-	
-	private HBox wrapIcon(Node node) {
-		var g = new HBox(node);
-		g.setPrefWidth(25);
-		g.setAlignment(Pos.CENTER);
-		return g;
-	}
-
-	public void updateUpdatesState() {
-		var tb = titleBar();
-		if (tb != null) {
-			doUpdateUpdatesState(tb);
-		}
 	}
 
 	protected void doUpdateUpdatesState(TitleBar titleBar) {
@@ -154,24 +163,6 @@ public class PrettyAppWindow extends JajaFXAppWindow {
 				updateIconLabel = null;
 			});
 		}
-	}
-
-	public void animateBell() {
-		if (bell != null) {
-			var ft = new FadeTransition(Duration.millis(250));
-			bell.getStyleClass().add("icon-accent");
-			ft.setFromValue(1);
-			ft.setToValue(0.25f);
-			ft.setCycleCount(1);
-			ft.setNode(bell);
-			ft.setOnFinished(e -> bell.getStyleClass().remove("icon-accent"));
-			ft.play();
-		}
-	}
-
-	@Override
-	public StageStyle borderlessStageStyle() {
-		return StageStyle.TRANSPARENT;
 	}
 
 	private void updateMuteIcon(BooleanProperty muteProperty) {

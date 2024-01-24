@@ -158,7 +158,7 @@ public final class Pricli {
 		handles.addAll(Arrays.asList(
 			cfg.bindEnum(PopupPosition.class, this::setAlign, this::getAlign, "align", PRICLI_SECTION),
 			cfg.bindFloat(v -> updateHeight(), () -> -1f, "height", PRICLI_SECTION),
-			cfg.bindInteger(vp::setMaximumBufferSize, bd::getMaximumSize, "buffer-size",PRICLI_SECTION),
+//			cfg.bindInteger(vp::setMaximumBufferSize, bd::getMaximumSize, "buffer-size",PRICLI_SECTION),
 			cfg.bindBoolean(buf::setEnableScrollback, buf::isEnableScrollback, "scroll-back", PRICLI_SECTION)
 		));
 

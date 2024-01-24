@@ -124,7 +124,7 @@ public class TTY extends StackPane implements Closeable {
 		/* Emulator */
 		var sz = getConfiguredSize();
 		var emulator = new DECEmulator<JavaFXTerminalPanel>(XTERM256Color.ID, sz[0], sz[1]);
-		var buf = emulator.getPage().data();
+		var bufferData = emulator.getPage().data();
 
 		/* Create and configure terminal */
 		terminalPanel = new JavaFXTerminalPanel.Builder().
@@ -195,7 +195,7 @@ public class TTY extends StackPane implements Closeable {
 		/* Bind to configuration */
 		handles.addAll(Arrays.asList(
 			cfg.bindEnum(ResizeStrategy.class, this::setResizeStrategy, terminalPanel::getResizeStrategy, "resize-strategy", Constants.TERMINAL_SECTION),
-			cfg.bindInteger(emulator::setMaximumBufferSize, buf::getMaximumSize, "buffer-size", Constants.TERMINAL_SECTION),
+//			cfg.bindInteger(emulator::setMaximumBufferSize, bufferData::getMaximumSize, Constants.SCROLL_BACK_SIZE_KEY, Constants.TERMINAL_SECTION),
 			cfg.bindInteger(this::setBackgroundOpacity, this::getBackgroundOpacity, "opacity", Constants.TERMINAL_SECTION),
 			cfg.bindString(emulator::setTerminalType, emulator.getTerminalType()::getId, "type", Constants.TERMINAL_SECTION),  
 			cfg.bindString(emulator::setTerminalType, emulator.getTerminalType()::getId, "type", Constants.TERMINAL_SECTION),  
@@ -206,7 +206,7 @@ public class TTY extends StackPane implements Closeable {
 			cfg.bindStrings((s) -> updateFeatures(), this::getDisabledFeatures, "disabled-features", Constants.TERMINAL_SECTION),
 			cfg.bindString(this::setThemeName, this::getThemeName, Constants.THEME_KEY, Constants.TERMINAL_SECTION),
 			cfg.bindBoolean((s) -> checkStatusDisplay(), this::isStatusDisplay, "enabled", STATUS_SECTION),
-			cfg.bindBoolean(emulator::setEnableScrollback, emulator::isEnableScrollback, "scroll-back", Constants.TERMINAL_SECTION),
+			cfg.bindBoolean(emulator::setEnableScrollback, emulator::isEnableScrollback, Constants.SCROLL_BACK_KEY, Constants.TERMINAL_SECTION),
 			cfg.bindBoolean(emulator::setEnableBlinking, emulator::isEnableBlinking, "blinking", Constants.TERMINAL_SECTION),
 			cfg.bindBoolean(emulator.getModes()::setCursorBlink, emulator.getModes()::isCursorBlink, "cursor-blink", Constants.TERMINAL_SECTION),
 			cfg.bindEnum(CursorStyle.class, terminalPanel::setCursorStyle, terminalPanel::getCursorStyle, "cursor-style", Constants.TERMINAL_SECTION),

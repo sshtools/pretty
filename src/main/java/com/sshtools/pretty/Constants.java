@@ -17,6 +17,8 @@ public class Constants {
 	public static final String THEME_KEY = "theme";
 	public static final String SHELL_KEY = "shell";
 	public static final String FONTS_KEY = "fonts";
+	public static final String SCROLL_BACK_KEY = "scroll-back";
+	public static final String SCROLL_BACK_SIZE_KEY = "scroll-back-size";
 	
 	// UI
 	public static final String DARK_MODE_KEY = "dark-mode";
