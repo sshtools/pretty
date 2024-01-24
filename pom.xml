@@ -25,6 +25,15 @@
 			${project.basedir}/src/main/install4j/pretty.install4j</build.install4j.project>
 		<build.projectProperties>${basedir}/hypersocket.build.properties</build.projectProperties>
 		<build.userProperties>${user.home}/.hypersocket.build.properties</build.userProperties>
+		
+		<install4j.phase>continuous</install4j.phase>
+		<install4j.mediaTypes>windows,unixInstaller,macos,macosFolder,windowsArchive,unixArchive,linuxRPM,linuxDeb,macosArchive,macosFolderArchive</install4j.mediaTypes>
+		<install4j.macSigning>true</install4j.macSigning>
+		<install4j.macPkcs12File>~/.logonbox-developer-id.p12</install4j.macPkcs12File>
+		<install4j.windowsSigning>true</install4j.windowsSigning>
+		<install4j.updatesBase>http://localhost/${project.name}</install4j.updatesBase>
+		<install4j.jaulAppId>UNSET</install4j.jaulAppId>
+		<install4j.jaulUpdaterId>54</install4j.jaulUpdaterId>
 	</properties>
 
 	<url>https://jadaptive.com</url>
@@ -970,6 +979,50 @@
 								</configuration>
 							</execution>
 							<execution>
+								<id>copy-javafx-mac-arm</id>
+								<phase>package</phase>
+								<goals>
+									<goal>copy</goal>
+								</goals>
+								<configuration>
+									<stripVersion>true</stripVersion>
+									<outputDirectory>
+										${project.build.directory}/dependencies/mac-arm</outputDirectory>
+									<artifactItems>
+										<artifactItem>
+											<groupId>org.openjfx</groupId>
+											<artifactId>javafx-base</artifactId>
+											<version>${javafx.version}</version>
+											<classifier>mac-aarch64</classifier>
+										</artifactItem>
+										<artifactItem>
+											<groupId>org.openjfx</groupId>
+											<artifactId>javafx-controls</artifactId>
+											<version>${javafx.version}</version>
+											<classifier>mac-aarch64</classifier>
+										</artifactItem>
+										<artifactItem>
+											<groupId>org.openjfx</groupId>
+											<artifactId>javafx-graphics</artifactId>
+											<version>${javafx.version}</version>
+											<classifier>mac-aarch64</classifier>
+										</artifactItem>
+										<artifactItem>
+											<groupId>org.openjfx</groupId>
+											<artifactId>javafx-fxml</artifactId>
+											<version>${javafx.version}</version>
+											<classifier>mac-aarch64</classifier>
+										</artifactItem>
+										<artifactItem>
+											<groupId>org.openjfx</groupId>
+											<artifactId>javafx-media</artifactId>
+											<version>${javafx.version}</version>
+											<classifier>mac-aarch64</classifier>
+										</artifactItem>
+									</artifactItems>
+								</configuration>
+							</execution>
+							<execution>
 								<id>copy-javafx-linux</id>
 								<phase>package</phase>
 								<goals>
@@ -1071,7 +1124,16 @@
 								</goals>
 								<configuration>
 									<variables>
-										<build.phase>${build.phase}</build.phase>
+										<install4j.phase>${install4j.phase}</install4j.phase>
+										<install4j.appleId>${install4j.appleId}</install4j.appleId>
+										<install4j.macSigning>${install4j.macSigning}</install4j.macSigning>
+										<install4j.windowsSigning>${install4j.windowsSigning}</install4j.windowsSigning>>
+										<install4j.windowsKeystoreIssuer>${install4j.windowsKeystoreIssuer}</install4j.windowsKeystoreIssuer>>
+										<install4j.windowsKeystoreSerial>${install4j.windowsKeystoreSerial}</install4j.windowsKeystoreSerial>>
+										<install4j.windowsKeystoreSubject>${install4j.windowsKeystoreSubject}</install4j.windowsKeystoreSubject>
+										<install4j.updatesBase>${install4j.updatesBase}</install4j.updatesBase>
+										<install4j.jaulAppId>${install4j.jaulAppId}</install4j.jaulAppId>
+										<install4j.jaulUpdaterId>${install4j.jaulUpdaterId}</install4j.jaulUpdaterId>
 									</variables>
 									<release>${product.version}-${build.number}</release>
 									<mediaTypes>${build.mediaTypes}</mediaTypes>

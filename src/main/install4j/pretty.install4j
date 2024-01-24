@@ -1,12 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <install4j version="10.0.6" transformSequenceNumber="10">
   <directoryPresets config="../resources/com/sshtools/pretty" />
-  <application name="Pretty" applicationId="74518-1331-6732-9010" mediaDir="target/media" mediaFilePattern="${compiler:sys.shortName}-${compiler:sys.platform}-${compiler:sys.version}" shortName="pretty" publisher="Jadaptive Limited" publisherWeb="https://jadaptive.com" version="0.0.1" allPathsRelative="true" convertDotsToUnderscores="false" macVolumeId="ffee23fd2eeafa87" javaMinVersion="21" javaMaxVersion="21">
+  <application name="Pretty" applicationId="74518-1331-6732-9010" mediaDir="target/media" mediaFilePattern="${compiler:sys.shortName}-${compiler:sys.platform}-${compiler:sys.version}" shortName="pretty" publisher="JADAPTIVE Limited" publisherWeb="https://jadaptive.com" version="0.0.1" allPathsRelative="true" convertDotsToUnderscores="false" macVolumeId="ffee23fd2eeafa87" javaMinVersion="21" javaMaxVersion="21">
     <variables>
-      <variable name="build.phase" value="continuous" description="The phase under which the updates.xml will be iniitally placed. Usually &quot;continuous&quot;" />
+      <variable name="install4j.phase" value="continuous" description="The phase under which the updates.xml will be initially placed. Usually &quot;continuous&quot;" />
+      <variable name="install4j.appleId" value="unset@logonbox.com" description="The apple ID to use for notarisation" />
+      <variable name="install4j.macSigning" value="false" description="Whether to sig for Mac" />
+      <variable name="install4j.macPkcs12File" value="~/.logonbox-developer-id.p12" description="Location of Mac developer certificate" />
+      <variable name="install4j.windowsSigning" value="false" description="Whether to sig for Windows" />
+      <variable name="install4j.windowsKeystoreIssuer" value="Sectigo Public Code Signing CA EV R36" description="Windows key store issuer" />
+      <variable name="install4j.windowsKeystoreSerial" value="6a2d74c3e24c71aa08000ead302fbd46" description="Windows key store serial" />
+      <variable name="install4j.windowsKeystoreSubject" value="Jadaptive Limited" description="Windows key store subject" />
+      <variable name="install4j.updatesBase" value="http://localhost/${compiler:install4j.phase}/updates.xml" description="The base folder (on S3 usually) where updates are" />
+      <variable name="install4j.jaulAppId" value="UNSET" description="The Jaul update system app Id, e.g. com.sshtools.MyApp" />
+      <variable name="install4j.jaulUpdaterId" value="999" description="The ID (in this install4j project) of the updater application. Its a bit annoying we can't get this automatically!" />
     </variables>
-    <codeSigning macEnabled="true" macPkcs12File="~/.logonbox-developer-id.p12" windowsEnabled="true" windowsKeySource="windows" windowsPkcs12File="~/.logonbox.p12" macNotarize="true" appleId="brett@logonbox.com">
-      <windowsKeystoreIdentifier issuer="Sectigo Public Code Signing CA EV R36" serial="6a2d74c3e24c71aa08000ead302fbd46" subject="Jadaptive Limited" />
+    <codeSigning macEnabled="true" macPkcs12File="${compiler:install4j.macPkcs12File}" windowsEnabled="true" windowsKeySource="windows" macNotarize="true" appleId="${compiler:install4j.appleId}">
+      <windowsKeystoreIdentifier issuer="${compiler:install4j.windowsKeystoreIssuer}" serial="${compiler:install4j.windowsKeystoreSerial}" subject="${compiler:install4j.windowsKeystoreSubject}" />
       <macSearchedJars>
         <entry>jna-*</entry>
         <entry>swt-*</entry>
@@ -18,7 +28,7 @@
         <entry>jkeychain*</entry>
       </macSearchedJars>
     </codeSigning>
-    <jreBundles jdkProviderId="AdoptOpenJDK" release="21/jdk-21.0.1+12">
+    <jreBundles jdkProviderId="AdoptOpenJDK" release="21/jdk-21.0.2+13">
       <modules />
     </jreBundles>
   </application>
@@ -28,6 +38,7 @@
       <mountPoint id="45" location="mac" />
       <mountPoint id="46" location="win" />
       <mountPoint id="47" location="linux" />
+      <mountPoint id="148" location="mac-aarch64" />
       <mountPoint id="141" location="linux-aarch64" />
       <mountPoint id="142" />
     </mountPoints>
@@ -37,6 +48,7 @@
       <dirEntry mountPoint="45" file="../../../target/dependencies/mac" subDirectory="mac" />
       <dirEntry mountPoint="46" file="../../../target/dependencies/win" subDirectory="win" />
       <dirEntry mountPoint="47" file="../../../target/dependencies/linux" subDirectory="linux" />
+      <dirEntry mountPoint="148" file="../../../target/dependencies/mac-aarch64" subDirectory="linux-aarch64" />
       <dirEntry mountPoint="141" file="../../../target/dependencies/linux-aarch64" subDirectory="linux-aarch64" />
       <fileEntry mountPoint="142" file="../resources/com/sshtools/pretty/icon.png" />
     </entries>
@@ -51,6 +63,7 @@
           <directory location="win" failOnError="false" />
           <directory location="linux" failOnError="false" />
           <directory location="linux-aarch64" failOnError="false" />
+          <directory location="mac-aarch64" failOnError="false" />
         </modulePath>
       </java>
       <desktopFile>Keywords=shell;prompt;command;commandline;cmd;
@@ -69,7 +82,7 @@ Comment=Terminal emulator with built in SSH and Serial support </desktopFile>
       </iconImageFiles>
     </launcher>
   </launchers>
-  <installerGui autoUpdateDescriptorUrl="https://sshtools-public.s3.eu-west-1.amazonaws.com/pretty/${compiler:build.phase}/updates.xml" useAutoUpdateBaseUrl="true" autoUpdateBaseUrl="https://sshtools-public.s3.eu-west-1.amazonaws.com/pretty/${compiler:sys.version}/">
+  <installerGui autoUpdateDescriptorUrl="https://sshtools-public.s3.eu-west-1.amazonaws.com/pretty/${compiler:install4j.phase}/updates.xml" useAutoUpdateBaseUrl="true" autoUpdateBaseUrl="https://sshtools-public.s3.eu-west-1.amazonaws.com/pretty/${compiler:sys.version}/">
     <applications>
       <application id="installer" beanClass="com.install4j.runtime.beans.applications.InstallerApplication">
         <serializedBean>
@@ -1296,13 +1309,13 @@ return true;</property>
       </exclude>
       <jreBundle usePack200="false" />
     </windows>
-    <macosFolder name="macOS Folder" id="36" architecture="universal" signLaunchers="true">
+    <macosFolder name="macOS Folder amd64" id="36" mediaFileName="${compiler:sys.shortName}-${compiler:sys.platform}-amd64-${compiler:sys.version}" signLaunchers="true">
       <exclude>
         <entry location="win" />
         <entry location="linux" />
         <entry location="linux-aarch64" />
       </exclude>
-      <jreBundle usePack200="false" />
+      <jreBundle jdkProviderId="AdoptOpenJDK" release="21/jdk-21.0.2+13" usePack200="false" overrideJdkRelease="true" />
     </macosFolder>
     <linuxRPM name="Linux RPM x86_64" id="37" mediaFileName="${compiler:sys.shortName}-${compiler:sys.platform}--x86_64-${compiler:sys.version}">
       <exclude>
@@ -1342,6 +1355,14 @@ return true;</property>
       </exclude>
       <jreBundle platform="linux-aarch64" />
     </linuxRPM>
+    <macosFolder name="macOS Folder aarch64" id="144" mediaFileName="${compiler:sys.shortName}-${compiler:sys.platform}-aarch64-${compiler:sys.version}" architecture="aarch64" signLaunchers="true">
+      <exclude>
+        <entry location="win" />
+        <entry location="linux" />
+        <entry location="linux-aarch64" />
+      </exclude>
+      <jreBundle jdkProviderId="AdoptOpenJDK" release="21/jdk-21.0.2+13" usePack200="false" overrideJdkRelease="true" />
+    </macosFolder>
   </mediaSets>
   <buildOptions verbose="true" />
 </install4j>
