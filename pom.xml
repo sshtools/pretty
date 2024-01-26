@@ -979,7 +979,7 @@
 								</configuration>
 							</execution>
 							<execution>
-								<id>copy-javafx-mac-arm</id>
+								<id>copy-javafx-mac-aarch64</id>
 								<phase>package</phase>
 								<goals>
 									<goal>copy</goal>
@@ -987,7 +987,7 @@
 								<configuration>
 									<stripVersion>true</stripVersion>
 									<outputDirectory>
-										${project.build.directory}/dependencies/mac-arm</outputDirectory>
+										${project.build.directory}/dependencies/mac-aarch64</outputDirectory>
 									<artifactItems>
 										<artifactItem>
 											<groupId>org.openjfx</groupId>

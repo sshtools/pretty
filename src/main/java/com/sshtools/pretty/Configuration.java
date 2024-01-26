@@ -91,8 +91,13 @@ public final class Configuration {
 
 	public Configuration(Path dir) {
 		this.dir = dir;
-		try (var in = Configuration.class.getResourceAsStream("Configuration.ini")) {
-			defaultConfiguration = createINIReader().read(new InputStreamReader(in)).readOnly();
+		try {
+			if(!Files.exists(dir)) {
+				Files.createDirectories(dir);
+			}
+			try(var in = Configuration.class.getResourceAsStream("Configuration.ini")) {
+				defaultConfiguration = createINIReader().read(new InputStreamReader(in)).readOnly();
+			}
 		} catch (IOException ioe) {
 			throw new UncheckedIOException(ioe);
 		} catch (ParseException e) {
