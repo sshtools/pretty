@@ -440,7 +440,7 @@
 		<dependency>
 			<groupId>com.sshtools</groupId>
 			<artifactId>jajafx</artifactId>
-			<version>0.9.4</version>
+			<version>0.9.5-SNAPSHOT</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.openjfx</groupId>
