@@ -12,7 +12,7 @@ open module com.sshtools.pretty {
 	requires transitive java.prefs;
 	requires transitive com.sshtools.jini;
 	requires com.sshtools.jaul;
-	requires transitive com.sshtools.jajafx;
+	requires transitive com.sshtools.jajafx; 
 	requires transitive com.sshtools.synergy.client;
 	requires org.controlsfx.controls;
 	requires org.kordamp.ikonli.javafx;
@@ -20,6 +20,7 @@ open module com.sshtools.pretty {
 	requires transitive org.jline.terminal;
 	requires transitive org.jline.reader;
 	requires picocli.shell.jline3;
+	requires info.picocli;
 	requires transitive org.jline.console;
 	requires transitive org.jline.builtins;
 	requires org.jline.style;

@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.ResourceBundle;
 
-import com.sshtools.jajafx.JajaFXApp;
 import com.sshtools.jajafx.UpdatePage;
 
 import javafx.fxml.FXMLLoader;
@@ -18,7 +17,7 @@ import uk.co.bithatch.nativeimage.annotations.Reflectable;
 public class UpdateDialog extends DialogPane {
 	final static ResourceBundle RESOURCES = ResourceBundle.getBundle(UpdateDialog.class.getName());
 	
-	private final UpdatePage<JajaFXApp<?>> update;
+	private final UpdatePage<PrettyApp> update;
 
 	public UpdateDialog(AppContext app) {
 		var loader = new FXMLLoader();
@@ -26,7 +25,7 @@ public class UpdateDialog extends DialogPane {
 		try {
 			var scene = new Scene(loader.load(UpdatePage.class.getResource("UpdatePage.fxml").openStream()));
 			update = loader.getController();
-			update.configure(scene, null, Pretty.getInstance().getFXApp());
+			update.configure(scene, null, (PrettyApp) Pretty.getInstance().getFXApp());
 			update.shown();
 			setContent(scene.getRoot());
 		} catch (IOException e) {

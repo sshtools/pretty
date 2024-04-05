@@ -23,7 +23,7 @@ import javafx.stage.StageStyle;
 import javafx.util.Duration;
 import javafx.util.Pair;
 
-public class PrettyAppWindow extends JajaFXAppWindow {
+public class PrettyAppWindow extends JajaFXAppWindow<PrettyApp> {
 	private final static ResourceBundle RESOURCES = ResourceBundle.getBundle(PrettyAppWindow.class.getName());
 
 	private FontIcon bell;

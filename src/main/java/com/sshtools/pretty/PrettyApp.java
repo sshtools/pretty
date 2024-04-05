@@ -78,7 +78,9 @@ public class PrettyApp extends JajaFXApp<Pretty> implements Listener {
 	private boolean optionsVisible; 
 
 	public PrettyApp() {
-		super(PrettyApp.class.getResource("icon.png"), RESOURCES.getString("title"), (Pretty) Pretty.getInstance());
+		super(PrettyApp.class.getResource("icon.png"), 
+		      RESOURCES.getString("title"), 
+		      (Pretty) Pretty.getInstance(), ((Pretty) Pretty.getInstance()).getAppPreferences());
 		uiToolkit = new JavaFXUIToolkit();
 		appContext = new AppContextImpl();
 		fonts = new Fonts(appContext, uiToolkit);
@@ -94,7 +96,7 @@ public class PrettyApp extends JajaFXApp<Pretty> implements Listener {
 	}
 
 	@Override
-	protected void needUpdate() {
+	public void needUpdate() {
 		maybeQueue(() -> getWindows().forEach(wnd -> ((PrettyAppWindow) wnd).updateUpdatesState()));
 	}
 
@@ -120,7 +122,7 @@ public class PrettyApp extends JajaFXApp<Pretty> implements Listener {
 	}
 
 	@Override
-	protected void onConfigurePrimaryStage(Stage stage) {
+	protected void onConfigurePrimaryStage(JajaFXAppWindow wnd, Stage stage) {
 		LOG.info("Configuring stage, sizing to scene");
 		stage.sizeToScene();
 		LOG.info("Configuring stage, sized to scene at {} x {}", stage.getWidth(), stage.getHeight());

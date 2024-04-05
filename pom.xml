@@ -10,7 +10,7 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<javafx.version>22-ea+16</javafx.version>
+		<javafx.version>22</javafx.version>
 		<languages>da,nl,fi,fr,de,it,no,pl,ru,sv,es,ja,he,pt</languages>
 		<native.maven.plugin.version>0.9.9</native.maven.plugin.version>
 		<picocli.version>4.7.5</picocli.version>
@@ -439,7 +439,7 @@
 		</dependency>
 		<dependency>
 			<groupId>com.sshtools</groupId>
-			<artifactId>jajafx</artifactId>
+			<artifactId>jajafx-lib</artifactId>
 			<version>0.9.5-SNAPSHOT</version>
 			<exclusions>
 				<exclusion>
