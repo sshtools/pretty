@@ -55,6 +55,13 @@ public class Shells {
 			checkShell("cmd", "DOS Command Prompt", null, null, new String[0], "C:\\Windows\\System32");
 			checkShell("powershell", "Microsoft Powershell",  null, null, null, sysroot + File.separator + "\\System32\\WindowsPowerShell\\v1.0\\powershell.exe");
 			checkPosixShells();
+			checkShell("msys2", "MSys2", null, null, new String[0], "C:\\msys64");
+			checkShell("mingw32", "Mingw32", null, null, new String[0], "C:\\msys64");
+			checkShell("mingw64", "Mingw64", null, null, new String[0], "C:\\msys64");
+			checkShell("ucrt64", "Ucrt64", null, null, new String[0], "C:\\msys64");
+			checkShell("clang32", "Clang32", null, null, new String[0], "C:\\msys64");
+			checkShell("clang64", "Clang64", null, null, new String[0], "C:\\msys64");
+			checkShell("clangarm64", "ClangArm64", null, null, new String[0], "C:\\msys64");
 		}
 		else {
 			checkPosixShells();

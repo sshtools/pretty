@@ -88,7 +88,7 @@ public class ConsoleProtocol implements TerminalProtocol, ResizeListener, Elemen
 		}
 
 		public Builder withCygwin() {
-			return withConsole(true);
+			return withCygwin(true);
 		}
 
 		public Builder withCygwin(boolean cygwin) {

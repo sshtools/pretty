@@ -6,8 +6,7 @@ open module com.sshtools.pretty {
 	requires static org.freedesktop.dbus;
 	requires org.freedesktop.dbus.transport.jre;
 	requires javafx.fxml;
-	requires pty4j;
-//	requires com.sshtools.pty4j;
+	requires com.sshtools.pty4j;
 	requires transitive com.sshtools.terminal.vt.javafx;
 	requires transitive java.prefs;
 	requires transitive com.sshtools.jini;
