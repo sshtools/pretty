@@ -231,7 +231,6 @@ public class TTY extends StackPane implements Closeable {
 		});
 		
 		terminalPanel.setOnBeforeKeyPressed(ke -> {
-			System.out.println(ke);
 			if(ke.isAltDown() && ke.getCode() == KeyCode.SLASH) {
 				showPricli();
 				ke.consume();
