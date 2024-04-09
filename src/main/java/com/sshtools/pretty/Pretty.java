@@ -24,7 +24,7 @@ import uk.co.bithatch.nativeimage.annotations.Bundle;
 @Command(name = "pretty", mixinStandardHelpOptions = true, description = "A Terminal Emulator", versionProvider = Pretty.Version.class)
 @JaulApp(id = Pretty.TOOLBOX_APP_ID, category = AppCategory.GUI, updaterId = "54", updatesUrl = "https://sshtools-public.s3.eu-west-1.amazonaws.com/pretty/${phase}/updates.xml")
 @Bundle
-public class Pretty extends JajaApp<PrettyApp> {
+public class Pretty extends JajaApp<PrettyApp, PrettyAppWindow> {
 
 	private final static ResourceBundle RESOURCES = ResourceBundle.getBundle(Pretty.class.getName());
 
@@ -147,7 +147,7 @@ public class Pretty extends JajaApp<PrettyApp> {
 	}
 	
 	public static String[] getVersion() {
-		return new String[] { ArtifactVersion.getVersion("pretty", "com.sshtools", "pretty") };		
+		return new String[] { ArtifactVersion.getVersion("com.sshtools", "pretty") };		
 	}
 	
 	@Override

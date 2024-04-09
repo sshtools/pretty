@@ -65,7 +65,7 @@ import uk.co.bithatch.nativeimage.annotations.Resource;
 		"themes/solarized-light.properties", "themes/tango-dark.properties", "themes/tango-light.properties",
 		"themes/white-onblack.properties", })
 @Reflectable
-public class PrettyApp extends JajaFXApp<Pretty> implements Listener {
+public class PrettyApp extends JajaFXApp<Pretty, PrettyAppWindow> implements Listener {
 
 	private final static Logger LOG = LoggerFactory.getLogger(PrettyApp.class);
 	private final static ResourceBundle RESOURCES = ResourceBundle.getBundle(PrettyApp.class.getName());
@@ -122,7 +122,7 @@ public class PrettyApp extends JajaFXApp<Pretty> implements Listener {
 	}
 
 	@Override
-	protected void onConfigurePrimaryStage(JajaFXAppWindow wnd, Stage stage) {
+	protected void onConfigurePrimaryStage(JajaFXAppWindow<?> wnd, Stage stage) {
 		LOG.info("Configuring stage, sizing to scene");
 		stage.sizeToScene();
 		LOG.info("Configuring stage, sized to scene at {} x {}", stage.getWidth(), stage.getHeight());
@@ -140,7 +140,7 @@ public class PrettyApp extends JajaFXApp<Pretty> implements Listener {
 	}
 
 	@Override
-	protected JajaFXAppWindow createAppWindow(Stage stage) {
+	protected JajaFXAppWindow<?> createAppWindow(Stage stage) {
 		var ctx = createContent(stage);
 		var aw = new PrettyAppWindow(stage, ctx, this, appContext);
 		ctx.setAppWindow(aw);
@@ -388,7 +388,7 @@ public class PrettyApp extends JajaFXApp<Pretty> implements Listener {
 		}
 
 		@Override
-		public JajaFXAppWindow appWindow() {
+		public PrettyAppWindow appWindow() {
 			return appWindow;
 		}
 

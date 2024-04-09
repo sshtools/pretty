@@ -356,7 +356,6 @@ public class TTY extends StackPane implements Closeable {
 				LOG.warn("Failed to detect previous protocol. You may experience strange behaviour.", ioe);
 			}
 		}
-
 		
 		/* Take a copy of the line the cursor is currently at. We reprint this 
 		 * when we switch back to whatever protocol was active before this one.

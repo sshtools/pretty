@@ -8,7 +8,6 @@ import java.util.stream.Collectors;
 
 import org.jline.console.CmdDesc;
 import org.jline.console.CommandRegistry;
-import org.jline.console.CommandRegistry.CommandSession;
 import org.jline.reader.impl.completer.SystemCompleter;
 
 public class CompoundRegistry implements CommandRegistry {
