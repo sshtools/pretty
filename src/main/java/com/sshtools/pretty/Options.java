@@ -144,9 +144,9 @@ public class Options extends StackPane implements Closeable {
 					return RESOURCES.getString("customCommand");
 				else {
 					if(object.version() == null)
-						return MessageFormat.format(RESOURCES.getString("shellItemNoVersion"), object.name(), object.commandName());
+						return MessageFormat.format(RESOURCES.getString("shellItemNoVersion"), object.name(), object.id());
 					else
-						return MessageFormat.format(RESOURCES.getString("shellItem"), object.name(), object.commandName(), object.version());
+						return MessageFormat.format(RESOURCES.getString("shellItem"), object.name(), object.id(), object.version());
 				}
 			}
 
@@ -157,11 +157,11 @@ public class Options extends StackPane implements Closeable {
 		});
 		defaultShell.getSelectionModel().selectedItemProperty().addListener((c,o,n) -> {
 			if(n != null) {
-				cfg.put(Constants.SHELL_KEY,n.commandName(),  Constants.TERMINAL_SECTION);
+				cfg.put(Constants.SHELL_KEY,n.id(),  Constants.TERMINAL_SECTION);
 			}
 		});
 		var initialShellName = cfg.get(Constants.SHELL_KEY, Constants.TERMINAL_SECTION);
-		var initialShell = app.getShells().getByCommandName(initialShellName);
+		var initialShell = app.getShells().getById(initialShellName); 
 		if(initialShell.isPresent()) {
 			defaultShell.getSelectionModel().select(initialShell.get());
 		}

@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 
 import com.sshtools.jini.Data.Handle;
 import com.sshtools.pretty.Configuration.TriState;
+import com.sshtools.pretty.Shells.Shell;
 import com.sshtools.pretty.Shells.ShellType;
 import com.sshtools.pretty.pricli.Pricli;
 import com.sshtools.terminal.emulation.CursorStyle;
@@ -840,13 +841,14 @@ public class TTY extends StackPane implements Closeable {
 	}
 
 	private void startShell() {
-		var cmd = app.getContainer().getConfiguration().get(Constants.SHELL_KEY, Constants.TERMINAL_SECTION);
-		var parsedCommand = Strings.parseQuotedString(cmd);
-		var cmdName = parsedCommand.get(0).trim();
-		if(cmdName.equals("")) {
-			cmdName = Shells.NATIVE;
+		var id = app.getContainer().getConfiguration().get(Constants.SHELL_KEY, Constants.TERMINAL_SECTION);
+		Optional<Shell> shell;
+		if(id.equals("")) {
+			shell = app.getContainer().getShells().getById(Shells.NATIVE);
 		}
-		var shell = app.getContainer().getShells().getByCommandName(cmdName);
+		else {
+			shell = app.getContainer().getShells().getById(id);
+		}
 		var bldr = new ConsoleProtocol.Builder();
 		if(shell.isPresent()) {
 			var shellObj = shell.get();
@@ -865,12 +867,16 @@ public class TTY extends StackPane implements Closeable {
 			}
 		}
 		else {
+			var parsedCommand = Strings.parseQuotedString(id);
+			var cmdName = parsedCommand.get(0).trim();
+			if(cmdName.equals("")) {
+				cmdName = Shells.NATIVE;
+			}
 			runProtocol(bldr.
 					withPath(app.getContainer().getDefaultWorkingDirectory()).
 					withCommandLine(parsedCommand).
 					build());
 		}
-		
 		
 	}
 

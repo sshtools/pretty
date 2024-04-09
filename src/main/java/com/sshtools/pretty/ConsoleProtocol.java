@@ -26,8 +26,6 @@ import org.slf4j.LoggerFactory;
 import com.pty4j.PtyProcess;
 import com.pty4j.PtyProcessBuilder;
 import com.pty4j.WinSize;
-import com.pty4j.unix.PTYInputStream;
-import com.pty4j.unix.UnixPtyProcess;
 import com.sshtools.pretty.Status.Element;
 import com.sshtools.pretty.Status.Unit;
 import com.sshtools.pretty.Status.Width;
@@ -173,6 +171,7 @@ public class ConsoleProtocol implements TerminalProtocol, ResizeListener, Elemen
 		this.env = builder.env.map(Collections::unmodifiableMap);
 	}
 
+	@SuppressWarnings("resource")
 	@Override
 	public void attach(TTY tty) {
 		if (this.tty != null)
@@ -256,7 +255,7 @@ public class ConsoleProtocol implements TerminalProtocol, ResizeListener, Elemen
 				try (var offHeap = Arena.ofConfined()) {
 					var mem = offHeap.allocate(65536);
 					int rd;
-					while ((rd = ((PTYInputStream) pty.getInputStream()).fastRead(mem, (int) mem.byteSize())) != -1) {
+					while ((rd = pty.getPtyInputStream().fastRead(mem, (int) mem.byteSize())) != -1) {
 						viewport.write((idx) -> mem.get(ValueLayout.JAVA_BYTE, idx), 0, rd);
 						viewport.flush();
 					}
@@ -321,21 +320,23 @@ public class ConsoleProtocol implements TerminalProtocol, ResizeListener, Elemen
 
 	@Override
 	public String displayName() {
-		if (pty instanceof UnixPtyProcess) {
-			return Paths.get(((UnixPtyProcess) pty).getPty().getSlaveName()).getFileName().toString();
-		}
-		return RESOURCES.getString("console");
+//		if (pty instanceof UnixPtyProcess) {
+//			return Paths.get(((UnixPtyProcess) pty).getPty().getSlaveName()).getFileName().toString();
+//		}
+//		return RESOURCES.getString("console");
+		return pty == null ? RESOURCES.getString("console") : pty.getDisplayName();
 	}
 
 	@Override
 	public void draw(TerminalViewport<JavaFXTerminalPanel, ?, ?> vp, int cols) throws IOException {
 		var bldr = new AttributedStringBuilder();
 		bldr.style(AttributedStyle.INVERSE);
-		if (pty instanceof UnixPtyProcess) {
-			bldr.append(Strings.trimPad(((UnixPtyProcess) pty).getPty().getSlaveName(), cols));
-		} else {
-			bldr.append(RESOURCES.getString("console"));
-		}
+//		if (pty instanceof UnixPtyProcess) {
+//			bldr.append(Strings.trimPad(((UnixPtyProcess) pty).getPty().getSlaveName(), cols));
+//		} else {
+//			bldr.append(RESOURCES.getString("console"));
+//		}
+		bldr.append(pty == null ? RESOURCES.getString("console") : pty.getDisplayName());
 		bldr.style(AttributedStyle.INVERSE_OFF);
 		vp.write(bldr.toAnsi().getBytes(vp.getCharacterSet()));
 	}
@@ -352,6 +353,17 @@ public class ConsoleProtocol implements TerminalProtocol, ResizeListener, Elemen
 
 	@Override
 	public void cwd(String cwd) {
-		tty.cwd(Paths.get(cwd));
+		try {
+			if(cwd.matches("[^\\s]+@[^\\s]+\\s+.*")) {
+				/* TODO cygwin returns "user@HOST /path/to/cwd", can we / should we use this somehow? */
+				tty.cwd(Paths.get(cwd.substring(cwd.indexOf(' ') + 1)));
+			}
+			else {
+				tty.cwd(Paths.get(cwd));
+			}
+		}
+		catch(Exception e) {
+			LOG.warn("Invalid path for CWD change '{}' from host.", cwd);
+		}
 	}
 }
