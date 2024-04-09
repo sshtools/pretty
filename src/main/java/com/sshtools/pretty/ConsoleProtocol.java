@@ -2,6 +2,8 @@ package com.sshtools.pretty;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.lang.foreign.Arena;
+import java.lang.foreign.ValueLayout;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -24,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import com.pty4j.PtyProcess;
 import com.pty4j.PtyProcessBuilder;
 import com.pty4j.WinSize;
+import com.pty4j.unix.PTYInputStream;
 import com.pty4j.unix.UnixPtyProcess;
 import com.sshtools.pretty.Status.Element;
 import com.sshtools.pretty.Status.Unit;
@@ -247,18 +250,18 @@ public class ConsoleProtocol implements TerminalProtocol, ResizeListener, Elemen
 		tty.status().add(this);
 
 		try {
-//			if (Boolean.getBoolean("pretty.slowRead")) {
+			if (Boolean.getBoolean("pretty.slowRead")) {
 				pty.getInputStream().transferTo(new TerminalOutputStream(viewport));
-//			} else {
-//				try (var offHeap = Arena.ofConfined()) {
-//					var mem = offHeap.allocate(65536);
-//					int rd;
-//					while ((rd = ((PTYInputStream) pty.getInputStream()).fastRead(mem, (int) mem.byteSize())) != -1) {
-//						viewport.write((idx) -> mem.get(ValueLayout.JAVA_BYTE, idx), 0, rd);
-//						viewport.flush();
-//					}
-//				}
-//			}
+			} else {
+				try (var offHeap = Arena.ofConfined()) {
+					var mem = offHeap.allocate(65536);
+					int rd;
+					while ((rd = ((PTYInputStream) pty.getInputStream()).fastRead(mem, (int) mem.byteSize())) != -1) {
+						viewport.write((idx) -> mem.get(ValueLayout.JAVA_BYTE, idx), 0, rd);
+						viewport.flush();
+					}
+				}
+			}
 
 		} catch (Error e) {
 			LOG.error("Protocol failed.", e);

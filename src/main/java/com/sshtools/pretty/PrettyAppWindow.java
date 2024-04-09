@@ -87,7 +87,9 @@ public class PrettyAppWindow extends JajaFXAppWindow<PrettyApp> {
 		
 		var newTab = new FontIcon();
 		newTab.setIconSize(18);
-		newTab.setOnMouseClicked(evt -> ((TTYContextImpl) content).newTab());
+		newTab.setOnMouseClicked(evt -> {
+			((TTYContextImpl) content).newTab(); 
+		} );
 		newTab.setIconCode(FontAwesomeSolid.PLUS);
 
 		title.addAccessories(bell, shell, newTab);
