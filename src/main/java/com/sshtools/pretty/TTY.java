@@ -61,6 +61,7 @@ import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DataFormat;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
@@ -100,6 +101,7 @@ public class TTY extends StackPane implements Closeable {
 	private Transition resizeFade;
 	private Path cwd;
 
+	@SuppressWarnings("resource")
 	public TTY(TTYContext app, Consumer<TTY> onClose) {
 		this.app = app;
 		this.onClose = onClose;
@@ -226,7 +228,26 @@ public class TTY extends StackPane implements Closeable {
 		
 		
 		terminalPanel.setOnBeforeKeyTyped(ke -> {
-			if(ke.isControlDown() && ke.isShiftDown() && ke.getCharacter().equals("C")) {
+		});
+		
+		terminalPanel.setOnBeforeKeyPressed(ke -> {
+			System.out.println(ke);
+			if(ke.isAltDown() && ke.getCode() == KeyCode.SLASH) {
+				showPricli();
+				ke.consume();
+			}
+
+			if(ke.isControlDown() && ke.isShiftDown() && ke.getCode() == KeyCode.T) {
+				app.newTab();
+				ke.consume();
+			}
+
+			if(ke.isControlDown() && ke.isShiftDown() && ke.getCode() == KeyCode.N) {
+				app.newWindow();
+				ke.consume();
+			}
+
+			if(ke.isControlDown() && ke.isShiftDown() && ke.getCode() == KeyCode.C) {
 				var content = new ClipboardContent();
 				synchronized(terminalPanel.getViewport().getBufferLock()) {
 					content.putString(terminalPanel.getViewport().getSelection());
@@ -234,24 +255,12 @@ public class TTY extends StackPane implements Closeable {
 				Clipboard.getSystemClipboard().setContent(content);
 				ke.consume();
 			}
-			else if(ke.isControlDown() && ke.isShiftDown() && ke.getCharacter().equals("V")) {
+			else if(ke.isControlDown() && ke.isShiftDown() && ke.getCode() == KeyCode.V) {
 				var text = String.valueOf(Clipboard.getSystemClipboard().getContent(DataFormat.PLAIN_TEXT));
 				synchronized(terminalPanel.getViewport().getBufferLock()) {
 					terminalPanel.getViewport()
 						.output(text);
 				}
-				ke.consume();
-			}
-			else if(ke.isControlDown() && ke.isShiftDown() && ke.getCharacter().equals("T")) {
-				app.newTab();
-				ke.consume();
-			}
-			else if(ke.isControlDown() && ke.isShiftDown() && ke.getCharacter().equals("N")) {
-				app.newWindow();
-				ke.consume();
-			}
-			else if(ke.isAltDown() && ke.getCharacter().equals("/")) {
-				showPricli();
 				ke.consume();
 			}
 		});
