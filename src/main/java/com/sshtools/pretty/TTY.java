@@ -847,6 +847,7 @@ public class TTY extends StackPane implements Closeable {
 			cmdName = Shells.NATIVE;
 		}
 		var shell = app.getContainer().getShells().getByCommandName(cmdName);
+		var bldr = new ConsoleProtocol.Builder();
 		if(shell.isPresent()) {
 			var shellObj = shell.get();
 			if(shellObj.commandName().equals(Shells.NATIVE)) {
@@ -856,14 +857,15 @@ public class TTY extends StackPane implements Closeable {
 				throw new UnsupportedOperationException("TODO");
 			}
 			else {
-				runProtocol(new ConsoleProtocol.Builder().
+				runProtocol(bldr.
 					withPath(app.getContainer().getDefaultWorkingDirectory()).
 					withCommandLine(shellObj.fullCommand()).
+					withCygwin(shellObj.cygwin()).
 					build());
 			}
 		}
 		else {
-			runProtocol(new ConsoleProtocol.Builder().
+			runProtocol(bldr.
 					withPath(app.getContainer().getDefaultWorkingDirectory()).
 					withCommandLine(parsedCommand).
 					build());
