@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<install4j version="10.0.6" transformSequenceNumber="10">
+<install4j version="10.0.7" transformSequenceNumber="10">
   <directoryPresets config="../resources/com/sshtools/pretty" />
   <application name="Pretty" applicationId="74518-1331-6732-9010" mediaDir="target/media" mediaFilePattern="${compiler:sys.shortName}-${compiler:sys.platform}-${compiler:sys.version}" shortName="pretty" publisher="JADAPTIVE Limited" publisherWeb="https://jadaptive.com" version="0.0.1" allPathsRelative="true" convertDotsToUnderscores="false" macVolumeId="ffee23fd2eeafa87" javaMinVersion="21" javaMaxVersion="21">
     <variables>
@@ -55,8 +55,8 @@
   </files>
   <launchers>
     <launcher name="pretty" id="52" menuName="Push SFTP GUI" addMacApplicationCategory="true" macApplicationCategory="public.app-category.utilities">
-      <executable name="pretty" iconSet="true" executableDir="." stderrFile="${installer:sys.userHome}/pretty.log" redirectStdout="true" stdoutFile="${installer:sys.userHome}/pretty.log" executableMode="gui" singleInstance="true" />
-      <java mainClass="com.sshtools.pretty/com.sshtools.pretty.Pretty" mainMode="module" vmParameters="-Dinstall4j.installationDir=${launcher:sys.launcherDirectory}">
+      <executable name="pretty" iconSet="true" executableDir="." stderrFile="${installer:sys.userHome}/.pretty/pretty.log" redirectStdout="true" stdoutFile="${installer:sys.userHome}/.pretty/pretty.log" executableMode="gui" singleInstance="true" />
+      <java mainClass="com.sshtools.pretty/com.sshtools.pretty.Pretty" mainMode="module" vmParameters="-Dinstall4j.installationDir=${launcher:sys.launcherDirectory} --enable-preview --enable-native-access=com.sshtools.pty4j">
         <modulePath>
           <directory location="lib" failOnError="false" />
           <directory location="mac" failOnError="false" />
