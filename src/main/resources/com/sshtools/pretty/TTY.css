@@ -10,7 +10,7 @@
 	-fx-background-color: -fx-terminal-bg;
 }
 
-.resize-info {
+.overlay-info {
 	-fx-background-color: -fx-terminal-fg;
 	-fx-text-fill: -fx-terminal-bg;
 	-fx-font-weight: bold;

@@ -101,6 +101,8 @@ public class TTY extends StackPane implements Closeable {
 	private Transition resizeFade;
 	private Path cwd;
 
+	private Label overlayInfo;
+
 	@SuppressWarnings("resource")
 	public TTY(TTYContext app, Consumer<TTY> onClose) {
 		this.app = app;
@@ -138,11 +140,11 @@ public class TTY extends StackPane implements Closeable {
 				.build();
 		theme.apply(terminalPanel, getBackgroundOpacity());
 
-		/* Resizer status */
-		var resizeInfo = new Label("999 X 999");
-		resizeInfo.setVisible(false);
-		resizeInfo.managedProperty().bind(resizeInfo.visibleProperty());
-		resizeInfo.getStyleClass().add("resize-info");
+		/* Overlay status */
+		overlayInfo = new Label("         ");
+		overlayInfo.setVisible(false);
+		overlayInfo.managedProperty().bind(overlayInfo.visibleProperty());
+		overlayInfo.getStyleClass().add("overlay-info");
 		
 		/* Configure terminal's buffer */
 		emulator.addCWDChangeListener((vp, cwd) -> {
@@ -160,7 +162,7 @@ public class TTY extends StackPane implements Closeable {
 					}
 				});
 			}
-			runLater(() -> showResizeInfo(resizeInfo));
+			runLater(() -> showOverlayTextInfo(overlayInfo, String.format("%d x %d", terminalPanel.getViewport().getColumns(), terminalPanel.getViewport().getRows())));
 		});
 		emulator.addModeChangeListener(modes -> {
 			if(statusTerminal != null)
@@ -224,13 +226,42 @@ public class TTY extends StackPane implements Closeable {
 
 		/* Build this stack */
 		getChildren().add(scrollPane);
-		getChildren().add(resizeInfo);
+		getChildren().add(overlayInfo);
 		
+		/* TODO This key handling is all a bit crap, at least on some OS's, annoyingly Linux
+		 *      If a key press is consumed, the key typed event (if its valid) is still being fired.
+		 *      This means for example Alt+/ will actually type that character AND open the sub-shell.
+		 *      
+		 *      Also, this should be configurable from an ini file
+		 */
 		
 		terminalPanel.setOnBeforeKeyTyped(ke -> {
+			if(ke.isAltDown() && ke.getCharacter().equals("/")) {
+				ke.consume();
+			}
+
+			if(ke.isControlDown() && ke.isShiftDown() && ke.getCharacter().equals("T")) {
+				ke.consume();
+			}
+
+			if(ke.isControlDown() && ke.isShiftDown() && ke.getCharacter().equals("N")) {
+				ke.consume();
+			}
+
+			if(ke.isControlDown() && ke.isShiftDown() && ke.getCharacter().equals("C")) {
+				ke.consume();
+			}
+			
+			if(ke.isControlDown() && ke.isShiftDown() && ke.getCharacter().equals("V")) {
+				ke.consume();
+			}
+			if(ke.isControlDown() && ke.isShiftDown() && ke.getCharacter().equals("A")) {
+				ke.consume();
+			}
 		});
-		
-		terminalPanel.setOnBeforeKeyPressed(ke -> {
+
+		terminalPanel.setOnBeforeKeyReleased(ke -> {
+			
 			if(ke.isAltDown() && ke.getCode() == KeyCode.SLASH) {
 				showPricli();
 				ke.consume();
@@ -246,20 +277,22 @@ public class TTY extends StackPane implements Closeable {
 				ke.consume();
 			}
 
+			if(ke.isControlDown() && ke.isShiftDown() && ke.getCode() == KeyCode.A) {
+				emulator.selectAll();
+				ke.consume();
+			}
+
 			if(ke.isControlDown() && ke.isShiftDown() && ke.getCode() == KeyCode.C) {
 				var content = new ClipboardContent();
 				synchronized(terminalPanel.getViewport().getBufferLock()) {
 					content.putString(terminalPanel.getViewport().getSelection());
 				}
-				Clipboard.getSystemClipboard().setContent(content);
+				setClipboard(content);
 				ke.consume();
 			}
-			else if(ke.isControlDown() && ke.isShiftDown() && ke.getCode() == KeyCode.V) {
-				var text = String.valueOf(Clipboard.getSystemClipboard().getContent(DataFormat.PLAIN_TEXT));
-				synchronized(terminalPanel.getViewport().getBufferLock()) {
-					terminalPanel.getViewport()
-						.output(text);
-				}
+			
+			if(ke.isControlDown() && ke.isShiftDown() && ke.getCode() == KeyCode.V) {
+				clipboardToHost(Clipboard.getSystemClipboard());
 				ke.consume();
 			}
 		});
@@ -290,13 +323,29 @@ public class TTY extends StackPane implements Closeable {
 			}
 		}
 	}
+	
+	
+	public void clipboardToHost(Clipboard clipboard) {
+		var text = String.valueOf(clipboard.getContent(DataFormat.PLAIN_TEXT));
+		synchronized(terminalPanel.getViewport().getBufferLock()) {
+			terminalPanel.getViewport()
+				.output(text);
+		}
+		runLater(() -> showOverlayTextInfo(overlayInfo, RESOURCES.getString("pasted")));
+	}
+	
+	public void setClipboard(ClipboardContent content) {
 
-	private void showResizeInfo(Label node) {
+		Clipboard.getSystemClipboard().setContent(content);
+		runLater(() -> showOverlayTextInfo(overlayInfo, RESOURCES.getString("copied")));
+	}
+
+	private void showOverlayTextInfo(Label node, String text) {
 		if(resizeFade != null) {
 			resizeFade.stop();
 		}
 		
-		node.setText(String.format("%d x %d", terminalPanel.getViewport().getColumns(), terminalPanel.getViewport().getRows()));
+		node.setText(text);
 		
 		var fadeIn = new FadeTransition(Duration.millis(125));
 		if(node.isVisible()) {
@@ -730,7 +779,7 @@ public class TTY extends StackPane implements Closeable {
 			about(); 
 		});
 		
-		return new TerminalMenu(terminalPanel, Arrays.asList(newTab, newWindow, new SeparatorMenuItem()), this::showPricli, options, about).menu();
+		return new TerminalMenu(terminalPanel, this::setClipboard, this::clipboardToHost, Arrays.asList(newTab, newWindow, new SeparatorMenuItem()), this::showPricli, options, about).menu();
 	}
 
 	private Path getCustomJavaFXCSSFile() {

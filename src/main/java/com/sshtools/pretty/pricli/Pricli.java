@@ -122,7 +122,7 @@ public final class Pricli {
 //		term.getViewport().setTerminalType(SCREEN_TERM_TYPE);
 //		app.getSelectedTheme().aptermterm);
 		
-		var contextMenu = new TerminalMenu(term, this::hide).menu();
+		var contextMenu = new TerminalMenu(term, tty::setClipboard, tty::clipboardToHost, this::hide).menu();
 
 		var ctrl = (Pane) term.getControl();
 		ctrl.setOnMousePressed((evt) -> {
