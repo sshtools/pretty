@@ -81,6 +81,33 @@ Comment=Terminal emulator with built in SSH and Serial support </desktopFile>
         <file path="../resources/com/sshtools/pretty/icon-256.png" />
       </iconImageFiles>
     </launcher>
+    <launcher name="prettyc" id="151" menuName="Push SFTP GUI" addMacApplicationCategory="true" macApplicationCategory="public.app-category.utilities">
+      <executable name="prettyc" iconSet="true" executableDir="." redirectStderr="false" stderrFile="${installer:sys.userHome}/.pretty/pretty.log" stdoutFile="${installer:sys.userHome}/.pretty/pretty.log" executableMode="console" singleInstance="true" />
+      <java mainClass="com.sshtools.pretty/com.sshtools.pretty.Pretty" mainMode="module" vmParameters="-Dinstall4j.installationDir=${launcher:sys.launcherDirectory} --enable-preview --enable-native-access=com.sshtools.pty4j">
+        <modulePath>
+          <directory location="lib" failOnError="false" />
+          <directory location="mac" failOnError="false" />
+          <directory location="win" failOnError="false" />
+          <directory location="linux" failOnError="false" />
+          <directory location="linux-aarch64" failOnError="false" />
+          <directory location="mac-aarch64" failOnError="false" />
+        </modulePath>
+      </java>
+      <desktopFile>Keywords=shell;prompt;command;commandline;cmd;
+Categories=System;TerminalEmulator;
+Comment=Terminal emulator with built in SSH and Serial support </desktopFile>
+      <iconImageFiles>
+        <file path="../resources/com/sshtools/pretty/icon-16.png" />
+        <file path="../resources/com/sshtools/pretty/icon-24.png" />
+        <file path="../resources/com/sshtools/pretty/icon-96.png" />
+        <file path="../resources/com/sshtools/pretty/icon.png" />
+        <file path="../resources/com/sshtools/pretty/icon-32.png" />
+        <file path="../resources/com/sshtools/pretty/icon-48.png" />
+        <file path="../resources/com/sshtools/pretty/icon-64.png" />
+        <file path="../resources/com/sshtools/pretty/icon-128.png" />
+        <file path="../resources/com/sshtools/pretty/icon-256.png" />
+      </iconImageFiles>
+    </launcher>
   </launchers>
   <installerGui autoUpdateDescriptorUrl="https://sshtools-public.s3.eu-west-1.amazonaws.com/pretty/${compiler:install4j.phase}/updates.xml" useAutoUpdateBaseUrl="true" autoUpdateBaseUrl="https://sshtools-public.s3.eu-west-1.amazonaws.com/pretty/${compiler:sys.version}/">
     <applications>
@@ -284,7 +311,7 @@ return console.askOkCancel(message, true);
                   </property>
                   <property name="executable">
                     <object class="java.io.File">
-                      <string>pretty</string>
+                      <string>prettyc</string>
                     </object>
                   </property>
                   <property name="timeout" type="int" value="20" />
