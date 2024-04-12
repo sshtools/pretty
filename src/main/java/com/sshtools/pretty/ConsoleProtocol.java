@@ -37,6 +37,7 @@ public class ConsoleProtocol implements TerminalProtocol, ResizeListener, Elemen
 	static Logger LOG = LoggerFactory.getLogger(ConsoleProtocol.class);
 
 	public final static class Builder {
+		private Optional<String> name = Optional.empty();
 		private Optional<String> command = Optional.empty();
 		private Optional<String[]> args = Optional.empty();
 		private Optional<Path> workingDirectory = Optional.empty();
@@ -74,6 +75,11 @@ public class ConsoleProtocol implements TerminalProtocol, ResizeListener, Elemen
 
 		public Builder withCommand(String command) {
 			this.command = Optional.of(command);
+			return this;
+		}
+
+		public Builder withName(String name) {
+			this.name = Optional.of(name);
 			return this;
 		}
 
@@ -147,7 +153,8 @@ public class ConsoleProtocol implements TerminalProtocol, ResizeListener, Elemen
 	private TTY tty;
 	private PtyProcess pty;
 	private Thread thread;
-	private String shellName = "<Idle>";
+	private String shellName;
+	private final Optional<String> name;
 	private final Optional<String> command;
 	private final Optional<String[]> args;
 	private final Optional<Map<String, String>> env;
@@ -157,8 +164,11 @@ public class ConsoleProtocol implements TerminalProtocol, ResizeListener, Elemen
 	private final boolean unixOpenTtyToPreserveOutputAfterTermination;
 	private final boolean useWinConPty;
 	private final boolean windowsAnsiColorEnabled;
+	
+	private final static Map<String, Integer> counters = Collections.synchronizedMap(new HashMap<String, Integer>());
 
 	private ConsoleProtocol(Builder builder) {
+		this.name = builder.name;
 		this.command = builder.command;
 		this.args = builder.args;
 		this.workingDirectory = builder.workingDirectory;
@@ -210,8 +220,9 @@ public class ConsoleProtocol implements TerminalProtocol, ResizeListener, Elemen
 					}
 				});
 				bldr.setCommand(cmds.toArray(new String[0]));
-				shellName = cmds.get(0);
-
+				
+				shellName = name.orElseGet(() -> processShellName(cmds.get(0))) + " " + nextVirtualConsoleNumber(cmds.get(0));
+				
 				// Dir
 				workingDirectory.ifPresent(dir -> bldr.setDirectory(dir.toString()));
 
@@ -300,6 +311,20 @@ public class ConsoleProtocol implements TerminalProtocol, ResizeListener, Elemen
 		}
 		pty.destroy();
 	}
+	
+	private static int nextVirtualConsoleNumber(String shell) {
+		synchronized(counters) {
+			var i = counters.get(shell);
+			if(i == null) {
+				i = 0;
+			}
+			else {
+				i = i + 1;
+			}
+			counters.put(shell, i);
+			return i;
+		}
+	}
 
 	@Override
 	public void detach() {
@@ -369,5 +394,16 @@ public class ConsoleProtocol implements TerminalProtocol, ResizeListener, Elemen
 		catch(Exception e) {
 			LOG.warn("Invalid path for CWD change '{}' from host.", cwd);
 		}
+	}
+
+	private static String processShellName(String shellName) {
+		var idx = shellName.lastIndexOf('/');
+		if(idx == -1) {
+			idx = shellName.lastIndexOf('\\');
+		}
+		if(idx != -1) {
+			return shellName.substring(idx + 1);
+		}
+		return shellName;
 	}
 }

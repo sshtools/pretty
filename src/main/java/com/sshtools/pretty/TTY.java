@@ -935,6 +935,7 @@ public class TTY extends StackPane implements Closeable {
 				runProtocol(bldr.
 					withPath(app.getContainer().getDefaultWorkingDirectory()).
 					withCommandLine(shellObj.fullCommand()).
+					withName(shellObj.name()).
 					withCygwin(shellObj.cygwin()).
 					build());
 			}
