@@ -81,16 +81,11 @@ Comment=Terminal emulator with built in SSH and Serial support </desktopFile>
         <file path="../resources/com/sshtools/pretty/icon-256.png" />
       </iconImageFiles>
     </launcher>
-    <launcher name="prettyc" id="151" menuName="Push SFTP GUI" addMacApplicationCategory="true" macApplicationCategory="public.app-category.utilities">
-      <executable name="prettyc" iconSet="true" executableDir="." redirectStderr="false" stderrFile="${installer:sys.userHome}/.pretty/pretty.log" stdoutFile="${installer:sys.userHome}/.pretty/pretty.log" executableMode="console" singleInstance="true" />
-      <java mainClass="com.sshtools.pretty/com.sshtools.pretty.Pretty" mainMode="module" vmParameters="-Dinstall4j.installationDir=${launcher:sys.launcherDirectory} --enable-preview --enable-native-access=com.sshtools.pty4j">
+    <launcher name="jaul" id="151" menuName="Push SFTP GUI" addMacApplicationCategory="true" macApplicationCategory="public.app-category.utilities">
+      <executable name="jaul" iconSet="true" executableDir="." redirectStderr="false" stderrFile="${installer:sys.userHome}/.pretty/pretty.log" stdoutFile="${installer:sys.userHome}/.pretty/pretty.log" executableMode="console" singleInstance="true" />
+      <java mainClass="com.sshtools.jaul/com.sshtools.jaul.RegisterDeregister" mainMode="module" vmParameters="--enable-preview --enable-native-access=com.sshtools.pty4j">
         <modulePath>
           <directory location="lib" failOnError="false" />
-          <directory location="mac" failOnError="false" />
-          <directory location="win" failOnError="false" />
-          <directory location="linux" failOnError="false" />
-          <directory location="linux-aarch64" failOnError="false" />
-          <directory location="mac-aarch64" failOnError="false" />
         </modulePath>
       </java>
       <desktopFile>Keywords=shell;prompt;command;commandline;cmd;
@@ -311,7 +306,7 @@ return console.askOkCancel(message, true);
                   </property>
                   <property name="executable">
                     <object class="java.io.File">
-                      <string>prettyc</string>
+                      <string>jaul</string>
                     </object>
                   </property>
                   <property name="timeout" type="int" value="20" />

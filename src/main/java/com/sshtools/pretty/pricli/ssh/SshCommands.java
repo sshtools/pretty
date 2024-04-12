@@ -2,7 +2,7 @@ package com.sshtools.pretty.pricli.ssh;
 
 import java.util.concurrent.Callable;
 
-import com.sshtools.pretty.pricli.Pricli;
+import com.sshtools.pretty.pricli.PricliShell;
 import com.sshtools.pretty.pricli.RootCommand;
 
 import picocli.CommandLine.Command;
@@ -13,9 +13,9 @@ import picocli.CommandLine.Command;
 public final class SshCommands implements Callable<Integer>, RootCommand {
 
 	private final Ssh ssh;
-	private final Pricli cli;
+	private final PricliShell cli;
 
-	SshCommands(Ssh ssh, Pricli cli) {
+	SshCommands(Ssh ssh, PricliShell cli) {
 		this.ssh = ssh;
 		this.cli = cli;
 	}
@@ -30,7 +30,7 @@ public final class SshCommands implements Callable<Integer>, RootCommand {
 	}
 
 	@Override
-	public Pricli cli() {
+	public PricliShell cli() {
 		return cli;
 	}
 

@@ -81,6 +81,7 @@ public class PrettyApp extends JajaFXApp<Pretty, PrettyAppWindow> implements Lis
 		super(PrettyApp.class.getResource("icon.png"), 
 		      RESOURCES.getString("title"), 
 		      (Pretty) Pretty.getInstance(), ((Pretty) Pretty.getInstance()).getAppPreferences());
+		Pretty.getInstance().init(this);
 		uiToolkit = new JavaFXUIToolkit();
 		appContext = new AppContextImpl();
 		fonts = new Fonts(appContext, uiToolkit);

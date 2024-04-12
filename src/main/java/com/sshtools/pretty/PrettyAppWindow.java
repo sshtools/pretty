@@ -143,7 +143,7 @@ public class PrettyAppWindow extends JajaFXAppWindow<PrettyApp> {
 					updateIconLabel.setTooltip(new Tooltip(MessageFormat.format(RESOURCES.getString("updateAvailable"),
 							app.getContainer().getUpdateService().getAvailableVersion())));
 					updateIconLabel.setUserData(ft);
-					titleBar.getAccessories().getChildren().add(updateIconLabel);
+					titleBar.addAccessories(updateIconLabel);
 			} else {
 				removeUpdateIcon(titleBar);
 			}
@@ -161,7 +161,7 @@ public class PrettyAppWindow extends JajaFXAppWindow<PrettyApp> {
 			removeFt.setNode(updateIconLabel);
 			removeFt.play();
 			removeFt.setOnFinished(evt2 -> {
-				tb.getAccessories().getChildren().remove(updateIconLabel);
+				tb.removeAccessories(updateIconLabel);
 				updateIconLabel = null;
 			});
 		}

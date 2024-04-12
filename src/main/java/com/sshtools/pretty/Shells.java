@@ -22,6 +22,7 @@ public class Shells {
 	}
 
 	public static final String NATIVE = "native";
+	public static final String PRICLI = "pricli";
 	
 	public static record Shell(ShellType type, String id, String commandName, Path path, String name, String version, boolean cygwin, String... args) { 
 		
@@ -75,8 +76,9 @@ public class Shells {
 			checkShell("powershell", "pwsh", false, "Microsoft Powershell",  new String[] {"--version"}, ".* (.*)", new String[] {"-Login"}, "/usr/bin");
 		}
 		shells.add(new Shell(ShellType.BUILTIN, "serial", "serial", (Path)null, "Pretty Serial Support", null, false, new String[0]));
-		shells.add(new Shell(ShellType.BUILTIN, "ssh", "ssh", (Path)null, "Maverick Synergy SSH", null, false, new String[0]));
-		shells.add(new Shell(ShellType.BUILTIN, NATIVE, NATIVE, (Path)null, "Default native shell", null, false, new String[0]));
+		shells.add(new Shell(ShellType.BUILTIN, "ssh", "ssh", (Path)null, "Maverick Synergy SSH", null, false, "--prompt"));
+		shells.add(new Shell(ShellType.BUILTIN, PRICLI, PRICLI, (Path)null, "Built-in shell", null, false));
+		shells.add(new Shell(ShellType.BUILTIN, NATIVE, NATIVE, (Path)null, "Default native shell", null, false));
 	}
 
 	private void checkPosixShells() {

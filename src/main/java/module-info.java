@@ -8,6 +8,7 @@ open module com.sshtools.pretty {
 	requires javafx.fxml;
 	requires transitive purejavacomm;
 	requires com.sshtools.pty4j;
+//	requires pty4j;
 	requires transitive com.sshtools.terminal.vt.javafx;
 	requires transitive java.prefs;
 	requires transitive com.sshtools.jini;

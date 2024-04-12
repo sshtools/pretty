@@ -35,8 +35,12 @@ public class Ssh extends AbstractSshCommand {
 			"--no-pop" }, paramLabel = "NUMBER", description = "Do not automatically return to the terminal on successful connection.")
 	private boolean noPop;
 
-	@Parameters(index = "0", arity = "1", paramLabel = "DESTINATION", description = "Destination")
-	private String destination;
+	@Option(names = { 
+			"--prompt" }, description = "Prompt for hostname and/or username.")
+	private boolean prompt;
+
+	@Parameters(index = "0", arity = "0..1", paramLabel = "DESTINATION", description = "Destination")
+	private Optional<String> destination;
 
 	private String hostname = "localhost";
 	private String username = System.getProperty("user.name");
@@ -49,19 +53,64 @@ public class Ssh extends AbstractSshCommand {
 			throw new IllegalStateException(MessageFormat.format(RESOURCES.getString("connectedToOther"), parent.tty().protocol().displayName()));
 		}
 		
-		selectedPort = this.port.orElseGet(() -> {
-			var idx = destination.lastIndexOf(':');
-			if (idx == -1) {
-				return 22;
-			} else {
-				return Integer.parseInt(destination.substring(idx + 1));
+		if(destination.isPresent()) {
+			selectedPort = this.port.orElseGet(() -> {
+				var idx = destination.get().lastIndexOf(':');
+				if (idx == -1) {
+					return 22;
+				} else {
+					return Integer.parseInt(destination.get().substring(idx + 1));
+				}
+			});
+			hostname = destination.get();
+			var idx = hostname.indexOf('@');
+			if (idx != -1) {
+				username = hostname.substring(0, idx);
+				hostname = hostname.substring(idx + 1);
 			}
-		});
-		hostname = destination;
-		var idx = hostname.indexOf('@');
-		if (idx != -1) {
-			username = hostname.substring(0, idx);
-			hostname = hostname.substring(idx + 1);
+		}
+		else {
+			if(prompt) {
+				var defVal = "localhost";
+				var dest = parent.cli().reader().readLine(
+					Styling.styled(RESOURCES.getString("hostname")).toAnsi(parent.cli().jline()),
+					Styling.styled(MessageFormat.format(RESOURCES.getString("hostname.right"), defVal)).toAnsi(parent.cli().jline()),
+					(Character)null,
+					null
+				);
+				if(dest == null) {
+					throw new IllegalStateException("Cancelled.");
+				}
+				else {
+					if(dest.equals("")) {
+						dest = defVal;
+					}
+					var idx = dest.lastIndexOf(':');
+					if (idx == -1) {
+						hostname = dest;
+						selectedPort = 22;
+					} else {
+						hostname = dest.substring(0, idx);
+						selectedPort = Integer.parseInt(dest.substring(idx + 1));
+					}
+					
+					var defusr = System.getProperty("user.name");
+					username = parent.cli().reader().readLine(
+							RESOURCES.getString("username"),
+							Styling.styled(MessageFormat.format(RESOURCES.getString("username.right"), defusr)).toAnsi(parent.cli().jline()), 
+							(Character)null,
+							null);
+					if(username == null) {
+						throw new IllegalStateException("Cancelled.");
+					}
+					else if(username.equals("")) {
+						username = defusr;
+					}
+				}
+			}
+			else {
+				throw new IllegalArgumentException(RESOURCES.getString("noPromptOrDestination"));
+			}
 		}
 	}
 
@@ -88,8 +137,12 @@ public class Ssh extends AbstractSshCommand {
 		var closed = new AtomicBoolean();
 
 		/* Start shell */
-		ssh.addTask(ShellTask.ShellTaskBuilder.create().withClient(ssh).withTermType(vdu.getTerminalType().getId())
-				.withColumns(vdu.getColumns()).withRows(vdu.getRows()).onBeforeOpen((task, session) -> {
+		ssh.addTask(ShellTask.ShellTaskBuilder.create().
+				withClient(ssh).
+				withTermType(vdu.getTerminalType().getId())
+				.withColumns(vdu.getColumns()).
+				withRows(vdu.getRows()).
+				onBeforeOpen((task, session) -> {
 					env.forEach((k, v) -> session.setEnvironmentVariable(k, v));
 				}).onClose((task, session) -> {
 					if (!closed.get()) {
@@ -106,14 +159,14 @@ public class Ssh extends AbstractSshCommand {
 					/* Write out a message on the terminal, not the shell */
 					vdu.newline();
 					vdu.cr();
-					vdu.writeString(Styling.styled(MessageFormat.format(RESOURCES.getString("connected"), destination))
+					vdu.writeString(Styling.styled(MessageFormat.format(RESOURCES.getString("connected"), username + "@" + ( selectedPort == 22 ? hostname : hostname + ":" + selectedPort)))
 							.toAnsi());
 					vdu.newline();
 					vdu.cr();
 					vdu.flush();
 
 					if (!noPop) {
-						runLater(parent.cli()::hide);
+						runLater(parent.cli()::close);
 					}
 
 					var proto = new SshProtocol(instance(), session);

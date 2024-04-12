@@ -10,7 +10,7 @@ import picocli.CommandLine.Command;
 		NewTab.class, NewWindow.class })
 public final class UICommands extends AbstractRootCommand {
 
-	UICommands(TTYContext ttyContext, Pricli screen, TTY tty) {
+	UICommands(TTYContext ttyContext, PricliShell screen, TTY tty) {
 		super(ttyContext, screen, tty);
 	}
 

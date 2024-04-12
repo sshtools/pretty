@@ -18,6 +18,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.Stack;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 import org.jline.terminal.Size;
@@ -30,7 +31,8 @@ import com.sshtools.jini.Data.Handle;
 import com.sshtools.pretty.Configuration.TriState;
 import com.sshtools.pretty.Shells.Shell;
 import com.sshtools.pretty.Shells.ShellType;
-import com.sshtools.pretty.pricli.Pricli;
+import com.sshtools.pretty.pricli.PricliPopup;
+import com.sshtools.pretty.pricli.PricliProtocol;
 import com.sshtools.terminal.emulation.CursorStyle;
 import com.sshtools.terminal.emulation.Feature;
 import com.sshtools.terminal.emulation.ResizeStrategy;
@@ -81,19 +83,22 @@ public class TTY extends StackPane implements Closeable {
 
 	final static ResourceBundle RESOURCES = ResourceBundle.getBundle(TTY.class.getName());
 
+	private final static AtomicInteger counter = new AtomicInteger(1);
+
 	private static final String STATUS_SECTION = "status";
 
 	private final JavaFXTerminalPanel terminalPanel;
 	private final TTYContext app;
 	private final List<Handle> handles = new LinkedList<>();
 
-	private Pricli pricli;
+	private PricliPopup pricli;
 	private TerminalTheme theme;
 	private BorderPane scrollPane;
 	private JavaFXTerminalPanel statusTerminal;
 	private final Stack<TerminalProtocol> protocols = new Stack<>();
 	private final StringProperty title = new SimpleStringProperty(RESOURCES.getString("title"));
 	private final StringProperty shortTitle = new SimpleStringProperty(RESOURCES.getString("appType"));
+	private final StringProperty userTitle = new SimpleStringProperty("");
 	private final Consumer<TTY> onClose;
 	private final Status status = new Status();
 	private boolean closed;
@@ -297,6 +302,8 @@ public class TTY extends StackPane implements Closeable {
 			}
 		});
 		
+		userTitle.addListener((c,o,n) -> updateState());
+		
 		/* Status */
 		status.add(new Status.SizeAndCursor(this));
 		status.add(new Status.InsertReplaceMode(this));
@@ -319,7 +326,7 @@ public class TTY extends StackPane implements Closeable {
 		if(!Objects.equals(this.cwd, cwd)) {
 			this.cwd = cwd;
 			if(pricli != null) {
-				pricli.cwd(cwd);
+				pricli.shell().cwd(cwd);
 			}
 		}
 	}
@@ -374,7 +381,7 @@ public class TTY extends StackPane implements Closeable {
 	public static Terminal ttyJLine(String termType, TerminalViewport<JavaFXTerminalPanel, ?, ?> vp) {
 		try {
 			var sz = new Size(vp.getColumns(), vp.getRows());
-			LOG.info("Initial shell size to {} x {}", sz.getColumns(), sz.getRows());
+			LOG.info("Initial shell size to {} x {} # {}", sz.getColumns(), sz.getRows(), termType);
 			var jline = TerminalBuilder.builder().
 					type(termType).
 					size(sz).
@@ -395,6 +402,10 @@ public class TTY extends StackPane implements Closeable {
 	
 	public StringProperty shortTitle() {
 		return shortTitle;
+	}
+	
+	public StringProperty userTitle() {
+		return userTitle;
 	}
 	
 	public StringProperty title() {
@@ -498,10 +509,10 @@ public class TTY extends StackPane implements Closeable {
 		}
 	}
 	
-	public Pricli cli() {
+	public PricliPopup cli() {
 		if(pricli == null) {
-			pricli = new Pricli(this);
-			pricli.cwd(cwd);
+			pricli = new PricliPopup(this);
+			pricli.shell().cwd(cwd);
 		}
 		return pricli;
 	}
@@ -893,7 +904,12 @@ public class TTY extends StackPane implements Closeable {
 	
 	private void updateState() {
 		var proto = protocol();
-		shortTitle.setValue(proto == null ? RESOURCES.getString("appType") : proto.displayName());
+		if(userTitle.getValue().equals("")) {
+			shortTitle.setValue(proto == null ? RESOURCES.getString("appType") : proto.displayName());
+		}
+		else {
+			shortTitle.setValue(userTitle.getValue());
+		}
 		checkStatusDisplay();
 	}
 
@@ -913,7 +929,7 @@ public class TTY extends StackPane implements Closeable {
 				shellObj = app.getContainer().getShells().getDefault().orElseThrow(() -> new IllegalStateException("No default shell available."));
 			}
 			if(shellObj.type() == ShellType.BUILTIN) {
-				throw new UnsupportedOperationException("TODO");
+				runProtocol(new PricliProtocol(shellObj.toFullCommandText()));
 			}
 			else {
 				runProtocol(bldr.
@@ -951,7 +967,7 @@ public class TTY extends StackPane implements Closeable {
 			finally {
 				LOG.info("Main loop exited.");				
 			}
-		}, "InitialProtocol").start();
+		}, "TTY-" + counter.getAndIncrement()).start();
 	}
 
 

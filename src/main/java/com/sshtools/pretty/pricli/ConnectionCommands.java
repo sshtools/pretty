@@ -10,7 +10,7 @@ import picocli.CommandLine.Command;
 		Serial.class, Ssh.class, Console.class })
 public final class ConnectionCommands extends AbstractRootCommand {
 
-	ConnectionCommands(TTYContext ttyContext, Pricli screen, TTY tty) {
+	ConnectionCommands(TTYContext ttyContext, PricliShell screen, TTY tty) {
 		super(ttyContext, screen, tty);
 	}
 

@@ -11,7 +11,7 @@ import picocli.CommandLine.Command;
 		SetConfig.class, Show.class, Quit.class, ClearSubshell.class, Update.class })
 public final class PricliCommands extends AbstractRootCommand {
 
-	PricliCommands(TTYContext ttyContext, Pricli screen, TTY tty) {
+	PricliCommands(TTYContext ttyContext, PricliShell screen, TTY tty) {
 		super(ttyContext, screen, tty);
 	}
 

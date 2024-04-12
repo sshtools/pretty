@@ -2,8 +2,6 @@ package com.sshtools.pretty;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.lang.foreign.Arena;
-import java.lang.foreign.ValueLayout;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -149,6 +147,7 @@ public class ConsoleProtocol implements TerminalProtocol, ResizeListener, Elemen
 	private TTY tty;
 	private PtyProcess pty;
 	private Thread thread;
+	private String shellName = "<Idle>";
 	private final Optional<String> command;
 	private final Optional<String[]> args;
 	private final Optional<Map<String, String>> env;
@@ -192,28 +191,26 @@ public class ConsoleProtocol implements TerminalProtocol, ResizeListener, Elemen
 				bldr.setInitialColumns(viewport.getColumns());
 
 				// Shell
+				var cmds = new ArrayList<String>();
 				command.ifPresentOrElse(c -> {
-					args.ifPresentOrElse(as -> {
-						var l = new ArrayList<String>();
-						l.add(c);
-						l.addAll(Arrays.asList(as));
-						bldr.setCommand(l.toArray(new String[0]));
-					}, () -> {
-						bldr.setCommand(new String[] { c });
+					cmds.add(c);
+					args.ifPresent(as -> {
+						cmds.addAll(Arrays.asList(as));
 					});
 
 				}, () -> {
 					if (System.getProperty("os.name").toLowerCase().contains("windows")) {
-						bldr.setCommand(new String[] { "cmd.exe"/* , "/c", "start" */ });
+						cmds.addAll(Arrays.asList(new String[] { "cmd.exe"/* , "/c", "start" */ }));
 					} else {
 						var bash = "/bin/bash";
 						if (Files.exists(Paths.get(bash))) {
-
-							bldr.setCommand(new String[] { bash, "-l" });
+							cmds.addAll(Arrays.asList(bash, "-l"));
 						} else
-							bldr.setCommand(new String[] { "/bin/sh", "-l" });
+							cmds.addAll(Arrays.asList("/bin/sh", "-l"));
 					}
 				});
+				bldr.setCommand(cmds.toArray(new String[0]));
+				shellName = cmds.get(0);
 
 				// Dir
 				workingDirectory.ifPresent(dir -> bldr.setDirectory(dir.toString()));
@@ -249,18 +246,22 @@ public class ConsoleProtocol implements TerminalProtocol, ResizeListener, Elemen
 		tty.status().add(this);
 
 		try {
-			if (Boolean.getBoolean("pretty.slowRead")) {
-				pty.getInputStream().transferTo(new TerminalOutputStream(viewport));
-			} else {
-				try (var offHeap = Arena.ofConfined()) {
-					var mem = offHeap.allocate(65536);
-					int rd;
-					while ((rd = pty.getPtyInputStream().fastRead(mem, (int) mem.byteSize())) != -1) {
-						viewport.write((idx) -> mem.get(ValueLayout.JAVA_BYTE, idx), 0, rd);
-						viewport.flush();
+//			if (Boolean.getBoolean("pretty.slowRead")) {
+				try(var in = pty.getInputStream()) {
+					try(var out = new TerminalOutputStream(viewport)) {
+						in.transferTo(out);
 					}
 				}
-			}
+//			} else {
+//				try (var offHeap = Arena.ofConfined()) {
+//					var mem = offHeap.allocate(65536);
+//					int rd;
+//					while ((rd = pty.getPtyInputStream().fastRead(mem, (int) mem.byteSize())) != -1) {
+//						viewport.write((idx) -> mem.get(ValueLayout.JAVA_BYTE, idx), 0, rd);
+//						viewport.flush();
+//					}
+//				}
+//			}
 
 		} catch (Error e) {
 			LOG.error("Protocol failed.", e);
@@ -270,7 +271,7 @@ public class ConsoleProtocol implements TerminalProtocol, ResizeListener, Elemen
 		} catch (Exception e) {
 			LOG.error("Protocol failed.", e);
 			throw new IllegalStateException(e);
-		}
+		} 
 	}
 
 	@Override
@@ -309,6 +310,7 @@ public class ConsoleProtocol implements TerminalProtocol, ResizeListener, Elemen
 			tty.status().remove(this);
 			var terminal = tty.terminal();
 			var viewport = terminal.getViewport();
+			shellName = null;
 			viewport.setInput(null);
 			viewport.removeResizeListener(this);
 			thread.interrupt();
@@ -324,7 +326,8 @@ public class ConsoleProtocol implements TerminalProtocol, ResizeListener, Elemen
 //			return Paths.get(((UnixPtyProcess) pty).getPty().getSlaveName()).getFileName().toString();
 //		}
 //		return RESOURCES.getString("console");
-		return pty == null ? RESOURCES.getString("console") : pty.getDisplayName();
+		return pty == null ? RESOURCES.getString("console") : pty.getDisplayName().orElse(shellName);
+//		return "XX";
 	}
 
 	@Override
@@ -336,7 +339,8 @@ public class ConsoleProtocol implements TerminalProtocol, ResizeListener, Elemen
 //		} else {
 //			bldr.append(RESOURCES.getString("console"));
 //		}
-		bldr.append(pty == null ? RESOURCES.getString("console") : pty.getDisplayName());
+//		bldr.append("XX");
+		bldr.append(pty == null ? RESOURCES.getString("console") : pty.getDisplayName().orElse(shellName));
 		bldr.style(AttributedStyle.INVERSE_OFF);
 		vp.write(bldr.toAnsi().getBytes(vp.getCharacterSet()));
 	}

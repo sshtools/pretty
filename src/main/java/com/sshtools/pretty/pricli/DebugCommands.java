@@ -9,7 +9,7 @@ import picocli.CommandLine.Command;
 		Features.class, Images.class, Debug.class, Fonts.class, Charmap.class })
 public final class DebugCommands extends AbstractRootCommand {
 
-	DebugCommands(TTYContext ttyContext, Pricli screen, TTY tty) {
+	DebugCommands(TTYContext ttyContext, PricliShell screen, TTY tty) {
 		super(ttyContext, screen, tty);
 	}
 

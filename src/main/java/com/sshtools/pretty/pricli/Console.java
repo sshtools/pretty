@@ -4,6 +4,7 @@ import static javafx.application.Platform.runLater;
 
 import java.util.Optional;
 import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import com.sshtools.pretty.ConsoleProtocol;
 
@@ -32,6 +33,8 @@ public final class Console implements Callable<Integer> {
 
 	@Parameters(index = "1", arity = "0..1", paramLabel = "ARGUMENTS", description = "Arguments to pass to the shell command.")
 	private String[] args;
+	
+	private final static AtomicInteger counter = new AtomicInteger(1);
 
 	@Override
 	public Integer call() throws Exception {
@@ -43,12 +46,12 @@ public final class Console implements Callable<Integer> {
 		var proto = bldr.build();
 		try {
 			if (!noPop) {
-				runLater(parent.cli()::hide);
+				runLater(parent.cli()::close);
 			}
 
 			new Thread(() -> {
 				parent.tty().protocol(proto);
-			}, "InitialProtocol").start();
+			}, "Console-" + counter.getAndIncrement()).start();
 		} catch (Exception e) {
 			try {
 				proto.close();

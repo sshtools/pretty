@@ -9,7 +9,7 @@ import picocli.CommandLine.Command;
 		Lmkdir.class, Lpwd.class })
 public final class LocalFileSystemCommands extends AbstractRootCommand {
 
-	LocalFileSystemCommands(TTYContext ttyContext, Pricli screen, TTY tty) {
+	LocalFileSystemCommands(TTYContext ttyContext, PricliShell screen, TTY tty) {
 		super(ttyContext, screen, tty);
 	}
 

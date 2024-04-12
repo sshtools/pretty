@@ -6,6 +6,7 @@ import java.text.MessageFormat;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.jline.utils.AttributedStringBuilder;
 import org.jline.utils.AttributedStyle;
@@ -37,6 +38,8 @@ import purejavacomm.UnsupportedCommOperationException;
 				})
 public class Serial implements Callable<Integer> {
 	static Logger LOG = LoggerFactory.getLogger(Serial.class);
+	
+	private final static AtomicInteger counter = new AtomicInteger(1);
 	
 	public enum DataBits {
 		FIVE, SIX, SEVEN, EIGHT;
@@ -464,12 +467,12 @@ public class Serial implements Callable<Integer> {
 					parent.parent.cli().result(Styling.styled(MessageFormat.format(RESOURCES.getString("connected"), port, proto.port().getBaudRate())).toAttributedString());
 	
 					if(!noPop) {
-						runLater(parent.parent.cli()::hide);
+						runLater(parent.parent.cli()::close);
 					}
 	
 					new Thread(() -> {
 						parent.parent.tty().protocol(proto);
-					}, "InitialProtocol").start();
+					}, "Serial-" + counter.getAndIncrement()).start();
 				}
 				catch(Exception e) {
 					try {

@@ -11,17 +11,17 @@ import picocli.CommandLine.Command;
 public abstract class AbstractRootCommand implements Callable<Integer>, RootCommand {
 
 	private final TTYContext ttyContext;
-	private final Pricli screen;
+	private final PricliShell screen;
 	private final TTY tty;
 
-	AbstractRootCommand(TTYContext ttyContext, Pricli screen, TTY tty) {
+	AbstractRootCommand(TTYContext ttyContext, PricliShell screen, TTY tty) {
 		this.ttyContext = ttyContext;
 		this.screen = screen;
 		this.tty = tty;
 	}
 
 	@Override
-	public Pricli cli() {
+	public PricliShell cli() {
 		return screen;
 	}
 
