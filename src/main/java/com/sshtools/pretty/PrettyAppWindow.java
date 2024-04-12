@@ -9,11 +9,9 @@ import org.kordamp.ikonli.javafx.FontIcon;
 
 import com.sshtools.jajafx.JajaFXAppWindow;
 import com.sshtools.jajafx.TitleBar;
-import com.sshtools.pretty.PrettyApp.TTYContextImpl;
 
 import javafx.animation.FadeTransition;
 import javafx.beans.property.BooleanProperty;
-import javafx.scene.Node;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
@@ -29,14 +27,20 @@ public class PrettyAppWindow extends JajaFXAppWindow<PrettyApp> {
 	private FontIcon bell;
 	private Label updateIconLabel;
 	private final AppContext ctx;
+	private final TTYContext ttyContext;
 
-	public PrettyAppWindow(Stage stage, Node content, PrettyApp app, AppContext ctx) {
-		super(stage, content, app);
+	public PrettyAppWindow(Stage stage, TTYContext ttyContext, PrettyApp app, AppContext ctx) {
+		super(stage, ttyContext.content(), app);
 		
 		this.ctx = ctx;
+		this.ttyContext = ttyContext;
 
 		scene.getRoot().getStyleClass().add("pretty");
 		scene.setFill(Color.TRANSPARENT);
+	}
+	
+	public TTYContext ttyContext() {
+		return ttyContext;
 	}
 
 	public void animateBell() {
@@ -82,13 +86,13 @@ public class PrettyAppWindow extends JajaFXAppWindow<PrettyApp> {
 
 		var shell = new FontIcon();
 		shell.setIconSize(18);
-		shell.setOnMouseClicked(evt -> ((TTYContextImpl) content).activeTty().ifPresent(tty -> tty.togglePricli()));
+		shell.setOnMouseClicked(evt -> ttyContext.activeTty().ifPresent(tty -> tty.togglePricli()));
 		shell.setIconCode(FontAwesomeSolid.GREATER_THAN);
 		
 		var newTab = new FontIcon();
 		newTab.setIconSize(18);
 		newTab.setOnMouseClicked(evt -> {
-			((TTYContextImpl) content).newTab(); 
+			ttyContext.newTab(); 
 		} );
 		newTab.setIconCode(FontAwesomeSolid.PLUS);
 
