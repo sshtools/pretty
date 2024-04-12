@@ -12,9 +12,14 @@ import com.sshtools.jajafx.TitleBar;
 
 import javafx.animation.FadeTransition;
 import javafx.beans.property.BooleanProperty;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.Tooltip;
+import javafx.scene.input.KeyCombination;
+import javafx.scene.input.MouseButton;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -89,10 +94,17 @@ public class PrettyAppWindow extends JajaFXAppWindow<PrettyApp> {
 		shell.setOnMouseClicked(evt -> ttyContext.activeTty().ifPresent(tty -> tty.togglePricli()));
 		shell.setIconCode(FontAwesomeSolid.GREATER_THAN);
 		
+		
 		var newTab = new FontIcon();
 		newTab.setIconSize(18);
 		newTab.setOnMouseClicked(evt -> {
-			ttyContext.newTab(); 
+			if(evt.getButton() == MouseButton.SECONDARY) {
+				evt.consume();
+				createShellLaunchMenu().show(newTab, evt.getScreenX(), evt.getScreenY());
+			}
+			else {
+				ttyContext.newTab();
+			}
 		} );
 		newTab.setIconCode(FontAwesomeSolid.PLUS);
 
@@ -101,6 +113,37 @@ public class PrettyAppWindow extends JajaFXAppWindow<PrettyApp> {
 		doUpdateUpdatesState(title);
 
 		return title;
+	}
+
+	protected ContextMenu createShellLaunchMenu() {
+		var shellMenu = new ContextMenu();
+
+		var newTabItem = new MenuItem(RESOURCES.getString("newTab"));
+		newTabItem.setOnAction((e) -> ttyContext.newTab());
+		newTabItem.setAccelerator(KeyCombination.keyCombination("CTRL+SHIFT+T"));
+
+		var newWindow = new MenuItem(RESOURCES.getString("newWindow"));
+		newWindow.setOnAction((e) -> ttyContext.newWindow());
+		newWindow.setAccelerator(KeyCombination.keyCombination("CTRL+SHIFT+N"));
+
+		shellMenu.getItems().add(newTabItem);
+		shellMenu.getItems().add(newWindow);
+		shellMenu.getItems().add(new SeparatorMenuItem());
+		
+		var i = 1;
+		for(var shl : ctx.getShells().getAll()) {
+			var item = new MenuItem(Shells.toDisplayName(shl));
+			if(i < 10) {
+				item.setAccelerator(KeyCombination.keyCombination("CTRL+SHIFT+"+ i));
+			}
+			i++;
+			item.setOnAction((e) -> ttyContext.newTab(
+				new TTYRequest.Builder().
+					withShell(shl).
+				build()));
+			shellMenu.getItems().add(item);
+		}
+		return shellMenu;
 	}
 
 	protected void doUpdateUpdatesState(TitleBar titleBar) {

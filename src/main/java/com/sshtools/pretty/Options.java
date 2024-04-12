@@ -137,24 +137,7 @@ public class Options extends StackPane implements Closeable {
 		/* Shells */
 		defaultShell.getItems().setAll(app.getShells().getAll());
 		defaultShell.getItems().add(null);
-		defaultShell.setConverter(new StringConverter<Shell>() {
-			@Override
-			public String toString(Shell object) {
-				if(object == null)
-					return RESOURCES.getString("customCommand");
-				else {
-					if(object.version() == null)
-						return MessageFormat.format(RESOURCES.getString("shellItemNoVersion"), object.name(), object.id());
-					else
-						return MessageFormat.format(RESOURCES.getString("shellItem"), object.name(), object.id(), object.version());
-				}
-			}
-
-			@Override
-			public Shell fromString(String string) {
-				return null;
-			}
-		});
+		defaultShell.setConverter(Shells.stringConverter());
 		defaultShell.getSelectionModel().selectedItemProperty().addListener((c,o,n) -> {
 			if(n != null) {
 				cfg.put(Constants.SHELL_KEY,n.id(),  Constants.TERMINAL_SECTION);

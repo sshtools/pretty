@@ -35,8 +35,6 @@ public final class TTYStack extends StackPane implements TTYContext {
 	private final AppContext appContext;
 	private final Stage stage;
 	private PrettyAppWindow appWindow;
-	
-	private final static ThreadLocal<Boolean> detaching = new ThreadLocal<>();
 
 	TTYStack(AppContext appContext, Stage stage) {
 
@@ -54,13 +52,13 @@ public final class TTYStack extends StackPane implements TTYContext {
 			}
 		});
 		updateStageTitle();
-		if(!isDetaching())
-			newTab();
 	}
-
-	protected static boolean isDetaching() {
-		return Boolean.TRUE.equals(detaching.get());
-	}
+	
+//	private final static ThreadLocal<Boolean> detaching = new ThreadLocal<>();
+//
+//	protected static boolean isDetaching() {
+//		return Boolean.TRUE.equals(detaching.get());
+//	}
 
 	@Override
 	public Node content() {
@@ -118,20 +116,14 @@ public final class TTYStack extends StackPane implements TTYContext {
 				var tabPane = (TabPane) first;
 				for(var tab : tabPane.getTabs()) {
 					if(tab.getUserData().equals(tty)) {
-						detaching.set(true);
-						try {
-							var newWnd = newWindow();
-							closeTty(tty);
-							var newCtx = (TTYStack)newWnd.ttyContext();
-							newCtx.getChildren().add(tty);
-							newCtx.updateStageTitle();
-							newCtx.stage.sizeToScene();
-							newCtx.stage.show();
-							return;
-						}
-						finally {
-							detaching.set(false);
-						}
+						var newWnd = newWindow(Optional.empty());
+						closeTty(tty);
+						var newCtx = (TTYStack)newWnd.ttyContext();
+						newCtx.getChildren().add(tty);
+						newCtx.updateStageTitle();
+						newCtx.stage.sizeToScene();
+						newCtx.stage.show();
+						return;
 					}
 				}
 			}
@@ -159,10 +151,10 @@ public final class TTYStack extends StackPane implements TTYContext {
 	}
 
 	@Override
-	public void newTab() {
+	public void newTab(TTYRequest request) {
 
 		try {
-			var tty = newTty();
+			var tty = newTty(request);
 			if (getChildren().isEmpty()) {
 				getChildren().add(tty);
 			} else {
@@ -219,10 +211,10 @@ public final class TTYStack extends StackPane implements TTYContext {
 	}
 
 	@Override
-	public PrettyAppWindow newWindow() {
+	public PrettyAppWindow newWindow(Optional<TTYRequest> request) {
 		var stage = new Stage();
-		var wnmd = appContext.newAppWindow(stage);
-		if(!isDetaching()) {
+		var wnmd = appContext.newAppWindow(stage, request);
+		if(request.isPresent()) {
 			stage.sizeToScene();
 			stage.show();
 		}
@@ -328,8 +320,8 @@ public final class TTYStack extends StackPane implements TTYContext {
 		});
 	}
 
-	private TTY newTty() {
-		var tty = new TTY(this, this::closeTty);
+	private TTY newTty(TTYRequest request) {
+		var tty = new TTY.Builder(this).onClose(this::closeTty).withRequest(request).build();
 		// TODO remove listener on tab remove / hiding to single
 		tty.title().addListener((c, o, n) -> updateStageTitle());
 		return tty;

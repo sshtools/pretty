@@ -59,12 +59,10 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
-import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DataFormat;
 import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
@@ -78,6 +76,34 @@ import uk.co.bithatch.nativeimage.annotations.Resource;
 @Resource
 @Reflectable(all = true)
 public class TTY extends StackPane implements Closeable {
+	
+	public final static class Builder {
+		private TTYContext ttyContext;
+		private Optional<Consumer<TTY>> onClose = Optional.empty();
+		private Optional<TTYRequest> request = Optional.empty();
+		
+		public Builder(TTYContext ttyContext) {
+			this.ttyContext = ttyContext;
+		}
+		
+		public Builder onClose(Consumer<TTY> onClose) {
+			this.onClose = Optional.of(onClose);
+			return this;
+		}
+		
+		public Builder withShell(Shell shell) {
+			return withRequest(new TTYRequest.Builder().withShell(shell).build());
+		}
+
+		public Builder withRequest(TTYRequest request) {
+			this.request = Optional.of(request);
+			return this;
+		}
+		
+		public TTY build() {
+			return new TTY(this);
+		}
+	}
 
 	static Logger LOG = LoggerFactory.getLogger(TTY.class);
 
@@ -88,7 +114,7 @@ public class TTY extends StackPane implements Closeable {
 	private static final String STATUS_SECTION = "status";
 
 	private final JavaFXTerminalPanel terminalPanel;
-	private final TTYContext app;
+	private final TTYContext ttyContext;
 	private final List<Handle> handles = new LinkedList<>();
 
 	private PricliPopup pricli;
@@ -99,7 +125,7 @@ public class TTY extends StackPane implements Closeable {
 	private final StringProperty title = new SimpleStringProperty(RESOURCES.getString("title"));
 	private final StringProperty shortTitle = new SimpleStringProperty(RESOURCES.getString("appType"));
 	private final StringProperty userTitle = new SimpleStringProperty("");
-	private final Consumer<TTY> onClose;
+	private final Optional<Consumer<TTY>> onClose;
 	private final Status status = new Status();
 	private boolean closed;
 	private JavaFXScrollBar scroller;
@@ -109,13 +135,13 @@ public class TTY extends StackPane implements Closeable {
 	private Label overlayInfo;
 
 	@SuppressWarnings("resource")
-	public TTY(TTYContext app, Consumer<TTY> onClose) {
-		this.app = app;
-		this.onClose = onClose;
+	private TTY(Builder bldr) {
+		this.ttyContext = bldr.ttyContext;
+		this.onClose = bldr.onClose;
 		this.cwd = Paths.get(System.getProperty("user.dir"));
-		theme = app.getContainer().getSelectedTheme();
+		theme = ttyContext.getContainer().getSelectedTheme();
 		
-		var cfg = app.getContainer().getConfiguration();
+		var cfg = ttyContext.getContainer().getConfiguration();
 
 		/* UI */
 		var loader = new FXMLLoader(getClass().getResource("TTY.fxml"));
@@ -139,8 +165,8 @@ public class TTY extends StackPane implements Closeable {
 		/* Create and configure terminal */
 		terminalPanel = new JavaFXTerminalPanel.Builder().
 				withAudioSystem(new TTYAudioSystem(this)).
-				withUiToolkit(app.getContainer().getUiToolkit()).
-				withFontManager(app.getContainer().getFonts().getFontManager()).
+				withUiToolkit(ttyContext.getContainer().getUiToolkit()).
+				withFontManager(ttyContext.getContainer().getFonts().getFontManager()).
 				withBuffer(emulator)
 				.build();
 		theme.apply(terminalPanel, getBackgroundOpacity());
@@ -211,7 +237,7 @@ public class TTY extends StackPane implements Closeable {
 			cfg.bindString(emulator::setTerminalType, emulator.getTerminalType()::getId, "type", Constants.TERMINAL_SECTION),  
 			cfg.bindString((nsz) -> updateAppearance(), () -> String.format("%dx%d", emulator.getColumns(), emulator.getRows()), "screen-size", Constants.TERMINAL_SECTION),
 			cfg.bindInteger(this::setFontSize, terminalPanel.getFontManager().getDefault().spec()::getSize, "font-size", Constants.TERMINAL_SECTION),
-			cfg.bindStrings(this::setFonts, app.getContainer().getFonts()::getFonts, "fonts", Constants.TERMINAL_SECTION),
+			cfg.bindStrings(this::setFonts, ttyContext.getContainer().getFonts()::getFonts, "fonts", Constants.TERMINAL_SECTION),
 			cfg.bindStrings((s) -> updateFeatures(), this::getEnabledFeatures, "enabled-features", Constants.TERMINAL_SECTION), 
 			cfg.bindStrings((s) -> updateFeatures(), this::getDisabledFeatures, "disabled-features", Constants.TERMINAL_SECTION),
 			cfg.bindString(this::setThemeName, this::getThemeName, Constants.THEME_KEY, Constants.TERMINAL_SECTION),
@@ -225,7 +251,7 @@ public class TTY extends StackPane implements Closeable {
 		));
 		
 		cfg.getStringProperty(Constants.DARK_MODE_KEY, Constants.UI_SECTION).addListener((c,o,n) -> {
-			theme = app.getContainer().getThemes().resolve(cfg.get(Constants.THEME_KEY, Constants.TERMINAL_SECTION));
+			theme = ttyContext.getContainer().getThemes().resolve(cfg.get(Constants.THEME_KEY, Constants.TERMINAL_SECTION));
 			applyTheme();
 		});
 
@@ -273,12 +299,12 @@ public class TTY extends StackPane implements Closeable {
 			}
 
 			if(ke.isControlDown() && ke.isShiftDown() && ke.getCode() == KeyCode.T) {
-				app.newTab();
+				ttyContext.newTab();
 				ke.consume();
 			}
 
 			if(ke.isControlDown() && ke.isShiftDown() && ke.getCode() == KeyCode.N) {
-				app.newWindow();
+				ttyContext.newWindow();
 				ke.consume();
 			}
 
@@ -312,9 +338,8 @@ public class TTY extends StackPane implements Closeable {
 		updateAppearance();
 		updateState();
 		
-
 		try {
-			startShell();
+			startShell(bldr.request.map(rq -> rq.shell().orElseGet(this::shellForTty)).orElseGet(this::shellForTty));
 		}
 		catch(Exception e) {
 			LOG.error("Failed to start protocol.", e);
@@ -330,7 +355,6 @@ public class TTY extends StackPane implements Closeable {
 			}
 		}
 	}
-	
 	
 	public void clipboardToHost(Clipboard clipboard) {
 		var text = String.valueOf(clipboard.getContent(DataFormat.PLAIN_TEXT));
@@ -527,13 +551,13 @@ public class TTY extends StackPane implements Closeable {
 		var env = new HashMap<String, String>();
 		env.put("TERM", terminalPanel.getViewport().getTerminalType().getId());
 
-		var theme = app.getContainer().getSelectedTheme();
+		var theme = ttyContext.getContainer().getSelectedTheme();
 		addEnvVarIfPresentInTheme(theme, TerminalTheme.LS_COLORS, env);
 		addEnvVarIfPresentInTheme(theme, TerminalTheme.LSCOLORS, env);
 		
 		env.putAll(terminalPanel.getViewport().getTerminalType().getEnvironment());
 		
-		app.getContainer().getConfiguration().sectionOr("environment").ifPresent(sec -> {
+		ttyContext.getContainer().getConfiguration().sectionOr("environment").ifPresent(sec -> {
 			for(var en : sec.values()) { 
 				env.put(en.name(), en.value()[0].length() == 0 ? "" : en.value()[0]); 
 			}	
@@ -569,14 +593,14 @@ public class TTY extends StackPane implements Closeable {
 					terminalPanel.close();
 				}
 				finally {
-					onClose.accept(this);
+					onClose.ifPresent(oc -> oc.accept(this));
 				}
 			}
 		}
 	}
 
 	public TTYContext ttyContext() {
-		return app;
+		return ttyContext;
 	}
 
 	public JavaFXTerminalPanel terminal() {
@@ -634,7 +658,7 @@ public class TTY extends StackPane implements Closeable {
 	
 	private void updateFeatures() {
 		var vp = terminalPanel.getViewport();
-		var cfg = app.getContainer().getConfiguration();
+		var cfg = ttyContext.getContainer().getConfiguration();
 		
 		vp.resetFeatures();
 		vp.enable(Arrays.asList(
@@ -650,7 +674,7 @@ public class TTY extends StackPane implements Closeable {
 	}
 	
 	private void setFonts(String[] fonts) {
-		app.getContainer().getFonts().setFonts(fonts);
+		ttyContext.getContainer().getFonts().setFonts(fonts);
 		updateFont();
 	}
 	
@@ -661,7 +685,7 @@ public class TTY extends StackPane implements Closeable {
 	private void updateFont() {
 		var fnt = terminalPanel.getFontManager().getFonts(false).stream().findFirst().orElseThrow(()-> new IllegalStateException("No primary fonts selected."));
 		try {
-			terminalPanel.setTerminalFont(new FontSpec(fnt.spec().getName(), app.getContainer().getConfiguration().getInt("font-size", Constants.TERMINAL_SECTION)));
+			terminalPanel.setTerminalFont(new FontSpec(fnt.spec().getName(), ttyContext.getContainer().getConfiguration().getInt("font-size", Constants.TERMINAL_SECTION)));
 		} catch (Exception e) {
 			LOG.warn("Failed to set font.", e);
 		}
@@ -669,7 +693,7 @@ public class TTY extends StackPane implements Closeable {
 	}
 	
 	private void checkStatusDisplay() {
-		var enable = app.getContainer().getConfiguration().getBoolean("enabled", STATUS_SECTION);
+		var enable = ttyContext.getContainer().getConfiguration().getBoolean("enabled", STATUS_SECTION);
 		var type = ((DECModes)terminalPanel.getViewport().getModes()).getStatusLineType();
 		var shouldShow = enable && type != StatusLineType.NONE;
 		
@@ -678,12 +702,12 @@ public class TTY extends StackPane implements Closeable {
 				if(statusTerminal == null) {
 				
 					var sz = getConfiguredSize();
-					var cfg = app.getContainer().getConfiguration();
+					var cfg = ttyContext.getContainer().getConfiguration();
 					var emulator = new DECEmulator<JavaFXTerminalPanel>(terminalPanel.getViewport().getTerminalType(), sz[0], cfg.getInt("height", STATUS_SECTION));
 
 					statusTerminal = new JavaFXTerminalPanel.Builder().
-							withUiToolkit(app.getContainer().getUiToolkit()).
-							withFontManager(app.getContainer().getFonts().getFontManager()).
+							withUiToolkit(ttyContext.getContainer().getUiToolkit()).
+							withFontManager(ttyContext.getContainer().getFonts().getFontManager()).
 							withBuffer(emulator)
 							.build();
 					statusTerminal.setResizeStrategy(ResizeStrategy.SCREEN);
@@ -749,7 +773,7 @@ public class TTY extends StackPane implements Closeable {
 	}
 	
 	private void about() {
-		app.getContainer().about(app.stage());
+		ttyContext.getContainer().about(ttyContext.stage());
 	}
 
 	private Stage getStage() {
@@ -772,17 +796,9 @@ public class TTY extends StackPane implements Closeable {
 	}
 
 	private ContextMenu createContextMenu() {
-
-		var newTab = new MenuItem(RESOURCES.getString("newTab"));
-		newTab.setOnAction((e) -> app.newTab());
-		newTab.setAccelerator(KeyCombination.keyCombination("CTRL+SHIFT+T"));
-
-		var newWindow = new MenuItem(RESOURCES.getString("newWindow"));
-		newWindow.setOnAction((e) -> app.newWindow());
-		newWindow.setAccelerator(KeyCombination.keyCombination("CTRL+SHIFT+N"));
 		
 		var options = new MenuItem(RESOURCES.getString("options"));
-		options.setOnAction((e) -> app.getContainer().options(app.stage()));
+		options.setOnAction((e) -> ttyContext.getContainer().options(ttyContext.stage()));
 
 		var about = new MenuItem(RESOURCES.getString("about"));
 		about.setOnAction((e) -> {
@@ -790,7 +806,7 @@ public class TTY extends StackPane implements Closeable {
 			about(); 
 		});
 		
-		return new TerminalMenu(terminalPanel, this::setClipboard, this::clipboardToHost, Arrays.asList(newTab, newWindow, new SeparatorMenuItem()), this::showPricli, options, about).menu();
+		return new TerminalMenu(terminalPanel, this::setClipboard, this::clipboardToHost,  this::showPricli, options, about).menu();
 	}
 
 	private Path getCustomJavaFXCSSFile() {
@@ -803,8 +819,8 @@ public class TTY extends StackPane implements Closeable {
 		var bui = new StringBuilder();
 		var colors = terminalPanel.getViewport().getColors();
 		var bgCol = colors.getBG();
-		var bgStr = app.getContainer().isDecorated() ? bgCol.toCSSRGB() :  bgCol.toCSSRGBA();
-		var bgOpaqueStr = app.getContainer().isDecorated() ? bgCol.toCSSRGB() :  bgCol.toCSSRGBA();
+		var bgStr = ttyContext.getContainer().isDecorated() ? bgCol.toCSSRGB() :  bgCol.toCSSRGBA();
+		var bgOpaqueStr = ttyContext.getContainer().isDecorated() ? bgCol.toCSSRGB() :  bgCol.toCSSRGBA();
 		var fgCol = colors.getFG();
 		var fgStr = fgCol.toHTMLColor();
 		var uiToolkit = terminalPanel.getUIToolkit();
@@ -843,7 +859,7 @@ public class TTY extends StackPane implements Closeable {
 	}
 	
 	private void setThemeName(String themeName) {
-		theme = app.getContainer().getThemes().resolve(themeName);
+		theme = ttyContext.getContainer().getThemes().resolve(themeName);
 		applyTheme();
 	}
 
@@ -871,7 +887,7 @@ public class TTY extends StackPane implements Closeable {
 	}
 
 	private int[] getConfiguredSize() {
-		var prefs = app.getContainer().getConfiguration();
+		var prefs = ttyContext.getContainer().getConfiguration();
 		var ssz = prefs.get("screen-size", Constants.TERMINAL_SECTION);
 		try {
 			var arr = ssz.split("x");
@@ -913,45 +929,34 @@ public class TTY extends StackPane implements Closeable {
 		checkStatusDisplay();
 	}
 
-	private void startShell() {
-		var id = app.getContainer().getConfiguration().get(Constants.SHELL_KEY, Constants.TERMINAL_SECTION);
-		Optional<Shell> shell;
-		if(id.equals("")) {
-			shell = app.getContainer().getShells().getById(Shells.NATIVE);
-		}
-		else {
-			shell = app.getContainer().getShells().getById(id);
-		}
+	private void startShell(Shell shell) {
 		var bldr = new ConsoleProtocol.Builder();
-		if(shell.isPresent()) {
-			var shellObj = shell.get();
-			if(shellObj.commandName().equals(Shells.NATIVE)) {
-				shellObj = app.getContainer().getShells().getDefault().orElseThrow(() -> new IllegalStateException("No default shell available."));
+			if(shell.commandName().equals(Shells.NATIVE)) {
+				shell = ttyContext.getContainer().getShells().getDefault().orElseThrow(() -> new IllegalStateException("No default shell available."));
 			}
-			if(shellObj.type() == ShellType.BUILTIN) {
-				runProtocol(new PricliProtocol(shellObj.toFullCommandText()));
+			if(shell.type() == ShellType.BUILTIN) {
+				runProtocol(new PricliProtocol(shell.toFullCommandText()));
 			}
 			else {
 				runProtocol(bldr.
-					withPath(app.getContainer().getDefaultWorkingDirectory()).
-					withCommandLine(shellObj.fullCommand()).
-					withName(shellObj.name()).
-					withCygwin(shellObj.cygwin()).
+					withPath(ttyContext.getContainer().getDefaultWorkingDirectory()).
+					withCommandLine(shell.fullCommand()).
+					withCygwin(shell.cygwin()).
 					build());
 			}
+		
+	}
+	
+	private Shell shellForTty() {
+		var id = ttyContext.getContainer().getConfiguration().get(Constants.SHELL_KEY, Constants.TERMINAL_SECTION);
+		if(id.equals("")) {
+			return ttyContext.getContainer().getShells().getById(Shells.NATIVE).get();
 		}
 		else {
-			var parsedCommand = Strings.parseQuotedString(id);
-			var cmdName = parsedCommand.get(0).trim();
-			if(cmdName.equals("")) {
-				cmdName = Shells.NATIVE;
-			}
-			runProtocol(bldr.
-					withPath(app.getContainer().getDefaultWorkingDirectory()).
-					withCommandLine(parsedCommand).
-					build());
+			return ttyContext.getContainer().getShells().getById(id).orElseGet(() -> 
+				Shell.forCommand(id)
+			);
 		}
-		
 	}
 
 	private void runProtocol(TerminalProtocol proto) {

@@ -63,6 +63,7 @@ public class PrettyApp extends JajaFXApp<Pretty, PrettyAppWindow> implements Lis
 	private final Fonts fonts;
 
 	private boolean optionsVisible; 
+	private static final ThreadLocal<Optional<TTYRequest>> openingRequest = new ThreadLocal<>();
 
 	public PrettyApp() {
 		super(PrettyApp.class.getResource("icon.png"), 
@@ -118,8 +119,7 @@ public class PrettyApp extends JajaFXApp<Pretty, PrettyAppWindow> implements Lis
 
 	@Override
 	protected TTYStack createContent(Stage stage) {
-		var ttyContextImpl = new TTYStack(appContext, stage);
-		return ttyContextImpl;
+		return new TTYStack(appContext, stage);
 	}
 
 	@Override
@@ -132,6 +132,15 @@ public class PrettyApp extends JajaFXApp<Pretty, PrettyAppWindow> implements Lis
 		var ctx = createContent(stage);
 		var aw = new PrettyAppWindow(stage, ctx, this, appContext);
 		ctx.setAppWindow(aw);
+		
+		var req = openingRequest.get();
+		if(req == null)
+			ctx.newTab();
+		else if(req.isPresent()) {
+			ctx.newTab(req.get());
+		} else
+			ctx.newTab();
+		
 		return aw;
 	}
 
@@ -210,8 +219,15 @@ public class PrettyApp extends JajaFXApp<Pretty, PrettyAppWindow> implements Lis
 		}
 
 		@Override
-		public PrettyAppWindow newAppWindow(Stage stage) {
-			return PrettyApp.this.newAppWindow(stage);
+		public PrettyAppWindow newAppWindow(Stage stage, Optional<TTYRequest> request) {
+			var was =  openingRequest.get();
+			openingRequest.set(request);
+			try {
+				return PrettyApp.this.newAppWindow(stage);
+			}
+			finally {
+				openingRequest.set(was);
+			}
 		}
 
 		@Override

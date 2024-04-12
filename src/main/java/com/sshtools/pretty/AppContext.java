@@ -2,6 +2,7 @@ package com.sshtools.pretty;
 
 import java.net.URL;
 import java.nio.file.Path;
+import java.util.Optional;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.prefs.Preferences;
 
@@ -48,7 +49,11 @@ public interface AppContext {
 
 	boolean isDecorated();
 
-	PrettyAppWindow newAppWindow(Stage stage);
+	default PrettyAppWindow newAppWindow(Stage stage) {
+		return newAppWindow(stage, Optional.of(new TTYRequest.Builder().build()));
+	}
+
+	PrettyAppWindow newAppWindow(Stage stage, Optional<TTYRequest> request);
 
 	Path getDefaultWorkingDirectory();
 	

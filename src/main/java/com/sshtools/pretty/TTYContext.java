@@ -13,11 +13,19 @@ public interface TTYContext {
 	
 	PrettyAppWindow appWindow();
 
-	void newTab();
+	default void newTab() {
+		newTab(new TTYRequest.Builder().build());
+	}
+
+	void newTab(TTYRequest request);
 
 	void detachTab(TTY tty);
 
-	PrettyAppWindow newWindow();
+	default PrettyAppWindow newWindow() {
+		return newWindow(Optional.of(new TTYRequest.Builder().build()));
+	}
+
+	PrettyAppWindow newWindow(Optional<TTYRequest> request);
 
 	Stage stage();
 

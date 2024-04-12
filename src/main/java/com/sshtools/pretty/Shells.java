@@ -8,14 +8,20 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.ResourceBundle;
 import java.util.regex.Pattern;
 
+import javafx.util.StringConverter;
+
 public class Shells {
+
+	final static ResourceBundle RESOURCES = ResourceBundle.getBundle(Shells.class.getName());
 
 	public enum ShellType {
 		BUILTIN, EXTERNAL
@@ -41,6 +47,13 @@ public class Shells {
 			if(args != null)
 				System.arraycopy(args, 0, arr, 1, args.length);
 			return arr;
+		}
+
+		public static Shell forCommand(String id) {
+			var parsedCommand = Strings.parseQuotedString(id);
+			var cmdName = parsedCommand.remove(0).trim();
+			return new Shell(ShellType.EXTERNAL, "cmd", cmdName, Paths.get(cmdName), cmdName, id, false, parsedCommand.toArray(new String[0]));
+			
 		}
 	}
 	
@@ -108,6 +121,17 @@ public class Shells {
 	public List<Shell> getAll() {
 		return Collections.unmodifiableList(shells);
 	}
+
+	public static String toDisplayName(Shell object) {
+		if(object == null)
+			return RESOURCES.getString("customCommand");
+		else {
+			if(object.version() == null)
+				return MessageFormat.format(RESOURCES.getString("shellItemNoVersion"), object.name(), object.id());
+			else
+				return MessageFormat.format(RESOURCES.getString("shellItem"), object.name(), object.id(), object.version());
+		}
+	}
 	
 	private void checkShell(String id, String commandName, boolean cygwin, String description, String[] versionArgs, String versionPattern, String[] loginShellArgs, String... paths) {
 		var pvar = System.getenv("PATH");
@@ -169,5 +193,19 @@ public class Shells {
 		catch(IOException ioe) {
 			throw new UncheckedIOException(ioe);
 		}
+	}
+
+	public static StringConverter<Shell> stringConverter() {
+		return new StringConverter<Shell>() {
+			@Override
+			public String toString(Shell object) {
+				return toDisplayName(object);
+			}
+
+			@Override
+			public Shell fromString(String string) {
+				return null;
+			}
+		};
 	}
 }
