@@ -234,6 +234,11 @@
                                           <Tooltip text="%console.toolTip" />
                                        </tooltip>
                                     </CheckBox>
+                                    <CheckBox fx:id="legacyPty" layoutX="10.0" layoutY="10.0" mnemonicParsing="false" selected="true" text="%legacyPty">
+                                       <tooltip>
+                                          <Tooltip text="%legacyPty.toolTip" />
+                                       </tooltip>
+                                    </CheckBox>
                                  </children>
                                  <styleClass>
                                     <String fx:value="lpad" />

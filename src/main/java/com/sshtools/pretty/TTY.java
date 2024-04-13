@@ -942,7 +942,7 @@ public class TTY extends StackPane implements Closeable {
 		var bldr = new ConsoleProtocol.Builder();
 		var loginShell = ttyContext.getContainer().getConfiguration().getBoolean(Constants.LOGIN_SHELL_KEY, Constants.TERMINAL_SECTION);
 		var console = ttyContext.getContainer().getConfiguration().getBoolean(Constants.CONSOLE_KEY, Constants.TERMINAL_SECTION);
-		var winconpty = ttyContext.getContainer().getConfiguration().getBoolean(Constants.WINCONPTY_KEY, Constants.TERMINAL_SECTION);
+		var legacyPty = ttyContext.getContainer().getConfiguration().getBoolean(Constants.LEGACY_PTY_KEY, Constants.TERMINAL_SECTION);
 		var windowsAnsiColor = ttyContext.getContainer().getConfiguration().getBoolean(Constants.WINDOWS_ANSI_COLOR_KEY, Constants.TERMINAL_SECTION);
 		var preservePty = ttyContext.getContainer().getConfiguration().getBoolean(Constants.PRESERVE_PTY_KEY, Constants.TERMINAL_SECTION);
 		
@@ -958,7 +958,7 @@ public class TTY extends StackPane implements Closeable {
 				withCommandLine(shell.fullCommand(loginShell)).
 				withCygwin(shell.cygwin()).
 				withConsole(console).
-				withUseWinConPty(winconpty).
+				withUseWinConPty(!legacyPty).
 				withWindowsAnsiColorEnabled(windowsAnsiColor).
 				withUnixOpenTtyToPreserveOutputAfterTermination(preservePty).
 				build());

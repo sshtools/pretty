@@ -17,7 +17,7 @@ public class Constants {
 	public static final String THEME_KEY = "theme";
 	public static final String SHELL_KEY = "shell";
 	public static final String LOGIN_SHELL_KEY = "login-shell";
-	public static final String WINCONPTY_KEY = "winconpty";
+	public static final String LEGACY_PTY_KEY = "legacy-pty";
 	public static final String WINDOWS_ANSI_COLOR_KEY = "windows-ansi-color";
 	public static final String PRESERVE_PTY_KEY = "preserve-tty";
 	public static final String CONSOLE_KEY = "console";
