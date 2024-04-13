@@ -87,7 +87,7 @@ public class Shells {
 		}
 		else {
 			checkPosixShells();
-			checkShell("powershell", "pwsh", false, "Microsoft Powershell",  null, new String[] {"--version"}, new String[] {"-Login"}, ".* (.*)", null, "/usr/bin");
+			checkShell("powershell", "pwsh", false, "Microsoft Powershell",  null, new String[] {"--version"}, new String[] {"-Login"}, ".* (.*)", "/usr/bin");
 		}
 		shells.add(new Shell(ShellType.BUILTIN, "serial", "serial", (Path)null, null, "Pretty Serial Support", null, false, new String[0]));
 		shells.add(new Shell(ShellType.BUILTIN, "ssh", "ssh", (Path)null, null, "Maverick Synergy SSH", null, false, "--prompt"));
