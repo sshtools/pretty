@@ -74,7 +74,7 @@ public class Shells {
 		String sysroot = System.getenv("SystemRoot");
 		if(sysroot != null) {
 			checkShell("cmd", "cmd", false, "DOS Command Prompt", null, null, null, null, "C:\\Windows\\System32");
-			checkShell("powershell", "powershell", false, "Microsoft Powershell",  null, null, null, sysroot + File.separator + "\\System32\\WindowsPowerShell\\v1.0\\powershell.exe");
+			checkShell("powershell", "powershell", false, "Microsoft Powershell",  null, null, null, null, sysroot + File.separator + "\\System32\\WindowsPowerShell\\v1.0\\powershell.exe");
 			checkPosixShells();
 			checkShell("msys2", "msys2_shell", false, "MSys2", null, new String[] { "-defterm", "-here", "-no-start", "-shell", "bash"}, null, "C:\\msys64");
 			checkShell("mingw64", "msys2_shell", false, "Mingw64 MSys2 Profile", null, new String[] { "-defterm", "-here", "-no-start", "-mingw64", "-shell", "bash"}, null, "C:\\msys64");
@@ -95,10 +95,10 @@ public class Shells {
 	}
 
 	private void checkPosixShells() {
-		checkShell("bash", "bash", false, "GNU Bourne-Again Shell", null, new String[] {"--version"}, new String[] {"-l"}, ".*version ([^\s].*) .*", null, "/usr/bin");
+		checkShell("bash", "bash", false, "GNU Bourne-Again Shell", null, new String[] {"--version"}, new String[] {"-l"}, ".*version ([^\s].*) .*", "/usr/bin");
 		checkShell("dash", "dash", false, "POSIX Shell", null, null, new String[] {"-l"}, null, "/usr/bin");
-		checkShell("zsh", "zsh", false, "The Z Shell", null, new String[] {"--version"}, new String[] {"-l"}, ".* (.*) .*", null, "/usr/bin");
-		checkShell("csh", "csh", false, "C-like Shell", null, null, new String[] {"-l"}, null, null, "/usr/bin");
+		checkShell("zsh", "zsh", false, "The Z Shell", null, new String[] {"--version"}, new String[] {"-l"}, ".* (.*) .*",  "/usr/bin");
+		checkShell("csh", "csh", false, "C-like Shell", null, null, new String[] {"-l"}, null, "/usr/bin");
 	}
 	
 	public Optional<Shell> getDefault() {
@@ -183,7 +183,8 @@ public class Shells {
 	private String firstLineOfOutput(Path cmd, String... args) {
 		try {
 			var pb = new ProcessBuilder(cmd.toString());
-			pb.command().addAll(Arrays.asList(args));
+			if(args != null)
+				pb.command().addAll(Arrays.asList(args));
 			pb.redirectErrorStream(true);
 			var prc = pb.start();
 			try(var rdr = new BufferedReader(new InputStreamReader(prc.getInputStream()))) {
