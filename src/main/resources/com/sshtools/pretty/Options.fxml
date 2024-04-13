@@ -148,7 +148,7 @@
                <content>
                   <AnchorPane>
                      <children>
-                        <VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" styleClass="spaced" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                        <VBox prefHeight="436.0" styleClass="spaced" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                            <children>
                               <Label text="%scrolling">
                                  <styleClass>
@@ -222,6 +222,24 @@
                                     <String fx:value="tpad" />
                                  </styleClass>
                               </HBox>
+                              <VBox>
+                                 <children>
+                                    <CheckBox fx:id="loginShell" mnemonicParsing="false" selected="true" text="%loginShell">
+                                       <tooltip>
+                                          <Tooltip text="%loginShell.toolTip" />
+                                       </tooltip>
+                                    </CheckBox>
+                                    <CheckBox fx:id="console" mnemonicParsing="false" selected="true" text="%console">
+                                       <tooltip>
+                                          <Tooltip text="%console.toolTip" />
+                                       </tooltip>
+                                    </CheckBox>
+                                 </children>
+                                 <styleClass>
+                                    <String fx:value="lpad" />
+                                    <String fx:value="spaced" />
+                                 </styleClass>
+                              </VBox>
                            </children>
                         </VBox>
                      </children>

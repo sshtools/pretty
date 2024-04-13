@@ -26,6 +26,7 @@ import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TabPane.TabDragPolicy;
 import javafx.scene.layout.StackPane;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
 public final class TTYStack extends StackPane implements TTYContext {
@@ -169,6 +170,8 @@ public final class TTYStack extends StackPane implements TTYContext {
 						// TODO remove listener on tab remove / hiding to single
 					});
 					firstTab.setUserData(firstTty);
+					firstTty.tabColor().addListener((c,o,n) -> updateTabColor(firstTab, n));
+					updateTabColor(firstTab, firstTty.tabColor().get());
 
 					var tabs = new TabPane(firstTab);
 					tabs.setTabDragPolicy(TabDragPolicy.REORDER);
@@ -198,6 +201,8 @@ public final class TTYStack extends StackPane implements TTYContext {
 					updateStageTitle();
 					// TODO remove listener on tab remove / hiding to single
 				});
+				tty.tabColor().addListener((c,o,n) -> updateTabColor(newTab, n));
+				updateTabColor(newTab, tty.tabColor().get());
 				newTab.setUserData(tty);
 
 				var tabPane = (TabPane) first;
@@ -224,6 +229,13 @@ public final class TTYStack extends StackPane implements TTYContext {
 	@Override
 	public Stage stage() {
 		return stage;
+	}
+
+	private void updateTabColor(Tab tab, Color color) {
+		if(color == null)
+			tab.setStyle(null);
+		else
+			tab.setStyle("-fx-background-color: " + Colors.toHex(color) + " !important;");
 	}
 
 	private ContextMenu createTabMenu(TTY tty) {

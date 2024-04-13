@@ -6,6 +6,8 @@ import java.text.MessageFormat;
 import java.util.ResourceBundle;
 import java.util.concurrent.Callable;
 
+import com.sshtools.pretty.Colors;
+
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Parameters;
 import picocli.CommandLine.ParentCommand;
@@ -16,7 +18,7 @@ import picocli.CommandLine.ParentCommand;
          usageHelpAutoWidth = true, 
          mixinStandardHelpOptions = true, 
          description = "Various commands for tabs.", 
-                 subcommands = {Tab.Title.class, Tab.Detach.class})
+                 subcommands = {Tab.Title.class, Tab.Detach.class, Tab.Color.class})
 public class Tab implements Callable<Integer> {
 	final static ResourceBundle RESOURCES = ResourceBundle.getBundle(Tab.class.getName());
 	@ParentCommand
@@ -50,6 +52,49 @@ public class Tab implements Callable<Integer> {
 				runLater(() -> {
 					parent.parent.tty().userTitle().set(title);
 				});
+			}
+			return 0;
+		}
+	}
+	
+	@Command(name = "color", 
+	         aliases = { "c" },
+	         footer = "Aliases: c",
+	         usageHelpAutoWidth = true, 
+	         mixinStandardHelpOptions = true, 
+	         description = "Set or get the tab color.")
+	public final static class Color implements Callable<Integer> {
+		@ParentCommand
+		private Tab parent;
+		
+		@Parameters(index = "0", arity="0..1", paramLabel="COLOR", description = "Color")
+		private String color;
+
+		@Override
+		public Integer call() throws Exception {
+			if(color == null) {
+				var col = parent.parent.tty().tabColor();
+				if(col.get() == null)
+					parent.parent.cli().jline().writer().println(RESOURCES.getString("defaultColor"));
+				else {
+					parent.parent.cli().jline().writer().println(Colors.toHex(col.get())); 
+				}
+			}
+			else {
+				if(color.startsWith("#")) {
+					runLater(() -> {
+						parent.parent.tty().tabColor().set(Colors.parse(color, null));
+					});
+				}
+				else {
+					var idx = Integer.parseInt(color);
+					parent.parent.ttyContext().getContainer().getSelectedTheme().pal16().ifPresent(pals -> {
+						runLater(() -> {
+							parent.parent.tty().tabColor().set(parent.parent.tty().terminal().getUIToolkit().localColorToNativeColor(pals[idx]));
+						});
+					});
+				}
+				parent.parent.cli().result(MessageFormat.format(RESOURCES.getString("colorSet"), parent.parent.tty().protocol().displayName(), color));
 			}
 			return 0;
 		}

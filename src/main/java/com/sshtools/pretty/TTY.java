@@ -53,6 +53,8 @@ import javafx.animation.Interpolator;
 import javafx.animation.PauseTransition;
 import javafx.animation.SequentialTransition;
 import javafx.animation.Transition;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.fxml.FXMLLoader;
@@ -65,6 +67,7 @@ import javafx.scene.input.DataFormat;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.util.Duration;
@@ -125,6 +128,7 @@ public class TTY extends StackPane implements Closeable {
 	private final StringProperty title = new SimpleStringProperty(RESOURCES.getString("title"));
 	private final StringProperty shortTitle = new SimpleStringProperty(RESOURCES.getString("appType"));
 	private final StringProperty userTitle = new SimpleStringProperty("");
+	private final ObjectProperty<Color> tabColor = new SimpleObjectProperty<>();
 	private final Optional<Consumer<TTY>> onClose;
 	private final Status status = new Status();
 	private boolean closed;
@@ -329,6 +333,7 @@ public class TTY extends StackPane implements Closeable {
 		});
 		
 		userTitle.addListener((c,o,n) -> updateState());
+		tabColor.addListener((c,o,n) -> updateState());
 		
 		/* Status */
 		status.add(new Status.SizeAndCursor(this));
@@ -430,6 +435,10 @@ public class TTY extends StackPane implements Closeable {
 	
 	public StringProperty userTitle() {
 		return userTitle;
+	}
+	
+	public ObjectProperty<Color> tabColor() {
+		return tabColor;
 	}
 	
 	public StringProperty title() {
@@ -931,20 +940,27 @@ public class TTY extends StackPane implements Closeable {
 
 	private void startShell(Shell shell) {
 		var bldr = new ConsoleProtocol.Builder();
-			if(shell.commandName().equals(Shells.NATIVE)) {
-				shell = ttyContext.getContainer().getShells().getDefault().orElseThrow(() -> new IllegalStateException("No default shell available."));
-			}
-			if(shell.type() == ShellType.BUILTIN) {
-				runProtocol(new PricliProtocol(shell.toFullCommandText()));
-			}
-			else {
-				runProtocol(bldr.
-					withPath(ttyContext.getContainer().getDefaultWorkingDirectory()).
-					withCommandLine(shell.fullCommand()).
-					withCygwin(shell.cygwin()).
-					build());
-			}
+		var loginShell = ttyContext.getContainer().getConfiguration().getBoolean(Constants.LOGIN_SHELL_KEY, Constants.TERMINAL_SECTION);
+		var console = ttyContext.getContainer().getConfiguration().getBoolean(Constants.CONSOLE_KEY, Constants.TERMINAL_SECTION);
+		var windowsAnsiColor = ttyContext.getContainer().getConfiguration().getBoolean(Constants.WINDOWS_ANSI_COLOR_KEY, Constants.TERMINAL_SECTION);
+		var preservePty = ttyContext.getContainer().getConfiguration().getBoolean(Constants.PRESERVE_PTY_KEY, Constants.TERMINAL_SECTION);
 		
+		if(shell.commandName().equals(Shells.NATIVE)) {
+			shell = ttyContext.getContainer().getShells().getDefault().orElseThrow(() -> new IllegalStateException("No default shell available."));
+		}
+		if(shell.type() == ShellType.BUILTIN) {
+			runProtocol(new PricliProtocol(shell.toFullCommandText(loginShell)));
+		}
+		else {
+			runProtocol(bldr.
+				withPath(ttyContext.getContainer().getDefaultWorkingDirectory()).
+				withCommandLine(shell.fullCommand(loginShell)).
+				withCygwin(shell.cygwin()).
+				withConsole(console).
+				withWindowsAnsiColorEnabled(windowsAnsiColor).
+				withUnixOpenTtyToPreserveOutputAfterTermination(preservePty).
+				build());
+		}
 	}
 	
 	private Shell shellForTty() {

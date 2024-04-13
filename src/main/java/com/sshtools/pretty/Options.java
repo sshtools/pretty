@@ -63,6 +63,10 @@ public class Options extends StackPane implements Closeable {
 	@FXML
 	private ComboBox<Phase> phase;
 	@FXML
+	private CheckBox loginShell;
+	@FXML
+	private CheckBox console;
+	@FXML
 	private CheckBox matchThemeToDarkMode;
 	@FXML
 	private ComboBox<DarkMode> darkMode;
@@ -142,6 +146,7 @@ public class Options extends StackPane implements Closeable {
 			if(n != null) {
 				cfg.put(Constants.SHELL_KEY,n.id(),  Constants.TERMINAL_SECTION);
 			}
+			updateAvailable();
 		});
 		var initialShellName = cfg.get(Constants.SHELL_KEY, Constants.TERMINAL_SECTION);
 		var initialShell = app.getShells().getById(initialShellName); 
@@ -152,7 +157,7 @@ public class Options extends StackPane implements Closeable {
 			customCommand.setText(String.join(System.lineSeparator(), Strings.parseQuotedString(initialShellName)));
 		}
 		customCommandOptions.managedProperty().bind(customCommandOptions.visibleProperty());
-		customCommand.setPromptText(app.getShells().getDefault().map(Shell::toFullCommandText).orElse(RESOURCES.getString("noDefaultShell")));
+		customCommand.setPromptText(app.getShells().getDefault().map((shl) -> shl.toFullCommandText(false)).orElse(RESOURCES.getString("noDefaultShell")));
 		customCommandOptions.visibleProperty().bind(Bindings.isNull(defaultShell.getSelectionModel().selectedItemProperty()));
 		
 		/* Passwords */
@@ -264,6 +269,12 @@ public class Options extends StackPane implements Closeable {
 		
 		showScrollBar.selectedProperty().bind(cfg.getBooleanProperty(Constants.SCROLL_BACK_KEY, Constants.TERMINAL_SECTION));
 		
+		loginShell.selectedProperty().bind(cfg.getBooleanProperty(Constants.LOGIN_SHELL_KEY, Constants.TERMINAL_SECTION));
+		loginShell.managedProperty().bind(loginShell.visibleProperty());
+		
+		console.selectedProperty().bind(cfg.getBooleanProperty(Constants.CONSOLE_KEY, Constants.TERMINAL_SECTION));
+		console.managedProperty().bind(console.visibleProperty());
+		
 		fontSizeProperty = cfg.getIntProperty("font-size", Constants.TERMINAL_SECTION);
 		fontSize.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(6, 256, fontSizeProperty.get()));
 		fontSizeProperty.bind(IntegerProperty.integerProperty(fontSize.getValueFactory().valueProperty()));
@@ -282,8 +293,14 @@ public class Options extends StackPane implements Closeable {
 		prefBind = new PrefBind(prefs);
 		prefBind.bind(automaticUpdates);
 		prefBind.bind(Phase.class, phase);
-		
 
+		updateAvailable();
+
+	}
+	
+	private void updateAvailable() {
+		var sel = defaultShell.getSelectionModel().getSelectedItem();
+		loginShell.setVisible(sel != null && sel.loginShellArgs() != null && sel.loginShellArgs().length > 0);
 	}
 	
 	private void setupPreviewText(TerminalTheme theme, JavaFXTerminalPanel panel) {

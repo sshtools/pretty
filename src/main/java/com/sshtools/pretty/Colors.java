@@ -8,7 +8,7 @@ import javafx.scene.paint.Color;
 
 public class Colors {
 
-	static Color parse(String str, Color defaultColor) {
+	public static Color parse(String str, Color defaultColor) {
 		try {
 			return Color.valueOf(str);
 		}
@@ -17,15 +17,15 @@ public class Colors {
 		}
 	}
 
-	static String toHex(Color color) {
+	public static String toHex(Color color) {
 		return toHex(color, -1);
 	}
 
-	static String toHex(Color color, boolean opacity) {
+	public static String toHex(Color color, boolean opacity) {
 		return toHex(color, opacity ? color.getOpacity() : -1);
 	}
 
-	static String toHex(Color color, double opacity) {
+	public static String toHex(Color color, double opacity) {
 		if (opacity > -1)
 			return String.format("#%02x%02x%02x%02x", (int) (color.getRed() * 255), (int) (color.getGreen() * 255),
 					(int) (color.getBlue() * 255), (int) (opacity * 255));
@@ -34,22 +34,22 @@ public class Colors {
 					(int) (color.getBlue() * 255));
 	}
 
-	static String toRgb(Color color) {
+	public static String toRgb(Color color) {
 		return toRgba(color, -1);
 	}
 
-	static String toRgba(Color color, boolean opacity) {
+	public static String toRgba(Color color, boolean opacity) {
 		return toRgba(color, opacity ? color.getOpacity() : -1);
 	}
 
-	static String toRgba(Color color, double opacity) {
+	public static String toRgba(Color color, double opacity) {
 		if (opacity > -1)
 			return String.format("rgba(%3f,%3f,%3f,%3f)", color.getRed(), color.getGreen(), color.getBlue(), opacity);
 		else
 			return String.format("rgba(%3f,%3f,%3f)", color.getRed(), color.getGreen(), color.getBlue());
 	}
 
-	static Color contrasting(Color base) {
+	public static Color contrasting(Color base) {
 		var lum = lum(base);
 		if(lum > 0.5)
 			return Color.BLACK;
@@ -57,20 +57,20 @@ public class Colors {
 			return Color.WHITE;
 	}
 
-	static double lum(Color c) {
+	public static double lum(Color c) {
 		List<Double> a = Arrays.asList(c.getRed(), c.getGreen(), c.getBlue()).stream()
 				.map(v -> v <= 0.03925 ? v / 12.92f : Math.pow((v + 0.055f) / 1.055f, 2.4f))
 				.collect(Collectors.toList());
 		return a.get(0) * 0.2126 + a.get(1) * 0.7152 + a.get(2) * 0.0722;
 	}
 
-	static double contrast(Color c1, Color c2) {
+	public static double contrast(Color c1, Color c2) {
 		var brightest = Math.max(lum(c1), lum(c2));
 		var darkest = Math.min(lum(c1), lum(c2));
 		return (brightest + 0.05f) / (darkest + 0.05f);
 	}
 	
-	static Color accent(Color bg, Color fg) {
+	public static Color accent(Color bg, Color fg) {
 		Color linkColor;
 		Color baseColor = Color.BLUE;
 	
