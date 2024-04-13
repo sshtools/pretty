@@ -10,6 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -79,6 +80,8 @@ import uk.co.bithatch.nativeimage.annotations.Resource;
 @Resource
 @Reflectable(all = true)
 public class TTY extends StackPane implements Closeable {
+	
+	private final static Map<String, Integer> counters = Collections.synchronizedMap(new HashMap<String, Integer>());
 	
 	public final static class Builder {
 		private TTYContext ttyContext;
@@ -937,8 +940,22 @@ public class TTY extends StackPane implements Closeable {
 		}
 		checkStatusDisplay();
 	}
+	
+	private static int nextVirtualConsoleNumber(String shell) {
+		synchronized(counters) {
+			var i = counters.get(shell);
+			if(i == null) {
+				i = 0;
+			}
+			else {
+				i = i + 1;
+			}
+			counters.put(shell, i);
+			return i;
+		}
+	}
 
-	private void startShell(Shell shell) {
+	private void startShell(final Shell shell) {
 		var bldr = new ConsoleProtocol.Builder();
 		var loginShell = ttyContext.getContainer().getConfiguration().getBoolean(Constants.LOGIN_SHELL_KEY, Constants.TERMINAL_SECTION);
 		var console = ttyContext.getContainer().getConfiguration().getBoolean(Constants.CONSOLE_KEY, Constants.TERMINAL_SECTION);
@@ -946,18 +963,29 @@ public class TTY extends StackPane implements Closeable {
 		var windowsAnsiColor = ttyContext.getContainer().getConfiguration().getBoolean(Constants.WINDOWS_ANSI_COLOR_KEY, Constants.TERMINAL_SECTION);
 		var preservePty = ttyContext.getContainer().getConfiguration().getBoolean(Constants.PRESERVE_PTY_KEY, Constants.TERMINAL_SECTION);
 		
+		Shell fShell;
 		if(shell.commandName().equals(Shells.NATIVE)) {
-			shell = ttyContext.getContainer().getShells().getDefault().orElseThrow(() -> new IllegalStateException("No default shell available."));
+			fShell = ttyContext.getContainer().getShells().getDefault().orElseThrow(() -> new IllegalStateException("No default shell available."));
 		}
-		if(shell.type() == ShellType.BUILTIN) {
+		else {
+			fShell = shell;
+		}
+		if(fShell.type() == ShellType.BUILTIN) {
 			runProtocol(new PricliProtocol(shell.toFullCommandText(loginShell)));
 		}
 		else {
+			if(fShell.cygwin()) {
+				LOG.warn("Cygwin requested, but this is not yet working. Ignoring.");
+			}
+			
 			runProtocol(bldr.
 				withPath(ttyContext.getContainer().getDefaultWorkingDirectory()).
-				withCommandLine(shell.fullCommand(loginShell)).
-				withCygwin(shell.cygwin()).
+				withCommandLine(fShell.fullCommand(loginShell)).
+				//withCygwin(fShell.cygwin()).
 				withConsole(console).
+				withDefaultName(() ->
+					fShell.name() + " " + nextVirtualConsoleNumber(fShell.id())
+				).
 				withUseWinConPty(!legacyPty).
 				withWindowsAnsiColorEnabled(windowsAnsiColor).
 				withUnixOpenTtyToPreserveOutputAfterTermination(preservePty).

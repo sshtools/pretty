@@ -72,17 +72,18 @@ public class Shells {
 	
 	public Shells() {
 		String sysroot = System.getenv("SystemRoot");
+		// String id, String commandName, boolean cygwin, String description, String[] args, String[] versionArgs, String[] loginShellArgs, String versionPattern, String... paths
 		if(sysroot != null) {
 			checkShell("cmd", "cmd", false, "DOS Command Prompt", null, null, null, null, "C:\\Windows\\System32");
 			checkShell("powershell", "powershell", false, "Microsoft Powershell",  null, null, null, null, sysroot + File.separator + "\\System32\\WindowsPowerShell\\v1.0\\powershell.exe");
 			checkPosixShells();
-			checkShell("msys2", "msys2_shell", false, "MSys2", null, new String[] { "-defterm", "-here", "-no-start", "-shell", "bash"}, null, "C:\\msys64");
-			checkShell("mingw64", "msys2_shell", false, "Mingw64 MSys2 Profile", null, new String[] { "-defterm", "-here", "-no-start", "-mingw64", "-shell", "bash"}, null, "C:\\msys64");
-			checkShell("mingw32", "msys2_shell", false, "Mingw32 MSys2 Profile", null, new String[] { "-defterm", "-here", "-no-start", "-mingw32", "-shell", "bash"}, null, "C:\\msys64");
-			checkShell("clang64", "msys2_shell", false, "Clang64 MSys2 Profile", null, new String[] { "-defterm", "-here", "-no-start", "-clang64", "-shell", "bash"}, null, "C:\\msys64");
-			checkShell("clang32", "msys2_shell", false, "Clang32 MSys2 Profile", null, new String[] { "-defterm", "-here", "-no-start", "-clang32", "-shell", "bash"}, null, "C:\\msys64");
-			checkShell("clangarm64", "msys2_shell", false, "ClangArm64 MSys2 Profile", null, new String[] { "-defterm", "-here", "-no-start", "-clangarm64", "-shell", "bash"}, null, "C:\\msys64");
-			checkShell("cygwin", "bash", true, "Cygwin Bash", null, new String[] {"--version"}, new String[] {"-l"}, ".*version ([^\s].*) .*", null, "C:\\cygwin64\\bin");
+			checkShell("msys2", "msys2_shell", false, "MSys2", new String[] { "-defterm", "-here", "-no-start", "-shell", "bash"}, null, null, null, "C:\\msys64");
+			checkShell("mingw64", "msys2_shell", false, "Mingw64 MSys2 Profile", new String[] { "-defterm", "-here", "-no-start", "-mingw64", "-shell", "bash"}, null, null, null, "C:\\msys64");
+			checkShell("mingw32", "msys2_shell", false, "Mingw32 MSys2 Profile", new String[] { "-defterm", "-here", "-no-start", "-mingw32", "-shell", "bash"}, null, null, null, "C:\\msys64");
+			checkShell("clang64", "msys2_shell", false, "Clang64 MSys2 Profile", new String[] { "-defterm", "-here", "-no-start", "-clang64", "-shell", "bash"}, null, null, null, "C:\\msys64");
+			checkShell("clang32", "msys2_shell", false, "Clang32 MSys2 Profile", new String[] { "-defterm", "-here", "-no-start", "-clang32", "-shell", "bash"}, null, null, null, "C:\\msys64");
+			checkShell("clangarm64", "msys2_shell", false, "ClangArm64 MSys2 Profile", new String[] { "-defterm", "-here", "-no-start", "-clangarm64", "-shell", "bash"}, null, null, null, "C:\\msys64");
+			checkShell("cygwin", "bash", true, "Cygwin Bash", null, new String[] {"--version"}, new String[] {"-l"}, ".*version ([^\s].*) .*", "C:\\cygwin64\\bin");
 		}
 		else {
 			checkPosixShells();
@@ -134,10 +135,12 @@ public class Shells {
 	}
 	
 	private void checkShell(String id, String commandName, boolean cygwin, String description, String[] args, String[] versionArgs, String[] loginShellArgs, String versionPattern, String... paths) {
-		var pvar = System.getenv("PATH");
-		if(pvar != null && findInPaths(id, commandName, description, args, versionArgs, versionPattern, loginShellArgs, pvar.split(File.pathSeparator), cygwin))
-			return;
 		findInPaths(id,commandName, description, args, versionArgs, versionPattern, loginShellArgs, paths, cygwin);
+		if(paths.length == 0) {
+			var pvar = System.getenv("PATH");
+			if(pvar != null && findInPaths(id, commandName, description, args, versionArgs, versionPattern, loginShellArgs, pvar.split(File.pathSeparator), cygwin))
+				return;
+		}
 	}
 
 	private boolean findInPaths(String id, String commandName, String description, String[] args, String[] versionArgs, String versionPattern,

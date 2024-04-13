@@ -2,6 +2,8 @@ package com.sshtools.pretty;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.lang.foreign.Arena;
+import java.lang.foreign.ValueLayout;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -15,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.function.Supplier;
 
 import org.jline.utils.AttributedStringBuilder;
 import org.jline.utils.AttributedStyle;
@@ -37,7 +40,7 @@ public class ConsoleProtocol implements TerminalProtocol, ResizeListener, Elemen
 	static Logger LOG = LoggerFactory.getLogger(ConsoleProtocol.class);
 
 	public final static class Builder {
-		private Optional<String> name = Optional.empty();
+		private Optional<Supplier<String>> defaultName = Optional.empty();
 		private Optional<String> command = Optional.empty();
 		private Optional<String[]> args = Optional.empty();
 		private Optional<Path> workingDirectory = Optional.empty();
@@ -78,8 +81,8 @@ public class ConsoleProtocol implements TerminalProtocol, ResizeListener, Elemen
 			return this;
 		}
 
-		public Builder withName(String name) {
-			this.name = Optional.of(name);
+		public Builder withDefaultName(Supplier<String> defaultName) {
+			this.defaultName = Optional.of(defaultName);
 			return this;
 		}
 
@@ -154,7 +157,7 @@ public class ConsoleProtocol implements TerminalProtocol, ResizeListener, Elemen
 	private PtyProcess pty;
 	private Thread thread;
 	private String shellName;
-	private final Optional<String> name;
+	private final Optional<Supplier<String>> defaultName;
 	private final Optional<String> command;
 	private final Optional<String[]> args;
 	private final Optional<Map<String, String>> env;
@@ -164,11 +167,9 @@ public class ConsoleProtocol implements TerminalProtocol, ResizeListener, Elemen
 	private final boolean unixOpenTtyToPreserveOutputAfterTermination;
 	private final boolean useWinConPty;
 	private final boolean windowsAnsiColorEnabled;
-	
-	private final static Map<String, Integer> counters = Collections.synchronizedMap(new HashMap<String, Integer>());
 
 	private ConsoleProtocol(Builder builder) {
-		this.name = builder.name;
+		this.defaultName = builder.defaultName;
 		this.command = builder.command;
 		this.args = builder.args;
 		this.workingDirectory = builder.workingDirectory;
@@ -221,8 +222,6 @@ public class ConsoleProtocol implements TerminalProtocol, ResizeListener, Elemen
 				});
 				bldr.setCommand(cmds.toArray(new String[0]));
 				
-				shellName = name.orElseGet(() -> processShellName(cmds.get(0))) + " " + nextVirtualConsoleNumber(cmds.get(0));
-				
 				// Dir
 				workingDirectory.ifPresent(dir -> bldr.setDirectory(dir.toString()));
 
@@ -244,6 +243,8 @@ public class ConsoleProtocol implements TerminalProtocol, ResizeListener, Elemen
 				} catch (IOException e) {
 					throw new UncheckedIOException(e);
 				}
+				
+				shellName = pty.getDisplayName().orElse(defaultName.map(Supplier::get).orElseGet(() -> processShellName(cmds.get(0))));
 			}
 
 			// Direct window resizes to pty
@@ -257,22 +258,22 @@ public class ConsoleProtocol implements TerminalProtocol, ResizeListener, Elemen
 		tty.status().add(this);
 
 		try {
-//			if (Boolean.getBoolean("pretty.slowRead")) {
+			if (Boolean.getBoolean("pretty.slowRead")) {
 				try(var in = pty.getInputStream()) {
 					try(var out = new TerminalOutputStream(viewport)) {
 						in.transferTo(out);
 					}
 				}
-//			} else {
-//				try (var offHeap = Arena.ofConfined()) {
-//					var mem = offHeap.allocate(65536);
-//					int rd;
-//					while ((rd = pty.getPtyInputStream().fastRead(mem, (int) mem.byteSize())) != -1) {
-//						viewport.write((idx) -> mem.get(ValueLayout.JAVA_BYTE, idx), 0, rd);
-//						viewport.flush();
-//					}
-//				}
-//			}
+			} else {
+				try (var offHeap = Arena.ofConfined()) {
+					var mem = offHeap.allocate(65536);
+					int rd;
+					while ((rd = pty.getPtyInputStream().fastRead(mem, (int) mem.byteSize())) != -1) {
+						viewport.write((idx) -> mem.get(ValueLayout.JAVA_BYTE, idx), 0, rd);
+						viewport.flush();
+					}
+				}
+			}
 
 		} catch (Error e) {
 			LOG.error("Protocol failed.", e);
@@ -311,20 +312,6 @@ public class ConsoleProtocol implements TerminalProtocol, ResizeListener, Elemen
 		}
 		pty.destroy();
 	}
-	
-	private static int nextVirtualConsoleNumber(String shell) {
-		synchronized(counters) {
-			var i = counters.get(shell);
-			if(i == null) {
-				i = 0;
-			}
-			else {
-				i = i + 1;
-			}
-			counters.put(shell, i);
-			return i;
-		}
-	}
 
 	@Override
 	public void detach() {
@@ -347,25 +334,14 @@ public class ConsoleProtocol implements TerminalProtocol, ResizeListener, Elemen
 
 	@Override
 	public String displayName() {
-//		if (pty instanceof UnixPtyProcess) {
-//			return Paths.get(((UnixPtyProcess) pty).getPty().getSlaveName()).getFileName().toString();
-//		}
-//		return RESOURCES.getString("console");
-		return pty == null ? RESOURCES.getString("console") : pty.getDisplayName().orElse(shellName);
-//		return "XX";
+		return shellName == null ? RESOURCES.getString("console") : shellName;
 	}
 
 	@Override
 	public void draw(TerminalViewport<JavaFXTerminalPanel, ?, ?> vp, int cols) throws IOException {
 		var bldr = new AttributedStringBuilder();
 		bldr.style(AttributedStyle.INVERSE);
-//		if (pty instanceof UnixPtyProcess) {
-//			bldr.append(Strings.trimPad(((UnixPtyProcess) pty).getPty().getSlaveName(), cols));
-//		} else {
-//			bldr.append(RESOURCES.getString("console"));
-//		}
-//		bldr.append("XX");
-		bldr.append(pty == null ? RESOURCES.getString("console") : pty.getDisplayName().orElse(shellName));
+		bldr.append(shellName == null ? RESOURCES.getString("console") : shellName);
 		bldr.style(AttributedStyle.INVERSE_OFF);
 		vp.write(bldr.toAnsi().getBytes(vp.getCharacterSet()));
 	}
