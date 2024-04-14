@@ -324,7 +324,7 @@ public class TerminalTheme {
 	}
 
 	private String getType() {
-		return ini().sectionOr(META).map(sec -> sec.getOr(TYPE, TYPE_STATIC)).orElse(TYPE_STATIC);
+		return ini().sectionOr(META).map(sec -> sec.get(TYPE, TYPE_STATIC)).orElse(TYPE_STATIC);
 	}
 
 	public Optional<String> darkModeTheme() {
@@ -336,7 +336,7 @@ public class TerminalTheme {
 	}
 
 	public String description() {
-		return ini().sectionOr(META).map(sec -> sec.getOr(DESCRIPTION, name())).orElse(name());
+		return ini().sectionOr(META).map(sec -> sec.get(DESCRIPTION, name())).orElse(name());
 	}
 
 	public VDUColor background() {

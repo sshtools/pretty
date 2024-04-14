@@ -1,5 +1,7 @@
 package com.sshtools.pretty;
 
+import static com.sshtools.jini.INI.merge;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -9,6 +11,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.MessageFormat;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -24,6 +27,8 @@ import org.slf4j.LoggerFactory;
 
 import com.install4j.api.Util;
 import com.sshtools.jini.INI;
+import com.sshtools.jini.INIReader;
+import com.sshtools.jini.Interpolation;
 import com.sshtools.jini.INI.Section;
 
 import javafx.util.StringConverter;
@@ -83,11 +88,16 @@ public class Shells {
 		addShell(new Shell(ShellType.BUILTIN, PRICLI, PRICLI, (Path)null, null, "Built-in shell", null, false));
 		addShell(new Shell(ShellType.BUILTIN, NATIVE, NATIVE, (Path)null, null, "Default native shell", null, false));
 		
-		try(var in = Shells.class.getResourceAsStream("Shells.ini")) {
-			loadShellsFromIni(INI.fromInput(in));
+		try(var in = new InputStreamReader(Shells.class.getResourceAsStream("Shells.ini"))) {
+			var rdr = new INIReader.Builder().
+					withInterpolator(Interpolation.defaults()).
+					build();
+			loadShellsFromIni(rdr.read(in));
 		}
 		catch(IOException ioe) {
 			throw new UncheckedIOException(ioe);
+		} catch (ParseException e) {
+			throw new IllegalStateException(e);
 		}
 	}
 	
@@ -102,13 +112,13 @@ public class Shells {
 					addShell(shellFromSection(sec));
 				}
 			}  catch (Exception e) {
-				LOG.warn("Failed to load shell.", e);
+				LOG.debug("Failed to load shell.", e);
 			}
 		});
 	}
 	
 	private boolean isForOs(Section section) {
-		var oss = section.getAllOr("os", new String[0]);
+		var oss = section.getAllElse("os");
 		if(oss.length == 0) {
 			return true;
 		}
@@ -132,20 +142,39 @@ public class Shells {
 	
 	private Shell shellFromSection(Section section) {
 		var cmd = section.getOr("command").orElse(section.key());
-		var searchPaths = section.getBooleanOr("search-path", false);
-		var path = locate(searchPaths, cmd, section.getAllOr("path", new String[0]));
-		var version = getVersion(path, section.getOr("version-pattern", null), section.getAllOr("version-argument", new String[0]));
-		var name = section.getOr("name", section.key());
+		var searchPaths = section.getBoolean("search-path", false);
+		var name = section.get("name", section.key());
+		
+		var path = locate(searchPaths, cmd, merge(
+				section.getAllElse("paths"),
+				section.getAllElse("path")
+			)
+		);
+		
+		var version = getVersion(path, section.get("version-pattern", null), merge(
+				section.getAllElse("version-argument"),
+				section.getAllElse("version-arguments")
+			)
+		);
+		
+		var arguments = merge(
+				section.getAllElse("argument"),
+				section.getAllElse("arguments")
+		);
+		
 		return new Shell(
 			ShellType.EXTERNAL,
 			section.key(),
 			cmd,
 			path,
-			section.getAllOr("login-shell-argument", new String[0]),
+			merge(
+				section.getAllElse("login-shell-argument"),
+				section.getAllElse("login-shell-arguments")
+			),
 			name,
 			version,
-			section.getBooleanOr("cygwin", false),
-			section.getAllOr("argument", new String[0])
+			section.getBoolean("cygwin", false),
+			arguments
 		);
 	}
 	

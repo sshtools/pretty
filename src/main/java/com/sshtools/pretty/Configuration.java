@@ -90,7 +90,7 @@ public final class Configuration {
 	private Map<String, List<FloatProperty>> floatProperties = new HashMap<>();
 	private Map<String, List<BooleanProperty>> booleanProperties = new HashMap<>();
 	private Path dir;
-	private final INISchema schema;
+	private final INISchema schema; 
 
 	public Configuration(Path dir) {
 		this.dir = dir;
