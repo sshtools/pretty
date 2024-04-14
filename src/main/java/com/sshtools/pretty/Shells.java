@@ -133,15 +133,16 @@ public class Shells {
 	private Shell shellFromSection(Section section) {
 		var cmd = section.getOr("command").orElse(section.key());
 		var searchPaths = section.getBooleanOr("search-path", false);
-		var path = locate(searchPaths, cmd);
+		var path = locate(searchPaths, cmd, section.getAllOr("path", new String[0]));
 		var version = getVersion(path, section.getOr("version-pattern", null), section.getAllOr("version-argument", new String[0]));
+		var name = section.getOr("name", section.key());
 		return new Shell(
 			ShellType.EXTERNAL,
 			section.key(),
 			cmd,
 			path,
 			section.getAllOr("login-shell-argument", new String[0]),
-			section.getOr("name", section.key()),
+			name,
 			version,
 			section.getBooleanOr("cygwin", false),
 			section.getAllOr("argument", new String[0])
