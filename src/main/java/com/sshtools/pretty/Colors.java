@@ -69,6 +69,26 @@ public class Colors {
 		var darkest = Math.min(lum(c1), lum(c2));
 		return (brightest + 0.05f) / (darkest + 0.05f);
 	}
+
+	public static Color chooseContrast(Color color) {
+		return chooseContrast(color, Color.grayRgb(225), Color.grayRgb(25));
+	}
+
+	public static Color chooseContrast(Color color, Color lightColor, Color darkColor) {
+		return bestWithDarkForeground(color)  ? darkColor : lightColor;
+	}
+	
+	public static boolean bestWithDarkForeground(Color background) {
+		  var uicolors = Arrays.asList(background.getRed(), background.getGreen(), background.getBlue());
+		  var c = uicolors.stream().map((col) -> {
+		    if (col <= 0.03928) {
+		      return col / 12.92;
+		    }
+		    return Math.pow((col + 0.055) / 1.055, 2.4);
+		  }).toList();
+		  var L = (0.2126 * c.get(0)) + (0.7152 * c.get(1)) + (0.0722 * c.get(2));
+		  return (L > 0.179);
+	}
 	
 	public static Color accent(Color bg, Color fg) {
 		Color linkColor;

@@ -192,8 +192,8 @@ public class PrettyApp extends JajaFXApp<Pretty, PrettyAppWindow> implements Lis
 
 		AppContextImpl() {
 			themes = new Themes(this);
-			shells = new Shells();
 			monitor = new Monitor(this);
+			shells = new Shells(monitor, getConfiguration().dir());
 			passwords = new DefaultSecretStorage(this);
 			getConfiguration().monitor(monitor);
 		}

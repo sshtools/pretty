@@ -34,6 +34,7 @@ import com.sshtools.jini.INI.Section;
 import com.sshtools.jini.INIReader;
 import com.sshtools.jini.INIReader.MultiValueMode;
 import com.sshtools.jini.INIWriter;
+import com.sshtools.jini.schema.INISchema;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.FloatProperty;
@@ -81,6 +82,7 @@ public final class Configuration {
 	private Path configuration;
 	private INI ini = INI.create();
 	private Handle onValueUpdate, onSectionUpdate;
+	@Deprecated
 	private INI defaultConfiguration;
 	private Map<String, List<ObjectRef>> objectProperties = new HashMap<>();
 	private Map<String, List<StringProperty>> stringProperties = new HashMap<>();
@@ -88,6 +90,7 @@ public final class Configuration {
 	private Map<String, List<FloatProperty>> floatProperties = new HashMap<>();
 	private Map<String, List<BooleanProperty>> booleanProperties = new HashMap<>();
 	private Path dir;
+	private final INISchema schema;
 
 	public Configuration(Path dir) {
 		this.dir = dir;
@@ -97,6 +100,9 @@ public final class Configuration {
 			}
 			try(var in = Configuration.class.getResourceAsStream("Configuration.ini")) {
 				defaultConfiguration = createINIReader().read(new InputStreamReader(in)).readOnly();
+			}
+			try(var in = Configuration.class.getResourceAsStream("Configuration.schema.ini")) {
+				schema = INISchema.fromInput(in);;
 			}
 		} catch (IOException ioe) {
 			throw new UncheckedIOException(ioe);

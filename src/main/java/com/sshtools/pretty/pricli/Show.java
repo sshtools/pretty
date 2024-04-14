@@ -7,6 +7,7 @@ import java.util.concurrent.Callable;
 import org.jline.utils.AttributedStringBuilder;
 import org.jline.utils.AttributedStyle;
 
+import com.sshtools.jini.INI.EscapeMode;
 import com.sshtools.jini.INIWriter;
 import com.sshtools.jini.INIWriter.StringQuoteMode;
 import com.sshtools.pretty.Configuration.SectionMeta;
@@ -78,20 +79,26 @@ public class Show implements Callable<Integer> {
 		var cli = parent.cli();
 		var jline = cli.jline();
 		var as = new AttributedStringBuilder();
+		
+		var wtr = new INIWriter.Builder().
+				withStringQuoteMode(StringQuoteMode.AUTO).
+				withEscapeMode(EscapeMode.ALWAYS).
+				build();
+		
 		as.append(String.format(calcIndent(depth) + "%s = ", val.name()));
 		switch(val.change()) {
 		case DEFAULT:
 			as.style(new AttributedStyle().faint());
-			as.append(String.join(", ", INIWriter.quote('"', StringQuoteMode.AUTO, val.defaultValue())));
+			as.append(String.join(", ", wtr.quote(val.defaultValue())));
 			as.style(new AttributedStyle().faintOff());
 			break;
 		case ADDED:
 			as.style(AttributedStyle.BOLD);
-			as.append(String.join(", ", INIWriter.quote('"', StringQuoteMode.AUTO, val.value())));
+			as.append(String.join(", ", wtr.quote(val.value())));
 			as.style(AttributedStyle.BOLD_OFF);
 			break;
 		default:
-			as.append(String.join(", ", INIWriter.quote('"', StringQuoteMode.AUTO, val.value())));
+			as.append(String.join(", ", wtr.quote(val.value())));
 			break;
 		}
 		

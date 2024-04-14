@@ -24,3 +24,28 @@
 .title-bar .menu-item .label {
 	-fx-font-size: 12px !important;
 }
+
+/* Colored tabs
+.tab .tab-label, .tab .tab-label .text {
+	-fx-text-fill: #0f0 !important;
+	-fx-font-weight: bold !important;
+}
+*  
+*/
+
+.dark-tab,.light-tab {	
+	-fx-opacity: 0.5;
+}
+
+.dark-tab:selected, .light-tab:selected {
+	-fx-opacity: 1;
+}
+
+.dark-tab .tab-label, .dark-tab .tab-label .text {
+	-fx-text-fill: #eee !important;
+}
+
+.light-tab .tab-label, .light-tab .tab-label .text {
+	-fx-text-fill: #111 !important;
+}
+

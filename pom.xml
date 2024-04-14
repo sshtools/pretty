@@ -317,7 +317,12 @@
 		<dependency>
 			<groupId>com.sshtools</groupId>
 			<artifactId>jini</artifactId>
-			<version>0.2.5</version>
+			<version>0.3.1-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>com.sshtools</groupId>
+			<artifactId>jini-schema</artifactId>
+			<version>0.3.1-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.jline</groupId>

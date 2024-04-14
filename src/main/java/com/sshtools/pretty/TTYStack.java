@@ -22,15 +22,20 @@ import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.RadioMenuItem;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TabPane.TabDragPolicy;
+import javafx.scene.control.TextField;
+import javafx.scene.control.ToggleGroup;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
 public final class TTYStack extends StackPane implements TTYContext {
-	private final static Logger LOG = LoggerFactory.getLogger(PrettyApp.class);
+	private final static Logger LOG = LoggerFactory.getLogger(TTYStack.class);
 	private final static ResourceBundle RESOURCES = ResourceBundle.getBundle(TTYStack.class.getName());
 
 	private final AppContext appContext;
@@ -155,6 +160,8 @@ public final class TTYStack extends StackPane implements TTYContext {
 	public void newTab(TTYRequest request) {
 
 		try {
+			LOG.info("New tab in stack {}", hashCode());
+			
 			var tty = newTty(request);
 			if (getChildren().isEmpty()) {
 				getChildren().add(tty);
@@ -163,15 +170,7 @@ public final class TTYStack extends StackPane implements TTYContext {
 				if (!(first instanceof TabPane)) {
 					var firstTty = (TTY) first;
 					getChildren().remove(firstTty);
-					var firstTab = new Tab(firstTty.shortTitle().get(), firstTty);
-					firstTty.shortTitle().addListener((c, o, n) -> {
-						firstTab.setText(n);
-						updateStageTitle();
-						// TODO remove listener on tab remove / hiding to single
-					});
-					firstTab.setUserData(firstTty);
-					firstTty.tabColor().addListener((c,o,n) -> updateTabColor(firstTab, n));
-					updateTabColor(firstTab, firstTty.tabColor().get());
+					var firstTab = createTabForTty(firstTty);
 
 					var tabs = new TabPane(firstTab);
 					tabs.setTabDragPolicy(TabDragPolicy.REORDER);
@@ -188,22 +187,7 @@ public final class TTYStack extends StackPane implements TTYContext {
 					first = tabs;
 				}
 
-				var newTab = new Tab(tty.shortTitle().get(), tty);
-				newTab.setContextMenu(createTabMenu(tty));
-				newTab.setOnCloseRequest(evt -> {
-					if (!maybeClose(tty)) {
-						evt.consume();
-						return;
-					}
-				});
-				tty.shortTitle().addListener((c, o, n) -> {
-					newTab.setText(n);
-					updateStageTitle();
-					// TODO remove listener on tab remove / hiding to single
-				});
-				tty.tabColor().addListener((c,o,n) -> updateTabColor(newTab, n));
-				updateTabColor(newTab, tty.tabColor().get());
-				newTab.setUserData(tty);
+				var newTab = createTabForTty(tty);
 
 				var tabPane = (TabPane) first;
 				tabPane.getTabs().add(newTab);
@@ -213,6 +197,26 @@ public final class TTYStack extends StackPane implements TTYContext {
 		} catch (Exception e) {
 			LOG.error("Failed to add tab.", e);
 		}
+	}
+
+	protected Tab createTabForTty(TTY tty) {
+		var newTab = new Tab(tty.shortTitle().get(), tty);
+		newTab.setContextMenu(createTabMenu(tty, newTab));
+		newTab.setOnCloseRequest(evt -> {
+			if (!maybeClose(tty)) {
+				evt.consume();
+				return;
+			}
+		});
+		tty.shortTitle().addListener((c, o, n) -> {
+			newTab.setText(n);
+			updateStageTitle();
+			// TODO remove listener on tab remove / hiding to single
+		});
+		tty.tabColor().addListener((c,o,n) -> updateTabColor(newTab, n));
+		updateTabColor(newTab, tty.tabColor().get());
+		newTab.setUserData(tty);
+		return newTab;
 	}
 
 	@Override
@@ -234,18 +238,110 @@ public final class TTYStack extends StackPane implements TTYContext {
 	private void updateTabColor(Tab tab, Color color) {
 		if(color == null)
 			tab.setStyle(null);
-		else
+		else {
+			var sc = tab.getStyleClass();
+			sc.remove("dark-tab");
+			sc.remove("light-tab");
+			if(Colors.bestWithDarkForeground(color)) {
+				sc.add("light-tab");
+			}
+			else {
+				sc.add("dark-tab");
+			}
 			tab.setStyle("-fx-background-color: " + Colors.toHex(color) + " !important;");
+		}
 	}
 
-	private ContextMenu createTabMenu(TTY tty) {
+	private void configureTabActions(TTY tty) {
+		
+	}
+
+	private ContextMenu createTabMenu(TTY tty, Tab tab) {
 		var menu = new ContextMenu();
+		
 		var detachMenuItem = new MenuItem(RESOURCES.getString("detach"));
 		detachMenuItem.setOnAction((e) -> {
 			detachTab(tty);
 		});
-		menu.getItems().addAll(detachMenuItem);
+		
+		var renameMenuItem = new MenuItem(RESOURCES.getString("rename"));
+		renameMenuItem.setOnAction((e) -> {
+			renameTab(tty, tab);
+		});
+		
+		menu.getItems().addAll(detachMenuItem, renameMenuItem);
+		
+		try {
+			menu.getItems().add(new SeparatorMenuItem());
+			
+			var thm = tty.ttyContext().getContainer().getThemes().get("Material Dark").get();
+			var pal = thm.pal16().get();
+			var tg = new ToggleGroup();
+			var current = tty.tabColor().get();
+
+			var defaultCol = new RadioMenuItem(RESOURCES.getString("defaultColor"));
+			defaultCol.setToggleGroup(tg);
+			defaultCol.setOnAction(evt -> {
+				tty.tabColor().set(null);
+			});
+			
+			menu.getItems().add(defaultCol);
+			tg.selectToggle(null);
+			
+			for(int i = 0 ; i < 16 ; i++) {
+				var col = tty.terminal().getUIToolkit().localColorToNativeColor(pal[i]);
+				var item = new RadioMenuItem("● " + i);
+				item.setToggleGroup(tg);
+				item.setOnAction(a -> {
+					tty.tabColor().set(col);
+				});
+				item.setStyle("-fx-text-fill: " + Colors.toHex(col));
+				menu.getItems().add(item);
+				
+				if(col.equals(current)) {
+					tg.selectToggle(item);
+				}
+			}
+
+			if(tg.getSelectedToggle() == null) {
+				tg.selectToggle(defaultCol);
+			}
+		}
+		catch(Exception e) {
+			
+		}
+		 
+		
 		return menu;
+	}
+
+	private void renameTab(TTY tty, Tab tab) {
+		var wasContent = tab.getGraphic();
+		var txt = new TextField();
+		txt.setText(tab.getText());
+		txt.selectAll();
+		tab.setText("");
+		
+		Runnable task = () -> {
+			tab.setGraphic(wasContent);
+			var newTxt = txt.getText();
+			System.out.println(newTxt);
+			tab.setText(newTxt);
+			tty.userTitle().set(newTxt);
+		};
+		
+		txt.setOnKeyReleased(evt -> {
+			if(evt.getCode() == KeyCode.ENTER || evt.getCode() == KeyCode.ESCAPE || evt.getCode() == KeyCode.TAB) {
+				task.run();
+			}
+		});
+		txt.focusedProperty().addListener((c,o,n) -> {
+			if(!n) {
+				task.run();
+			}
+		});
+		tab.setGraphic(txt);
+		txt.requestFocus();
 	}
 
 	private boolean maybeClose(TTY tty) {

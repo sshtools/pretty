@@ -12,6 +12,7 @@ open module com.sshtools.pretty {
 	requires transitive com.sshtools.terminal.vt.javafx;
 	requires transitive java.prefs;
 	requires transitive com.sshtools.jini;
+	requires transitive com.sshtools.jini.schema;
 	requires com.sshtools.jaul;
 	requires transitive com.sshtools.jajafx; 
 	requires transitive com.sshtools.synergy.client;

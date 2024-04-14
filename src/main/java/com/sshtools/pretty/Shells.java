@@ -12,15 +12,25 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.regex.Pattern;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.install4j.api.Util;
+import com.sshtools.jini.INI;
+import com.sshtools.jini.INI.Section;
 
 import javafx.util.StringConverter;
 
 public class Shells {
 
+	private final static Logger LOG = LoggerFactory.getLogger(Shells.class);
 	final static ResourceBundle RESOURCES = ResourceBundle.getBundle(Shells.class.getName());
 
 	public enum ShellType {
@@ -64,63 +74,113 @@ public class Shells {
 		}
 	}
 	
-	private final List<Shell> shells = new ArrayList<>();
+	private final Map<String, Shell> shells = new LinkedHashMap<>();
 	
-	public static void main(String[] args) {
-		new Shells().shells.forEach(System.out::println);
+	public Shells(Monitor monitor, Path configurationPath) {
+//		String sysroot = System.getenv("SystemRoot");
+		addShell(new Shell(ShellType.BUILTIN, "serial", "serial", (Path)null, null, "Pretty Serial Support", null, false, new String[0]));
+		addShell(new Shell(ShellType.BUILTIN, "ssh", "ssh", (Path)null, null, "Maverick Synergy SSH", null, false, "--prompt"));
+		addShell(new Shell(ShellType.BUILTIN, PRICLI, PRICLI, (Path)null, null, "Built-in shell", null, false));
+		addShell(new Shell(ShellType.BUILTIN, NATIVE, NATIVE, (Path)null, null, "Default native shell", null, false));
+		
+		try(var in = Shells.class.getResourceAsStream("Shells.ini")) {
+			loadShellsFromIni(INI.fromInput(in));
+		}
+		catch(IOException ioe) {
+			throw new UncheckedIOException(ioe);
+		}
 	}
 	
-	public Shells() {
-		String sysroot = System.getenv("SystemRoot");
-		// String id, String commandName, boolean cygwin, String description, String[] args, String[] versionArgs, String[] loginShellArgs, String versionPattern, String... paths
-		if(sysroot != null) {
-			checkShell("cmd", "cmd", false, "DOS Command Prompt", null, null, null, null, "C:\\Windows\\System32");
-			checkShell("powershell", "powershell", false, "Microsoft Powershell",  null, null, null, null, sysroot + File.separator + "\\System32\\WindowsPowerShell\\v1.0\\powershell.exe");
-			checkPosixShells();
-			checkShell("msys2", "msys2_shell", false, "MSys2", new String[] { "-defterm", "-here", "-no-start", "-shell", "bash"}, null, null, null, "C:\\msys64");
-			checkShell("mingw64", "msys2_shell", false, "Mingw64 MSys2 Profile", new String[] { "-defterm", "-here", "-no-start", "-mingw64", "-shell", "bash"}, null, null, null, "C:\\msys64");
-			checkShell("mingw32", "msys2_shell", false, "Mingw32 MSys2 Profile", new String[] { "-defterm", "-here", "-no-start", "-mingw32", "-shell", "bash"}, null, null, null, "C:\\msys64");
-			checkShell("clang64", "msys2_shell", false, "Clang64 MSys2 Profile", new String[] { "-defterm", "-here", "-no-start", "-clang64", "-shell", "bash"}, null, null, null, "C:\\msys64");
-			checkShell("clang32", "msys2_shell", false, "Clang32 MSys2 Profile", new String[] { "-defterm", "-here", "-no-start", "-clang32", "-shell", "bash"}, null, null, null, "C:\\msys64");
-			checkShell("clangarm64", "msys2_shell", false, "ClangArm64 MSys2 Profile", new String[] { "-defterm", "-here", "-no-start", "-clangarm64", "-shell", "bash"}, null, null, null, "C:\\msys64");
-			checkShell("cygwin", "bash", true, "Cygwin Bash", null, new String[] {"--version"}, new String[] {"-l"}, ".*version ([^\s].*) .*", "C:\\cygwin64\\bin");
-		}
-		else {
-			checkPosixShells();
-			checkShell("powershell", "pwsh", false, "Microsoft Powershell",  null, new String[] {"--version"}, new String[] {"-Login"}, ".* (.*)", "/usr/bin");
-		}
-		shells.add(new Shell(ShellType.BUILTIN, "serial", "serial", (Path)null, null, "Pretty Serial Support", null, false, new String[0]));
-		shells.add(new Shell(ShellType.BUILTIN, "ssh", "ssh", (Path)null, null, "Maverick Synergy SSH", null, false, "--prompt"));
-		shells.add(new Shell(ShellType.BUILTIN, PRICLI, PRICLI, (Path)null, null, "Built-in shell", null, false));
-		shells.add(new Shell(ShellType.BUILTIN, NATIVE, NATIVE, (Path)null, null, "Default native shell", null, false));
+	private void addShell(Shell shell) {
+		shells.put(shell.id, shell);
 	}
 
-	private void checkPosixShells() {
-		checkShell("bash", "bash", false, "GNU Bourne-Again Shell", null, new String[] {"--version"}, new String[] {"-l"}, ".*version ([^\s].*) .*", "/usr/bin");
-		checkShell("dash", "dash", false, "POSIX Shell", null, null, new String[] {"-l"}, null, "/usr/bin");
-		checkShell("zsh", "zsh", false, "The Z Shell", null, new String[] {"--version"}, new String[] {"-l"}, ".* (.*) .*",  "/usr/bin");
-		checkShell("csh", "csh", false, "C-like Shell", null, null, new String[] {"-l"}, null, "/usr/bin");
+	private void loadShellsFromIni(INI ini) {
+		Arrays.asList(ini.allSections()).forEach(sec -> {
+			try {
+				if(isForOs(sec)) {
+					addShell(shellFromSection(sec));
+				}
+			}  catch (Exception e) {
+				LOG.warn("Failed to load shell.", e);
+			}
+		});
 	}
 	
+	private boolean isForOs(Section section) {
+		var oss = section.getAllOr("os", new String[0]);
+		if(oss.length == 0) {
+			return true;
+		}
+		var osName = getOs();
+		var expect = true;
+		for(var os : oss) {			
+			if(os.startsWith("!")) {
+				expect = false;
+				os = os.substring(1);
+			}
+			else {
+				expect = true;
+			}
+			os = os.toLowerCase();
+			if(expect != osName.equals(os)) {
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	private Shell shellFromSection(Section section) {
+		var cmd = section.getOr("command").orElse(section.key());
+		var searchPaths = section.getBooleanOr("search-path", false);
+		var path = locate(searchPaths, cmd);
+		var version = getVersion(path, section.getOr("version-pattern", null), section.getAllOr("version-argument", new String[0]));
+		return new Shell(
+			ShellType.EXTERNAL,
+			section.key(),
+			cmd,
+			path,
+			section.getAllOr("login-shell-argument", new String[0]),
+			section.getOr("name", section.key()),
+			version,
+			section.getBooleanOr("cygwin", false),
+			section.getAllOr("argument", new String[0])
+		);
+	}
+	
+	private Path locate(boolean searchPath, String cmd, String... paths) {
+		if(paths.length > 0) {
+			var fnd = find(cmd, paths);
+			if(fnd.isPresent())
+				return fnd.get();
+		}
+		if(searchPath) {
+			var pvar = System.getenv("PATH");
+			if(pvar == null)
+				throw new IllegalStateException("No PATH variable is set."); 
+			var fnd = find(cmd, pvar.split(File.pathSeparator));
+			if(fnd.isPresent())
+				return fnd.get();
+		}
+
+		throw new IllegalStateException(MessageFormat.format("No command for the shell ''{0}'' could be found.", cmd));
+	}
+
 	public Optional<Shell> getDefault() {
 		/* TODO best default for operating system, e.g. lookup /etc/passwd on Linux */
-		return shells.isEmpty() ? Optional.empty() : Optional.of(shells.get(0));
-	}
-
-	public Optional<Shell> get(String name) {
-		return shells.stream().filter(s -> s.name.equals(name)).findFirst();
+		return shells.isEmpty() ? Optional.empty() : Optional.of(shells.get(NATIVE));
 	}
 
 	public Optional<Shell> getByCommandName(String commandName) {
-		return shells.stream().filter(s -> s.commandName.equals(commandName)).findFirst();
+		return shells.values().stream().filter(s -> s.commandName.equals(commandName)).findFirst();
 	}
 
 	public Optional<Shell> getById(String id) {
-		return shells.stream().filter(s -> s.id.equals(id)).findFirst();
+		return Optional.ofNullable(shells.get(id));
 	}
 
 	public List<Shell> getAll() {
-		return Collections.unmodifiableList(shells);
+		return Collections.unmodifiableList(new ArrayList<>(shells.values()));
 	}
 
 	public static String toDisplayName(Shell object) {
@@ -134,20 +194,10 @@ public class Shells {
 		}
 	}
 	
-	private void checkShell(String id, String commandName, boolean cygwin, String description, String[] args, String[] versionArgs, String[] loginShellArgs, String versionPattern, String... paths) {
-		findInPaths(id,commandName, description, args, versionArgs, versionPattern, loginShellArgs, paths, cygwin);
-		if(paths.length == 0) {
-			var pvar = System.getenv("PATH");
-			if(pvar != null && findInPaths(id, commandName, description, args, versionArgs, versionPattern, loginShellArgs, pvar.split(File.pathSeparator), cygwin))
-				return;
-		}
-	}
-
-	private boolean findInPaths(String id, String commandName, String description, String[] args, String[] versionArgs, String versionPattern,
-			String[] loginShellArgs, String[] arr, boolean cygwin) {
+	private Optional<Path> find(String commandName, String... arr) {
 		for(var a : arr) {
 			Path cmd;
-			if(System.getProperty("os.name").toLowerCase().contains("windows")) {
+			if(Util.isWindows()) {
 				cmd = Paths.get(a).resolve(commandName + ".exe");
 				if(!Files.exists(cmd)) {
 					cmd = Paths.get(a).resolve(commandName + ".cmd");
@@ -158,11 +208,25 @@ public class Shells {
 			}
 			
 			if(Files.exists(cmd)) {
-				shells.add(new Shell(ShellType.EXTERNAL, id, commandName, cmd, loginShellArgs, description, getVersion(cmd, versionPattern, versionArgs), cygwin, args));
-				return true;
+				return Optional.of(cmd);
 			}
 		}
-		return false;
+		return Optional.empty();
+	}
+	
+	private String getOs() {
+		if(Util.isWindows()) {
+			return "windows";
+		}
+		else if(Util.isMacOS()) {
+			return "macos";
+		}
+		else if(Util.isLinux()) {
+			return "linux";
+		}
+		else {
+			return "other";
+		}
 	}
 
 	private String getVersion(Path cmd, String pattern,  String... args) {
