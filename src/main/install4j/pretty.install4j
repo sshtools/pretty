@@ -83,7 +83,7 @@ Comment=Terminal emulator with built in SSH and Serial support </desktopFile>
     </launcher>
     <launcher name="jaul" id="151" menuName="Push SFTP GUI" addMacApplicationCategory="true" macApplicationCategory="public.app-category.utilities">
       <executable name="jaul" iconSet="true" executableDir="." redirectStderr="false" stderrFile="${installer:sys.userHome}/.pretty/pretty.log" stdoutFile="${installer:sys.userHome}/.pretty/pretty.log" executableMode="console" singleInstance="true" />
-      <java mainClass="com.sshtools.jaul/com.sshtools.jaul.RegisterDeregister" mainMode="module" vmParameters="--enable-preview --enable-native-access=com.sshtools.pty4j">
+      <java mainClass="com.sshtools.jaul/com.sshtools.jaul.RegisterDeregister" mainMode="module">
         <modulePath>
           <directory location="lib" failOnError="false" />
         </modulePath>
@@ -301,14 +301,19 @@ return console.askOkCancel(message, true);
               </action>
               <action id="125" beanClass="com.install4j.runtime.beans.actions.misc.RunExecutableAction" actionElevationType="elevated" rollbackBarrierExitCode="0" failureStrategy="askRetryQuit">
                 <serializedBean>
-                  <property name="arguments" type="array" elementType="string" length="1">
+                  <property name="arguments" type="array" elementType="string" length="5">
                     <element index="0">--jaul-register</element>
+                    <element index="1">com.sshtools.Pretty</element>
+                    <element index="2">GUI</element>
+                    <element index="3">54</element>
+                    <element index="4">https://sshtools-public.s3.eu-west-1.amazonaws.com/pretty/${compiler:install4j.phase}/updates.xml</element>
                   </property>
                   <property name="executable">
                     <object class="java.io.File">
                       <string>jaul</string>
                     </object>
                   </property>
+                  <property name="logArguments" type="boolean" value="true" />
                   <property name="timeout" type="int" value="20" />
                   <property name="wait" type="boolean" value="true" />
                   <property name="workingDirectory">
@@ -441,8 +446,9 @@ return console.askYesNo(message, true);
             <actions>
               <action id="124" beanClass="com.install4j.runtime.beans.actions.misc.RunExecutableAction" actionElevationType="elevated" rollbackBarrierExitCode="0">
                 <serializedBean>
-                  <property name="arguments" type="array" elementType="string" length="1">
+                  <property name="arguments" type="array" elementType="string" length="2">
                     <element index="0">--jaul-deregister</element>
+                    <element index="1">com.sshtools.Pretty</element>
                   </property>
                   <property name="executable">
                     <object class="java.io.File">
