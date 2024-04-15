@@ -303,10 +303,10 @@ return console.askOkCancel(message, true);
                 <serializedBean>
                   <property name="arguments" type="array" elementType="string" length="5">
                     <element index="0">--jaul-register</element>
-                    <element index="1">${compiler:install4j.jaulAppId}</element>
+                    <element index="1">com.sshtools.Pretty</element>
                     <element index="2">GUI</element>
-                    <element index="3">${compiler:install4j.jaulUpdaterId}</element>
-                    <element index="4">${compiler:install4j.updatesBase}/${compiler:install4j.phase}$/updates.xml</element>
+                    <element index="3">54</element>
+                    <element index="4">https://sshtools-public.s3.eu-west-1.amazonaws.com/pretty/${compiler:install4j.phase}/updates.xml</element>
                   </property>
                   <property name="executable">
                     <object class="java.io.File">
@@ -446,8 +446,9 @@ return console.askYesNo(message, true);
             <actions>
               <action id="124" beanClass="com.install4j.runtime.beans.actions.misc.RunExecutableAction" actionElevationType="elevated" rollbackBarrierExitCode="0">
                 <serializedBean>
-                  <property name="arguments" type="array" elementType="string" length="1">
+                  <property name="arguments" type="array" elementType="string" length="2">
                     <element index="0">--jaul-deregister</element>
+                    <element index="1">com.sshtools.Pretty</element>
                   </property>
                   <property name="executable">
                     <object class="java.io.File">
