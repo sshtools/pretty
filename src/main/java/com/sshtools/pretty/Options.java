@@ -11,6 +11,7 @@ import java.util.prefs.Preferences;
 import org.jline.utils.AttributedStringBuilder;
 import org.jline.utils.AttributedStyle;
 
+import com.pty4j.Platform;
 import com.sshtools.jajafx.FXUtil;
 import com.sshtools.jajafx.JajaFXApp.DarkMode;
 import com.sshtools.jajafx.PrefBind;
@@ -279,6 +280,7 @@ public class Options extends StackPane implements Closeable {
 		
 		legacyPty.selectedProperty().bind(cfg.getBooleanProperty(Constants.LEGACY_PTY_KEY, Constants.TERMINAL_SECTION));
 		legacyPty.managedProperty().bind(legacyPty.visibleProperty());
+		legacyPty.selectedProperty().addListener((c,o,n) -> updateAvailable());
 		
 		fontSizeProperty = cfg.getIntProperty("font-size", Constants.TERMINAL_SECTION);
 		fontSize.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(6, 256, fontSizeProperty.get()));
@@ -307,6 +309,7 @@ public class Options extends StackPane implements Closeable {
 		var sel = defaultShell.getSelectionModel().getSelectedItem();
 		loginShell.setVisible(sel != null && sel.loginShellArgs() != null && sel.loginShellArgs().length > 0);
 		legacyPty.setVisible(System.getProperty("os.name").toLowerCase().contains("windows"));
+		console.setVisible(!Platform.isWindows() || (Platform.isWindows() && legacyPty.isSelected()));
 	}
 	
 	private void setupPreviewText(TerminalTheme theme, JavaFXTerminalPanel panel) {
