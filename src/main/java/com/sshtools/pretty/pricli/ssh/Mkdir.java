@@ -6,7 +6,7 @@ import java.util.ResourceBundle;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Parameters;
 
-@Command(name = "mkdir", usageHelpAutoWidth = true, mixinStandardHelpOptions = true, description = "Create directory")
+@Command(name = "mkdir", usageHelpAutoWidth = true, description = "Create directory")
 public class Mkdir extends SftpCommand {
 	final static ResourceBundle RESOURCES = ResourceBundle.getBundle(Mkdir.class.getName());
 

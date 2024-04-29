@@ -2,24 +2,22 @@ package com.sshtools.pretty;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.util.ResourceBundle;
 
 import com.sshtools.jajafx.UpdatePage;
 
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
-import javafx.scene.control.DialogPane;
+import javafx.scene.layout.StackPane;
 import uk.co.bithatch.nativeimage.annotations.Bundle;
 import uk.co.bithatch.nativeimage.annotations.Reflectable;
 
 @Bundle
 @Reflectable(all = true)
-public class UpdateDialog extends DialogPane {
-	final static ResourceBundle RESOURCES = ResourceBundle.getBundle(UpdateDialog.class.getName());
+public class UpdatePane extends StackPane {
 	
 	private final UpdatePage<PrettyApp> update;
 
-	public UpdateDialog(AppContext app) {
+	public UpdatePane(AppContext app) {
 		var loader = new FXMLLoader();
 		loader.setResources(UpdatePage.RESOURCES); 
 		try {
@@ -27,7 +25,7 @@ public class UpdateDialog extends DialogPane {
 			update = loader.getController();
 			update.configure(scene, null, (PrettyApp) Pretty.getInstance().getFXApp());
 			update.shown();
-			setContent(scene.getRoot());
+			getChildren().add(scene.getRoot());
 		} catch (IOException e) {
 			throw new UncheckedIOException(e);
 		}

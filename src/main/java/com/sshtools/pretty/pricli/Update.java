@@ -39,7 +39,7 @@ public class Update implements Callable<Integer> {
 		return 0;
 	}
 	
-	@Command(name = "check", aliases = { "c", "chk" }, usageHelpAutoWidth = true, mixinStandardHelpOptions = true, description = "Check for update to this application.")
+	@Command(name = "check", aliases = { "c", "chk" }, usageHelpAutoWidth = true, description = "Check for update to this application.")
 	public static class Check implements Callable<Integer> {
 		
 		@ParentCommand
@@ -60,7 +60,7 @@ public class Update implements Callable<Integer> {
 		}
 	}
 	
-	@Command(name = "install", aliases = { "i", "in" }, usageHelpAutoWidth = true, mixinStandardHelpOptions = true, description = "Download (if required) and install the latest available version.")
+	@Command(name = "install", aliases = { "i", "in" }, usageHelpAutoWidth = true, description = "Download (if required) and install the latest available version.")
 	public static class Install implements Callable<Integer> {
 		
 		@ParentCommand
@@ -84,7 +84,7 @@ public class Update implements Callable<Integer> {
 	}
 
 
-	@Command(name = "phase", aliases = { "p"}, usageHelpAutoWidth = true, mixinStandardHelpOptions = true, description = "Set or show the current update phase.")
+	@Command(name = "phase", aliases = { "p"}, usageHelpAutoWidth = true, description = "Set or show the current update phase.")
 	public static class SetOrGetPhase implements Callable<Integer> {
 
 		@ParentCommand
@@ -104,7 +104,7 @@ public class Update implements Callable<Integer> {
 		}
 	}
 
-	@Command(name = "phases", aliases = { "lp", "ps" }, usageHelpAutoWidth = true, mixinStandardHelpOptions = true, description = "List available update phases.")
+	@Command(name = "phases", aliases = { "lp", "ps" }, usageHelpAutoWidth = true, description = "List available update phases.")
 	public static class ListPhases implements Callable<Integer> {
 
 		

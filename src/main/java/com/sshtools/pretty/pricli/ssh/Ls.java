@@ -20,7 +20,7 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
-@Command(name = "ls", usageHelpAutoWidth = true, mixinStandardHelpOptions = true, description = "List directory")
+@Command(name = "ls", usageHelpAutoWidth = true, description = "List directory")
 public class Ls extends SftpCommand {
 
 	@Option(names = "-l", description = "show files with the long name format")

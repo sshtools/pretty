@@ -7,7 +7,7 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
-@Command(name = "rm", usageHelpAutoWidth = true, mixinStandardHelpOptions = true, description = "Remove file")
+@Command(name = "rm", usageHelpAutoWidth = true, description = "Remove file")
 public class Rm extends SftpCommand {
 	final static ResourceBundle RESOURCES = ResourceBundle.getBundle(Rm.class.getName());
 

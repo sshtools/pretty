@@ -1,11 +1,12 @@
 package com.sshtools.pretty;
 
+import java.io.Closeable;
 import java.util.Optional;
 
 import javafx.scene.Node;
 import javafx.stage.Stage;
 
-public interface TTYContext {
+public interface TTYContext extends Closeable {
 	
 	Node content();
 
@@ -30,5 +31,9 @@ public interface TTYContext {
 	Stage stage();
 
 	Optional<TTY> activeTty();
+
+	void renameTab(TTY tty);
+	
+	void close();
 
 }

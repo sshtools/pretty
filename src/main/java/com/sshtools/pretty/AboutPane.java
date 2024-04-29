@@ -8,15 +8,15 @@ import java.util.ResourceBundle;
 
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.control.DialogPane;
 import javafx.scene.control.Label;
+import javafx.scene.layout.StackPane;
 import uk.co.bithatch.nativeimage.annotations.Bundle;
 import uk.co.bithatch.nativeimage.annotations.Reflectable;
 
 @Bundle
 @Reflectable(all = true)
-public class AboutDialog extends DialogPane {
-	final static ResourceBundle RESOURCES = ResourceBundle.getBundle(AboutDialog.class.getName());
+public class AboutPane extends StackPane {
+	final static ResourceBundle RESOURCES = ResourceBundle.getBundle(AboutPane.class.getName());
 
 	@FXML
 	private Label version;
@@ -26,10 +26,10 @@ public class AboutDialog extends DialogPane {
 
 	private final AppContext app;
 
-	public AboutDialog(AppContext app) {
+	public AboutPane(AppContext app) {
 		this.app = app;
 		
-		var loader = new FXMLLoader(getClass().getResource("AboutDialog.fxml"));
+		var loader = new FXMLLoader(getClass().getResource("AboutPane.fxml"));
 		loader.setController(this);
 		loader.setRoot(this);
 		loader.setResources(RESOURCES);

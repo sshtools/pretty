@@ -16,7 +16,7 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
-@Command(name = "push", usageHelpAutoWidth = true, mixinStandardHelpOptions = true, description = "Push file to remote")
+@Command(name = "push", usageHelpAutoWidth = true, description = "Push file to remote")
 public class Push extends SftpCommand {
 	final static ResourceBundle RESOURCES = ResourceBundle.getBundle(Push.class.getName());
 

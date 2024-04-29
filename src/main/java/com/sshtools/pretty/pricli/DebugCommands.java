@@ -5,7 +5,7 @@ import com.sshtools.pretty.TTYContext;
 
 import picocli.CommandLine.Command;
 
-@Command(name = "debug", description = "Commands for debugging and troubleshooting this application", subcommands = {
+@Command(name = "debug", mixinStandardHelpOptions = true, description = "Commands for debugging and troubleshooting this application", subcommands = {
 		Features.class, Images.class, Debug.class, Fonts.class, Charmap.class })
 public final class DebugCommands extends AbstractRootCommand {
 

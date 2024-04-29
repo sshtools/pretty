@@ -5,7 +5,9 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardWatchEventKinds;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -18,21 +20,29 @@ import com.sshtools.terminal.fonts.TrueTypeFonts;
 
 import javafx.scene.text.Font;
 
-public class Fonts {
+public class Fonts extends AbstractINISetSystem  { 
+	
+	@FunctionalInterface	
+	public interface FontsChangeListener {
+		void changed();
+	}
 
 	static Logger LOG = LoggerFactory.getLogger(Fonts.class);
 
 	private final FontManager<Font> fontManager;
 	private final Map<String, ManagedFont<Font, ?>> userFonts = new HashMap<>();
 	private final TrueTypeFonts<Font> trueTypeFonts;
+	private final Path primaryFontsPath;
+	private final List<FontsChangeListener> listeners = new ArrayList<>(); 
 
 	public Fonts(AppContext ctx, UIToolkit<Font, ?> uiToolkit) {
+		super(ctx, "fonts.d");
 		fontManager = new FontManager.Builder<>(uiToolkit).build();
 		
 		trueTypeFonts = new TrueTypeFonts<>(fontManager, uiToolkit);
 		
-		var primaryFontsPath = ctx.getConfiguration().dir().resolve("fonts");
-		var supplementalFontsPath = ctx.getConfiguration().dir().resolve("supplemental-fonts");
+		primaryFontsPath = ctx.getConfiguration().dir().resolve("fonts.d");
+		var supplementalFontsPath = primaryFontsPath.resolve("supplemental");
 		try {
 			maybeMkdir(primaryFontsPath, supplementalFontsPath);
 			
@@ -42,6 +52,14 @@ public class Fonts {
 		} catch (IOException e) {
 			throw new UncheckedIOException(e);
 		}
+	}
+	
+	public void addListener(FontsChangeListener listener) {
+		listeners.add(listener);
+	}
+	
+	public void removeListener(FontsChangeListener listener) {
+		listeners.remove(listener);
 	}
 
 	public FontManager<Font> getFontManager() {
@@ -82,7 +100,7 @@ public class Fonts {
 				if (isFontFile(fileChanged)) {
 					uiToolkit.runOnToolkitThread(() -> {
 						loadFont(uiToolkit, supplemental, fileChanged);
-						ctx.getConfiguration().put(Constants.FONTS_KEY, getFonts(), Constants.TERMINAL_SECTION);
+						ctx.getConfiguration().terminal().putAll(Constants.FONTS_KEY, getFonts());
 					});
 				}
 			} else if (cb.kind() == StandardWatchEventKinds.ENTRY_DELETE) {
@@ -91,7 +109,8 @@ public class Fonts {
 					if(fnt != null) {
 						fontManager.removeFont(fnt);
 						LOG.info("User font {} removed.", fileChanged);
-						ctx.getConfiguration().put(Constants.FONTS_KEY, getFonts(), Constants.TERMINAL_SECTION);
+						ctx.getConfiguration().terminal().putAll(Constants.FONTS_KEY, getFonts());
+						fireFontsChanged();
 					}
 				}
 			}
@@ -115,11 +134,17 @@ public class Fonts {
 				fnt = trueTypeFonts.addFontResource(null, fileChanged.toFile().toURL().toString(), FontManager.DEFAULT_FONT_SIZE, supplemental);
 				userFonts.put(fileChanged.toString(), fnt);
 				LOG.info("User font {} added.", fileChanged);
+				fireFontsChanged();
 			}
 		} catch (Exception ioe) {
 			LOG.error("Failed to load font.", ioe);
 		}
 		return fnt;
+	}
+	
+	private void fireFontsChanged() {
+		for(int i = listeners.size() - 1 ; i >= 0 ; i--) 
+			listeners.get(i).changed();
 	}
 
 	private void maybeMkdir(Path... paths) throws IOException {

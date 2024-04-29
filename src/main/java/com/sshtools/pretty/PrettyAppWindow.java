@@ -6,25 +6,26 @@ import java.util.ResourceBundle;
 import org.kordamp.ikonli.fontawesome5.FontAwesomeRegular;
 import org.kordamp.ikonli.fontawesome5.FontAwesomeSolid;
 import org.kordamp.ikonli.javafx.FontIcon;
+import org.scenicview.ScenicView;
 
 import com.sshtools.jajafx.JajaFXAppWindow;
 import com.sshtools.jajafx.TitleBar;
+import com.sshtools.jini.Data.Handle;
 
 import javafx.animation.FadeTransition;
-import javafx.beans.property.BooleanProperty;
 import javafx.scene.control.ContextMenu;
-import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.Tooltip;
+import javafx.scene.image.Image;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.MouseButton;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import javafx.stage.WindowEvent;
 import javafx.util.Duration;
-import javafx.util.Pair;
 
 public class PrettyAppWindow extends JajaFXAppWindow<PrettyApp> {
 	private final static ResourceBundle RESOURCES = ResourceBundle.getBundle(PrettyAppWindow.class.getName());
@@ -33,19 +34,28 @@ public class PrettyAppWindow extends JajaFXAppWindow<PrettyApp> {
 	private Label updateIconLabel;
 	private final AppContext ctx;
 	private final TTYContext ttyContext;
+	private final Handle muteHandle;
 
 	public PrettyAppWindow(Stage stage, TTYContext ttyContext, PrettyApp app, AppContext ctx) {
 		super(stage, ttyContext.content(), app);
 		
 		this.ctx = ctx;
 		this.ttyContext = ttyContext;
-
+		
 		scene.getRoot().getStyleClass().add("pretty");
 		scene.setFill(Color.TRANSPARENT);
+		
+		muteHandle = ctx.getConfiguration().bindBoolean(this::updateMuteIcon, null, Constants.MUTE_KEY, Constants.UI_SECTION);
+
 	}
 	
 	public TTYContext ttyContext() {
 		return ttyContext;
+	}
+	
+	public void onClose(WindowEvent evt) {
+		super.onClose(evt);
+		muteHandle.close();
 	}
 
 	public void animateBell() {
@@ -75,19 +85,13 @@ public class PrettyAppWindow extends JajaFXAppWindow<PrettyApp> {
 
 	@Override
 	protected TitleBar createTitleBar() {
-
-		var pretty = (PrettyApp) app;
-		var muteProperty = pretty.getContainer().getConfiguration().getBooleanProperty(Constants.MUTE_KEY,
-				Constants.UI_SECTION);
-		muteProperty.addListener((c, o, n) -> updateMuteIcon(muteProperty));
-
 		var title = super.createTitleBar();
 		title.maximizeVisibleProperty().setValue(true);
 
 		bell = new FontIcon();
 		bell.setIconSize(18);
-		bell.setOnMouseClicked(evt -> muteProperty.set(!muteProperty.get()));
-		updateMuteIcon(muteProperty);
+		bell.setOnMouseClicked(evt -> ctx.getConfiguration().ui().put(Constants.MUTE_KEY,
+				!ctx.getConfiguration().ui().getBoolean(Constants.MUTE_KEY)));
 
 		var shell = new FontIcon();
 		shell.setIconSize(18);
@@ -159,24 +163,34 @@ public class PrettyAppWindow extends JajaFXAppWindow<PrettyApp> {
 					updateIcon.setIconSize(18);
 					updateIcon.setOnMouseClicked(evt -> {
 						for (var wnd : app.getWindows()) {
-							if(wnd.titleBar() != null)
-								((PrettyAppWindow) wnd).removeUpdateIcon(wnd.titleBar());
+							if(wnd instanceof PrettyAppWindow paw) {
+								if(paw.titleBar() != null)
+									paw.removeUpdateIcon(wnd.titleBar());
+							}
 						}
 						
 
-						var updateDialogPane = new UpdateDialog(ctx);
-						var dialog = new Dialog<Pair<String, String>>();
-						dialog.setDialogPane(updateDialogPane);
-						dialog.setTitle(RESOURCES.getString("update"));
-						dialog.initOwner(stage());
-						var window = updateDialogPane.getScene().getWindow();
-						window.setOnCloseRequest(event -> { 
-							window.hide();
-							updateDialogPane.hidden();
-						});
-						updateDialogPane.onRemindMeTomorrow(() -> window.hide());
-						dialog.showAndWait();
+						var updateDialogPane = new UpdatePane(ctx);
 						
+						var stg = new Stage();
+						var wnd = new JajaFXAppWindow<>(stg, updateDialogPane, app, 400, 400);
+						wnd.stage().sizeToScene();
+						wnd.scene().getRoot().setId("update-dialog");
+
+						stg.initOwner(stage());
+//						stg.initModality(Modality.APPLICATION_MODAL);
+
+						stg.getIcons().add(new Image(app.getIcon().toExternalForm()));
+						stg.setResizable(false);
+						stg.setTitle(RESOURCES.getString("update"));
+						try {
+							if(Boolean.getBoolean("jaja.debugScene"))
+								ScenicView.show(stg.getScene());
+						}
+						catch(Throwable e) {
+						}
+						updateDialogPane.onRemindMeTomorrow(() -> stg.hide());
+						stg.showAndWait();
 					});
 
 					ft.setFromValue(1);
@@ -214,9 +228,9 @@ public class PrettyAppWindow extends JajaFXAppWindow<PrettyApp> {
 		}
 	}
 
-	private void updateMuteIcon(BooleanProperty muteProperty) {
+	private void updateMuteIcon(boolean mute) {
 		if (bell != null) {
-			if (muteProperty.get()) {
+			if (mute) {
 				bell.setIconCode(FontAwesomeRegular.BELL_SLASH);
 			} else {
 				bell.setIconCode(FontAwesomeRegular.BELL);

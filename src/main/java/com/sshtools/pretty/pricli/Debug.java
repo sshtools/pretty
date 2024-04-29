@@ -13,10 +13,14 @@ import javafx.application.Platform;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Parameters;
 import picocli.CommandLine.ParentCommand;
+import picocli.CommandLine.Spec;
+import picocli.CommandLine.Help.Ansi;
+import picocli.CommandLine.Model.CommandSpec;
 
 @Command(name = "debug", 
          aliases = {"d"},
          footer = "%nAliases: d",
+         helpCommand =  true,
          usageHelpAutoWidth = true, 
          mixinStandardHelpOptions = true, 
          description = "Debug actions.", 
@@ -26,8 +30,13 @@ public class Debug implements Callable<Integer> {
 	@ParentCommand
 	private DebugCommands parent;
 
+	
+	@Spec
+	private CommandSpec spec;
+
 	@Override
 	public Integer call() throws Exception {
+		spec.commandLine().usage(parent.cli().jline().writer(), Ansi.ON);
 		return 0;
 		
 
@@ -58,7 +67,7 @@ public class Debug implements Callable<Integer> {
 //		}
 	}
 
-	@Command(name = "pack", aliases = {"p"}, usageHelpAutoWidth = true, mixinStandardHelpOptions = true, description = "Pack the window.")
+	@Command(name = "pack", aliases = {"p"}, usageHelpAutoWidth = true, description = "Pack the window.")
 	public final static class Pack implements Callable<Integer> {
 
 		@ParentCommand
@@ -73,7 +82,7 @@ public class Debug implements Callable<Integer> {
 
 	}
 	
-	@Command(name = "open", aliases = {"o"}, usageHelpAutoWidth = true, mixinStandardHelpOptions = true, description = "Parse argument string as if called remotely.")
+	@Command(name = "open", aliases = {"o"}, usageHelpAutoWidth = true, description = "Parse argument string as if called remotely.")
 	public final static class Open implements Callable<Integer> {
 
 		@ParentCommand
@@ -90,7 +99,7 @@ public class Debug implements Callable<Integer> {
 
 	}
 
-	@Command(name = "emulator", aliases = {"e", "em"}, usageHelpAutoWidth = true, mixinStandardHelpOptions = true, description = "Show information about the state of the emulator.")
+	@Command(name = "emulator", aliases = {"e", "em"}, usageHelpAutoWidth = true, description = "Show information about the state of the emulator.")
 	public final static class Emulator implements Callable<Integer> {
 
 		@ParentCommand

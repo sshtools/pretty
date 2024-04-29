@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Hyperlink?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<fx:root type="StackPane" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1">
+   <children>
+      <BorderPane>
+         <center>
+            <ScrollPane hbarPolicy="NEVER" styleClass="tpad" BorderPane.alignment="CENTER">
+               <content>
+                  <AnchorPane minHeight="0.0" minWidth="0.0">
+                     <children>
+                        <VBox fx:id="items" prefHeight="400.0" styleClass="spaced" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                     </children>
+                  </AnchorPane>
+               </content>
+            </ScrollPane>
+         </center>
+         <top>
+            <TextField fx:id="search" BorderPane.alignment="CENTER" />
+         </top>
+         <bottom>
+            <Hyperlink onAction="#dropInActions" text="%dropInActions" BorderPane.alignment="CENTER" />
+         </bottom>
+      </BorderPane>
+   </children>
+</fx:root>

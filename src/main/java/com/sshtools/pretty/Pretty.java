@@ -56,8 +56,6 @@ public class Pretty extends JajaApp<PrettyApp, PrettyAppWindow> {
 	@Option(names = { "-c", "--cwd" }, description = "Working directory for local shells.")
 	private Optional<Path> workingDirectory;
 
-	private final Configuration configuration;
-
 	public final static class PrettyBuilder extends JajaAppBuilder<Pretty, PrettyBuilder, PrettyApp> {
 
 		public static PrettyBuilder create() {
@@ -91,7 +89,6 @@ public class Pretty extends JajaApp<PrettyApp, PrettyAppWindow> {
 
 	Pretty(PrettyBuilder builder) {
 		super(builder);
-		configuration  =new Configuration(Paths.get(System.getProperty("user.home"), ".pretty"));
 	}
 
 	@Override
@@ -112,10 +109,6 @@ public class Pretty extends JajaApp<PrettyApp, PrettyAppWindow> {
 	
 	public Path getDefaultWorkingDirectory() {
 		return workingDirectory.orElseGet(() -> Paths.get(System.getProperty("user.dir")));
-	}
-	
-	public Configuration getConfiguration() {
-		return configuration;
 	}
 
 	public boolean isNoUpdates() {

@@ -11,6 +11,9 @@ import com.sshtools.pretty.Colors;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Parameters;
 import picocli.CommandLine.ParentCommand;
+import picocli.CommandLine.Spec;
+import picocli.CommandLine.Help.Ansi;
+import picocli.CommandLine.Model.CommandSpec;
 
 @Command(name = "tab", 
          aliases = { "t" },
@@ -18,24 +21,28 @@ import picocli.CommandLine.ParentCommand;
          usageHelpAutoWidth = true, 
          mixinStandardHelpOptions = true, 
          description = "Various commands for tabs.", 
-                 subcommands = {Tab.Title.class, Tab.Detach.class, Tab.Color.class})
+                 subcommands = {Tab.Name.class, Tab.Detach.class, Tab.Color.class, Tab.Rename.class})
 public class Tab implements Callable<Integer> {
 	final static ResourceBundle RESOURCES = ResourceBundle.getBundle(Tab.class.getName());
 	@ParentCommand
 	private TerminalCommands parent;
 	
+	@Spec
+	private CommandSpec spec;
+
 	@Override
-	public Integer call() throws Exception {
-		throw new IllegalStateException("Sub-command required.");
+	public final Integer call() throws Exception {  
+		spec.commandLine().usage(parent.cli().jline().writer(), Ansi.ON);
+		return 0;
 	}
 	
-	@Command(name = "title", 
-	         aliases = { "t" },
-	         footer = "Aliases: t",
+	@Command(name = "name", 
+	         aliases = { "n" },
+	         footer = "Aliases: n",
 	         usageHelpAutoWidth = true, 
-	         mixinStandardHelpOptions = true, 
-	         description = "Set or get the tab title.")
-	public final static class Title implements Callable<Integer> {
+	         
+	         description = "Set or get the tab name.")
+	public final static class Name implements Callable<Integer> {
 		@ParentCommand
 		private Tab parent;
 		
@@ -61,7 +68,7 @@ public class Tab implements Callable<Integer> {
 	         aliases = { "c" },
 	         footer = "Aliases: c",
 	         usageHelpAutoWidth = true, 
-	         mixinStandardHelpOptions = true, 
+	         
 	         description = "Set or get the tab color.")
 	public final static class Color implements Callable<Integer> {
 		@ParentCommand
@@ -104,7 +111,7 @@ public class Tab implements Callable<Integer> {
 	         aliases = { "d" },
 	         footer = "Aliases: d",
 	         usageHelpAutoWidth = true, 
-	         mixinStandardHelpOptions = true, 
+	         
 	         description = "Detach the tab, moving it to a new window.")
 	public final static class Detach implements Callable<Integer> {
 		@ParentCommand
@@ -116,6 +123,28 @@ public class Tab implements Callable<Integer> {
 			runLater(() -> {
 				parent.parent.ttyContext().detachTab(parent.parent.tty());
 				parent.parent.cli().close();
+			});
+			return 0;
+		}
+	}
+	
+	@Command(name = "rename", 
+	         aliases = { "r" },
+	         footer = "Aliases: r",
+	         usageHelpAutoWidth = true, 
+	         
+	         description = "Trigger the tab name editor for the current tab..")
+	public final static class Rename implements Callable<Integer> {
+		@ParentCommand
+		private Tab parent;
+		
+		@Override
+		public Integer call() throws Exception {
+			runLater(() -> {
+				parent.parent.cli().close();
+				runLater(() -> {
+					parent.parent.ttyContext().renameTab(parent.parent.tty());
+				});
 			});
 			return 0;
 		}

@@ -38,6 +38,7 @@ import picocli.CommandLine.Model.OptionSpec;
  * @since 4.1.2
  */
 public final class PicocliCommandRegistry implements CommandRegistry {
+
 	private class PicocliCompleter extends ArgumentCompleter implements Completer {
 
 		public PicocliCompleter() {
@@ -48,13 +49,32 @@ public final class PicocliCommandRegistry implements CommandRegistry {
 		public void complete(LineReader reader, ParsedLine commandLine, List<Candidate> candidates) {
 			assert commandLine != null;
 			assert candidates != null;
-			String word = commandLine.word();
-			List<String> words = commandLine.words();
-			CommandLine sub = findSubcommandLine(words, commandLine.wordIndex());
+			var word = commandLine.word();
+			var words = commandLine.words();
+			var sub = findSubcommandLine(words, commandLine.wordIndex());
 			if (sub == null) {
 				return;
 			}
-			if (word.startsWith("-")) {
+			var cmd = sub.getCommand();
+			
+			if(cmd instanceof PricliCompleter pce) {
+				
+				var parsed = sub.parseArgs(wordsToArgs(words));
+				var args = parsed.matchedArgs();
+//				if(args.isEmpty())
+//					return;
+				
+				var um = parsed.unmatched();
+				var pos = parsed.matchedPositionals();
+				var lastArg = args.isEmpty() ? null : args.get(args.size() - 1);
+				pce.complete(reader, commandLine, candidates, parsed, lastArg);
+				System.out.println("Wrds: " + words);
+				System.out.println("Args: " + args);
+				System.out.println("Um: " + um);
+				System.out.println("Pos: " + pos);
+			}
+			
+			else if (word.startsWith("-")) {
 				String buffer = word.substring(0, commandLine.wordCursor());
 				int eq = buffer.indexOf('=');
 				for (OptionSpec option : sub.getCommandSpec().options()) {
@@ -82,6 +102,15 @@ public final class PicocliCommandRegistry implements CommandRegistry {
 					}
 				}
 			}
+		}
+
+		private String[] wordsToArgs(List<String> words) {
+			var nl = new ArrayList<String>(words);
+			nl.remove(0);
+			if(!nl.isEmpty() && nl.get(nl.size() - 1).equals("")) {
+				nl.remove(nl.size() - 1);
+			}
+			return nl.toArray(new String[0]);
 		}
 
 		private void addCandidates(List<Candidate> candidates, Iterable<String> cands) {
@@ -237,6 +266,14 @@ public final class PicocliCommandRegistry implements CommandRegistry {
 		CommandLine out = cmd;
 		for (int i = 0; i < lastIdx; i++) {
 			if (!args.get(i).startsWith("-")) {
+				/*
+				CommandLine nout = findSubcommandLine(out, args.get(i));
+				if (nout == null) {
+					break;
+				}
+				else
+					out = nout;
+					*/
 				out = findSubcommandLine(out, args.get(i));
 				if (out == null) {
 					break;

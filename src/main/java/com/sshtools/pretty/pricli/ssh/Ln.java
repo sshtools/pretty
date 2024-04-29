@@ -4,7 +4,7 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
-@Command(name = "ln", usageHelpAutoWidth = true, mixinStandardHelpOptions = true, description = "Link remote file")
+@Command(name = "ln", usageHelpAutoWidth = true, description = "Link remote file")
 public class Ln extends SftpCommand {
 
 	@Parameters(index = "0", arity = "1", description = "File to link to")

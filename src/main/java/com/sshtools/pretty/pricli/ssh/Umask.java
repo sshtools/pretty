@@ -6,7 +6,7 @@ import java.util.ResourceBundle;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Parameters;
 
-@Command(name = "umask", usageHelpAutoWidth = true, mixinStandardHelpOptions = true, description = "Remove file")
+@Command(name = "umask", usageHelpAutoWidth = true, description = "Remove file")
 public class Umask extends SftpCommand {
 	final static ResourceBundle RESOURCES = ResourceBundle.getBundle(Umask.class.getName());
 

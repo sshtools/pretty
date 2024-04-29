@@ -6,6 +6,9 @@ import com.sshtools.pretty.TTY;
 import com.sshtools.pretty.TTYContext;
 
 import picocli.CommandLine.Command;
+import picocli.CommandLine.Spec;
+import picocli.CommandLine.Help.Ansi;
+import picocli.CommandLine.Model.CommandSpec;
 
 @Command
 public abstract class AbstractRootCommand implements Callable<Integer>, RootCommand {
@@ -13,6 +16,9 @@ public abstract class AbstractRootCommand implements Callable<Integer>, RootComm
 	private final TTYContext ttyContext;
 	private final PricliShell screen;
 	private final TTY tty;
+	
+	@Spec
+	protected CommandSpec spec;
 
 	AbstractRootCommand(TTYContext ttyContext, PricliShell screen, TTY tty) {
 		this.ttyContext = ttyContext;
@@ -34,7 +40,8 @@ public abstract class AbstractRootCommand implements Callable<Integer>, RootComm
 	}
 
 	@Override
-	public Integer call() throws Exception {
+	public final Integer call() throws Exception {  
+		spec.commandLine().usage(tty.cli().jline().writer(), Ansi.ON);
 		return 0;
 	}
 

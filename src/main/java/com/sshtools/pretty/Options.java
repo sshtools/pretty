@@ -1,9 +1,14 @@
 package com.sshtools.pretty;
 
+import static com.sshtools.jajafx.FXUtil.maybeQueue;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.ResourceBundle;
 import java.util.function.Predicate;
 import java.util.prefs.Preferences;
@@ -16,6 +21,8 @@ import com.sshtools.jajafx.FXUtil;
 import com.sshtools.jajafx.JajaFXApp.DarkMode;
 import com.sshtools.jajafx.PrefBind;
 import com.sshtools.jaul.Phase;
+import com.sshtools.jini.Data.Handle;
+import com.sshtools.pretty.Fonts.FontsChangeListener;
 import com.sshtools.pretty.Shells.Shell;
 import com.sshtools.pretty.pricli.Styling;
 import com.sshtools.terminal.emulation.ResizeStrategy;
@@ -25,19 +32,20 @@ import com.sshtools.terminal.emulation.fonts.FontSpec;
 import com.sshtools.terminal.vt.javafx.JavaFXTerminalPanel;
 
 import javafx.beans.binding.Bindings;
-import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.ObjectProperty;
 import javafx.collections.transformation.FilteredList;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.ColorPicker;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.RadioButton;
+import javafx.scene.control.Slider;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.control.Tab;
@@ -46,6 +54,8 @@ import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.util.StringConverter;
 import uk.co.bithatch.nativeimage.annotations.Bundle;
 
@@ -60,7 +70,7 @@ public class Options extends StackPane implements Closeable {
 	@FXML
 	private CheckBox automaticUpdates;
 	@FXML
-	private CheckBox showScrollBar;
+	private CheckBox limitBuffer;
 	@FXML
 	private ComboBox<Phase> phase;
 	@FXML
@@ -90,6 +100,14 @@ public class Options extends StackPane implements Closeable {
 	@FXML
 	private RadioButton prompt;
 	@FXML
+	private RadioButton automaticScrollBar;
+	@FXML
+	private RadioButton permanentScrollBar;
+	@FXML
+	private RadioButton hideScrollBar;
+	@FXML
+	private Slider opacity;
+	@FXML
 	private ListView<TerminalTheme> themes;
 	@FXML
 	private StackPane preview;
@@ -99,14 +117,19 @@ public class Options extends StackPane implements Closeable {
 	private TextArea customCommand;
 	@FXML
 	private ToggleGroup passwords;
+	@FXML
+	private ToggleGroup scrollBarMode;
+	@FXML
+	private VBox scrollBarModes;
+	@FXML
+	private ColorPicker accentColor;
 
 	private final PrefBind prefBind;
 	private final Preferences prefs;
 
-	private final IntegerProperty bufferSizeProperty;
-	private final IntegerProperty fontSizeProperty;
-	private final ObjectProperty<DarkMode> darkModeproperty;
 	private final AppContext app;
+	private final List<Handle> handles = new ArrayList<>();
+	private final FontsChangeListener listener;
 	
 	public Options(AppContext app) {
 		this.app = app;
@@ -147,11 +170,11 @@ public class Options extends StackPane implements Closeable {
 		defaultShell.setConverter(Shells.stringConverter());
 		defaultShell.getSelectionModel().selectedItemProperty().addListener((c,o,n) -> {
 			if(n != null) {
-				cfg.put(Constants.SHELL_KEY,n.id(),  Constants.TERMINAL_SECTION);
+				cfg.terminal().put(Constants.SHELL_KEY,n.id());
 			}
 			updateAvailable();
 		});
-		var initialShellName = cfg.get(Constants.SHELL_KEY, Constants.TERMINAL_SECTION);
+		var initialShellName = cfg.terminal().get(Constants.SHELL_KEY);
 		var initialShell = app.getShells().getById(initialShellName); 
 		if(initialShell.isPresent()) {
 			defaultShell.getSelectionModel().select(initialShell.get());
@@ -164,12 +187,11 @@ public class Options extends StackPane implements Closeable {
 		customCommandOptions.visibleProperty().bind(Bindings.isNull(defaultShell.getSelectionModel().selectedItemProperty()));
 		
 		/* Passwords */
-		var passwordModeProperty = cfg.getEnumProperty(PasswordMode.class, Constants.PASSWORD_MODE_KEY, Constants.UI_SECTION);
 		store.setUserData(PasswordMode.STORE);
 		session.setUserData(PasswordMode.SESSION);
 		prompt.setUserData(PasswordMode.PROMPT);
-		Runnable selectPasswordModeRadios = () -> { 
-			switch(passwordModeProperty.get()) {
+		cfg.bindEnum(PasswordMode.class, (mode) -> { 
+			switch(mode) {
 			case STORE:
 				passwords.selectToggle(store);
 				break;
@@ -180,14 +202,12 @@ public class Options extends StackPane implements Closeable {
 				passwords.selectToggle(prompt);
 				break;
 			}
-		};
+		}, () -> {
+			return PasswordMode.PROMPT;
+		}, Constants.PASSWORD_MODE_KEY, Constants.TERMINAL_SECTION);
 		passwords.selectedToggleProperty().addListener((c,o,n) -> {
-			cfg.put(Constants.PASSWORD_MODE_KEY, (PasswordMode)n.getUserData(), Constants.UI_SECTION);
+			cfg.ui().putEnum(Constants.PASSWORD_MODE_KEY, (PasswordMode)n.getUserData());
 		});
-		passwordModeProperty.addListener((c,o,n) -> {
-			selectPasswordModeRadios.run();
-		});
-		selectPasswordModeRadios.run();
 		
 		/* Themes and Preview terminal */
 		var emulator = new DECEmulator<JavaFXTerminalPanel>(XTERM256Color.ID, 33, 14);
@@ -200,18 +220,21 @@ public class Options extends StackPane implements Closeable {
 		panel.setResizeStrategy(ResizeStrategy.SCREEN);
 		preview.getChildren().add(panel.getControl());
 		
-		var initialTheme = app.getThemes().getOrDefault(cfg.get(Constants.THEME_KEY, Constants.TERMINAL_SECTION));
+		var initialTheme = app.getThemes().getOrDefault(cfg.terminal().get(Constants.THEME_KEY));
 		matchThemeToDarkMode.setSelected(!initialTheme.isConcrete());
 
 		var filteredList = new FilteredList<>(app.getThemes().getAll(), 
 				createFilter() );
 		themes.setItems(filteredList );
 		themes.setCellFactory(lv -> new ThemeCell());
+		handles.add(cfg.bindString(t -> themes.getSelectionModel().select(app.getThemes().getOrDefault(cfg.terminal().get(Constants.THEME_KEY))), 
+				() -> themes.getSelectionModel().getSelectedItem().id(), Constants.THEME_KEY, Constants.TERMINAL_SECTION));
+		
 		themes.getSelectionModel().select(initialTheme);
 		themes.scrollTo(initialTheme);
 		themes.getSelectionModel().selectedItemProperty().addListener((c,o,n) -> {
 			if(n != null) {
-				cfg.put(Constants.THEME_KEY,n.name(),  Constants.TERMINAL_SECTION);
+				cfg.terminal().put(Constants.THEME_KEY,n.id());
 				setupPreviewText(n, panel);
 			}
 		});
@@ -219,7 +242,12 @@ public class Options extends StackPane implements Closeable {
 		matchThemeToDarkMode.selectedProperty().addListener((c, o, n) -> {
 			filteredList.setPredicate(createFilter());
 		});
+
+		/* Opacity */
+		handles.add(cfg.bindInteger(val -> opacity.setValue(val), () -> (int)opacity.getValue(), Constants.OPACITY_KEY, Constants.TERMINAL_SECTION));
+		opacity.valueProperty().addListener((c,o,n) -> cfg.terminal().put(Constants.OPACITY_KEY, n.intValue()));
 		
+		/* Dark Mode */
 		darkMode.getItems().addAll(DarkMode.values());
 		darkMode.setConverter(new StringConverter<DarkMode>() {
 			@Override
@@ -237,8 +265,14 @@ public class Options extends StackPane implements Closeable {
 				return null;
 			}
 		});
+		handles.add(cfg.bind(DarkMode.class, darkMode.getSelectionModel(), Constants.DARK_MODE_KEY, Constants.UI_SECTION));
 		
-		fontName.getItems().addAll(app.getFonts().getFontManager().getFontSpecs());
+		/* Accent color */
+		accentColor.valueProperty().addListener((c,o,n) -> cfg.ui().put(Constants.ACCENT_COLOR_KEY, Colors.toHex(n)));
+		handles.add(cfg.bindString((cstr) -> accentColor.setValue(Colors.parse(cstr, Color.valueOf("#0078d7"))), () -> Colors.toHex(accentColor.getValue()) , Constants.ACCENT_COLOR_KEY, Constants.UI_SECTION));
+
+		/* Font */
+		fontName.getItems().setAll(app.getFonts().getFontManager().getFontSpecs());
 		fontName.setConverter(new StringConverter<FontSpec>() {
 			@Override
 			public String toString(FontSpec object) {
@@ -250,9 +284,32 @@ public class Options extends StackPane implements Closeable {
 				return app.getFonts().getFontManager().getFont(name).spec();
 			}
 		});
+		listener = () -> maybeQueue(() -> fontName.getItems().setAll(app.getFonts().getFontManager().getFontSpecs()));
+		fontName.getSelectionModel().selectedItemProperty().addListener((c,o,n) -> {
+			var cl = new ArrayList<>(Arrays.asList(cfg.terminal().getAllElse(Constants.FONTS_KEY)));
+			if(n != null) {
+				cl.remove(n.getName());
+				cl.add(0, n.getName());
+				cfg.terminal().putAll(Constants.FONTS_KEY, cl.toArray(new String[0]));
+			}
+		});
+		app.getFonts().addListener(listener);
+		  
+//		
 		
+		handles.add(cfg.bindString(fn -> { 
+			var fnt = app.getFonts().getFontManager().getFont(fn);
+			if(fnt == null)
+				fontName.getSelectionModel().select(0);
+			else
+				fontName.getSelectionModel().select(fnt.spec()); 
+		}, () -> fontName.getSelectionModel().getSelectedItem().getName(), Constants.FONTS_KEY, Constants.TERMINAL_SECTION));
+		fontSize.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(6, 256, 6));
+		handles.add(cfg.bind(fontSize.getValueFactory().valueProperty(), Constants.FONT_SIZE_KEY, Constants.TERMINAL_SECTION));
+
+		/* Sizing */
 		resizeStrategy.getItems().addAll(ResizeStrategy.values());
-		resizeStrategy.getSelectionModel().select(ResizeStrategy.SCREEN);
+		handles.add(cfg.bind(ResizeStrategy.class, resizeStrategy.getSelectionModel(), Constants.RESIZE_STRATEGY_KEY, Constants.TERMINAL_SECTION));
 		resizeStrategy.setConverter(new StringConverter<ResizeStrategy>() {
 			@Override
 			public String toString(ResizeStrategy object) {
@@ -268,41 +325,75 @@ public class Options extends StackPane implements Closeable {
 				}
 				return null;
 			}
-		});
-		
-		showScrollBar.selectedProperty().bind(cfg.getBooleanProperty(Constants.SCROLL_BACK_KEY, Constants.TERMINAL_SECTION));
-		
-		loginShell.selectedProperty().bind(cfg.getBooleanProperty(Constants.LOGIN_SHELL_KEY, Constants.TERMINAL_SECTION));
-		loginShell.managedProperty().bind(loginShell.visibleProperty());
-		
-		console.selectedProperty().bind(cfg.getBooleanProperty(Constants.CONSOLE_KEY, Constants.TERMINAL_SECTION));
-		console.managedProperty().bind(console.visibleProperty());
-		
-		legacyPty.selectedProperty().bind(cfg.getBooleanProperty(Constants.LEGACY_PTY_KEY, Constants.TERMINAL_SECTION));
-		legacyPty.managedProperty().bind(legacyPty.visibleProperty());
-		legacyPty.selectedProperty().addListener((c,o,n) -> updateAvailable());
-		
-		fontSizeProperty = cfg.getIntProperty("font-size", Constants.TERMINAL_SECTION);
-		fontSize.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(6, 256, fontSizeProperty.get()));
-		fontSizeProperty.bind(IntegerProperty.integerProperty(fontSize.getValueFactory().valueProperty()));
-		
-		bufferSizeProperty = cfg.getIntProperty(Constants.SCROLL_BACK_SIZE_KEY, Constants.TERMINAL_SECTION);
-		bufferSize.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, Integer.MAX_VALUE, bufferSizeProperty.get()));
-		bufferSizeProperty.bind(IntegerProperty.integerProperty(bufferSize.getValueFactory().valueProperty()));
-		
-		darkModeproperty = cfg.getEnumProperty(DarkMode.class, Constants.DARK_MODE_KEY, Constants.UI_SECTION);
-		darkMode.getSelectionModel().select(darkModeproperty.get());
-		darkModeproperty.bind(darkMode.valueProperty());
+		});		
 		
 		screenSize.getItems().addAll("80x24", "132x24", "80x25");
+		handles.add(cfg.bindString(sz -> screenSize.setValue(sz), () -> screenSize.getValue(), Constants.SCREEN_SIZE_KEY, Constants.TERMINAL_SECTION));
+		screenSize.valueProperty().addListener((c,o,n) -> cfg.terminal().put(Constants.SCREEN_SIZE_KEY, n));
 		screenSize.getSelectionModel().select("80x24");
 
+		/* Scrolling */
+		automaticScrollBar.setUserData(ScrollBarMode.AUTOMATIC);
+		permanentScrollBar.setUserData(ScrollBarMode.PERMANENT);
+		hideScrollBar.setUserData(ScrollBarMode.HIDDEN);
+		cfg.bindEnum(ScrollBarMode.class, (mode) -> { 
+			switch(mode) {
+			case AUTOMATIC:
+				scrollBarMode.selectToggle(automaticScrollBar);
+				break;
+			case PERMANENT:
+				scrollBarMode.selectToggle(permanentScrollBar);
+				break;
+			default:
+				scrollBarMode.selectToggle(hideScrollBar);
+				break;
+			}
+		}, () -> {
+			return (ScrollBarMode)scrollBarMode.getSelectedToggle().getUserData();
+		}, Constants.SCROLL_BAR_KEY, Constants.TERMINAL_SECTION);
+		scrollBarMode.selectedToggleProperty().addListener((c,o,n) -> {
+			cfg.terminal().putEnum(Constants.SCROLL_BAR_KEY, (ScrollBarMode)n.getUserData());
+		});
+		scrollBarModes.visibleProperty().bind(Bindings.or(Bindings.not(limitBuffer.selectedProperty()),  Bindings.notEqual(0, bufferSize.valueProperty())));
+		handles.add(cfg.bind(limitBuffer.selectedProperty(), Constants.LIMIT_BUFFER_KEY, Constants.TERMINAL_SECTION));
+		bufferSize.disableProperty().bind(Bindings.not(limitBuffer.selectedProperty()));
+		
+		bufferSize.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, Integer.MAX_VALUE, 0, 1000));
+		handles.add(cfg.bind(bufferSize.getValueFactory().valueProperty(), Constants.BUFFER_SIZE_KEY, Constants.TERMINAL_SECTION));
+
+		/* Shell */
+		handles.add(cfg.bind(loginShell.selectedProperty(), Constants.LOGIN_SHELL_KEY, Constants.TERMINAL_SECTION));		
+		loginShell.managedProperty().bind(loginShell.visibleProperty());
+
+		handles.add(cfg.bind(console.selectedProperty(), Constants.CONSOLE_KEY, Constants.TERMINAL_SECTION));
+		console.managedProperty().bind(console.visibleProperty());
+
+		handles.add(cfg.bind(legacyPty.selectedProperty(), Constants.LEGACY_PTY_KEY, Constants.TERMINAL_SECTION));		
+		legacyPty.managedProperty().bind(legacyPty.visibleProperty());
+		legacyPty.selectedProperty().addListener((c,o,n) -> updateAvailable());
+
+		/* Java Preferences stuff, i.e. Jaul updates */
 		prefBind = new PrefBind(prefs);
 		prefBind.bind(automaticUpdates);
 		prefBind.bind(Phase.class, phase);
 
 		updateAvailable();
 
+	}
+	
+	@FXML
+	public void dropInShells(ActionEvent evt) {
+		app.getHostServices().showDocument(app.getShells().getDropInPath().toUri().toString());
+	}
+	
+	@FXML
+	public void dropInFonts(ActionEvent evt) {
+		app.getHostServices().showDocument(app.getFonts().getDropInPath().toUri().toString());
+	}
+	
+	@FXML
+	public void dropInThemes(ActionEvent evt) {
+		app.getHostServices().showDocument(app.getThemes().getDropInPath().toUri().toString());
 	}
 	
 	private void updateAvailable() {
@@ -313,7 +404,7 @@ public class Options extends StackPane implements Closeable {
 	}
 	
 	private void setupPreviewText(TerminalTheme theme, JavaFXTerminalPanel panel) {
-		var actual = app.getThemes().resolve(theme.name());
+		var actual = app.getThemes().resolve(theme.id());
 		actual.apply(panel, 100); 
 		var emu = panel.getViewport();
 		emu.clearScreen();
@@ -342,9 +433,9 @@ public class Options extends StackPane implements Closeable {
 
 	@Override
 	public void close() {
-		fontSizeProperty.unbind();
-		bufferSizeProperty.unbind();
-		darkModeproperty.unbind();
+		app.getFonts().removeListener(listener);
+		handles.forEach(Handle::close);
+		handles.clear();
 		prefBind.close();
 	}
 

@@ -66,8 +66,8 @@ public class Fonts implements Callable<Integer> {
 				
 				mgr.move(fnt, no - 1);
 				
-				parent.ttyContext().getContainer().getConfiguration().put("fonts", mgr.getFonts(true).stream().
-						map(f -> f.spec().getName()).toList().toArray(new String[0]), Constants.TERMINAL_SECTION);
+				parent.ttyContext().getContainer().getConfiguration().terminal().putAll(Constants.FONTS_KEY, mgr.getFonts(true).stream().
+						map(f -> f.spec().getName()).toList().toArray(new String[0]));
 				
 				parent.cli().result(RESOURCES.getString("saved"));
 			}

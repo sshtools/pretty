@@ -2,11 +2,6 @@ package com.sshtools.pretty;
 
 import static com.sshtools.terminal.emulation.VDUColor.fromString;
 
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.UncheckedIOException;
-import java.nio.file.NoSuchFileException;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -16,10 +11,7 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.sshtools.jini.INI;
 import com.sshtools.jini.INI.Section;
-import com.sshtools.jini.INIReader;
-import com.sshtools.jini.INIReader.MultiValueMode;
 import com.sshtools.terminal.emulation.Colors;
 import com.sshtools.terminal.emulation.Colors.Size;
 import com.sshtools.terminal.emulation.VDUColor;
@@ -48,6 +40,7 @@ public class TerminalTheme {
 	final static String BACKGROUND_COLOR = "bg";
 	final static String FOREGROUND_COLOR = "fg";
 	final static String DESCRIPTION = "description";
+	final static String NAME = "name";
 	final static String COLOR_PRINTING = "color-printing";
 	final static String CURSOR_FOREGROUND = "cursor-fg";
 	final static String CURSOR_BACKGROUND = "cursor-bg";
@@ -64,17 +57,12 @@ public class TerminalTheme {
 	private static final String TYPE_ABSTRACT = "abstract";
 	private static final String TYPE_CONCRETE = "concrete";
 
-	private String name;
+	private final Section properties;
+	private final AppContext app;
 
-	private String path;
-
-	private INI properties;
-	private AppContext app;
-
-	TerminalTheme(AppContext app, String name, String path) {
+	TerminalTheme(AppContext app, Section properties) {
 		this.app = app;
-		this.name = name;
-		this.path = path;
+		this.properties = properties;
 	}
 
 	public void apply(JavaFXTerminalPanel terminalPanel, int bgAlphaPercent) {
@@ -336,7 +324,7 @@ public class TerminalTheme {
 	}
 
 	public String description() {
-		return ini().sectionOr(META).map(sec -> sec.get(DESCRIPTION, name())).orElse(name());
+		return ini().sectionOr(META).map(sec -> sec.get(DESCRIPTION, id())).orElse(id());
 	}
 
 	public VDUColor background() {
@@ -363,10 +351,11 @@ public class TerminalTheme {
 		if (getClass() != obj.getClass())
 			return false;
 		TerminalTheme other = (TerminalTheme) obj;
-		if (name == null) {
-			if (other.name != null)
+		String id = id();
+		if (id == null) {
+			if (other.id() != null)
 				return false;
-		} else if (!name.equals(other.name))
+		} else if (!id.equals(other.id()))
 			return false;
 		return true;
 	}
@@ -376,32 +365,24 @@ public class TerminalTheme {
 		return tprops.getOr(FOREGROUND_COLOR).map(VDUColor::fromString).orElseGet(() -> VDUColor.BLACK);
 	}
 
+	public String id() {
+		return properties.key();
+	}
+
 	public String name() {
-		return name;
+		return ini().sectionOr(META).map(sec -> sec.get(NAME, id())).orElse(id());
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		String id = id();
+		result = prime * result + ((id == null) ? 0 : id.hashCode());
 		return result;
 	}
 
-	public INI ini() {
-		if (properties == null) {
-			var is = TerminalTheme.class.getResourceAsStream(path);
-			if (is == null)
-				throw new UncheckedIOException(
-						new NoSuchFileException(String.format("No such theme resource %s for theme %s", path, name)));
-			try (var in = new InputStreamReader(is, "UTF-8")) {
-				return new INIReader.Builder().withMultiValueMode(MultiValueMode.SEPARATED).build().read(in);
-			} catch (IOException ioe) {
-				throw new UncheckedIOException("Failed to load themes.", ioe);
-			} catch (ParseException pe) {
-				throw new IllegalArgumentException("Failed parse theme file.", pe);
-			}
-		}
+	public Section ini() {
 		return properties;
 	}
 
@@ -495,7 +476,7 @@ public class TerminalTheme {
 
 	@Override
 	public String toString() {
-		return name;
+		return name();
 	}
 
 	protected void generate(Section sec, VDUColor[] allColors, VDUColor[] defaultCols) {

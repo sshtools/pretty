@@ -290,6 +290,7 @@ public class ConsoleProtocol implements TerminalProtocol, ResizeListener, Elemen
 	public void bufferResized(TerminalViewport<?, ?, ?> terminal, int columns, int rows, boolean remote) {
 		if (!remote) {
 			synchronized(pty) {
+				System.out.println("Setting windows size " + columns + " : " + rows);
 				pty.setWinSize(new WinSize(columns, rows));
 			}
 		}

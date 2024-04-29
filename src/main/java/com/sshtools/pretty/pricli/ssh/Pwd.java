@@ -7,7 +7,7 @@ import com.sshtools.pretty.pricli.Styling;
 
 import picocli.CommandLine.Command;
 
-@Command(name = "pwd", usageHelpAutoWidth = true, mixinStandardHelpOptions = true, description = "Display current remote directory")
+@Command(name = "pwd", usageHelpAutoWidth = true, description = "Display current remote directory")
 public class Pwd extends SftpCommand {
 	final static ResourceBundle RESOURCES = ResourceBundle.getBundle(Pwd.class.getName());
 

@@ -2,10 +2,12 @@ package com.sshtools.pretty;
 
 import java.net.URL;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.prefs.Preferences;
 
+import com.sshtools.jajafx.JajaFXAppWindow;
 import com.sshtools.jaul.UpdateService;
 import com.sshtools.terminal.emulation.UIToolkit;
 
@@ -22,6 +24,8 @@ public interface AppContext {
 	Monitor monitor();
 	
 	void options(Stage owner);
+	
+	void actions(Optional<String> filter);
 
 	TerminalTheme getSelectedTheme();
 	
@@ -44,6 +48,8 @@ public interface AppContext {
 	boolean isDarkMode();
 
 	URL getIcon();
+	
+	List<JajaFXAppWindow<PrettyApp>> getWindows();
 
 	void addCommonStylesheets(ObservableList<String> stylesheets);
 
@@ -58,8 +64,12 @@ public interface AppContext {
 	Path getDefaultWorkingDirectory();
 	
 	Shells getShells();
+	
+	Actions getActions();
 
 	void open(String... args);
 
 	ScheduledExecutorService scheduler();
+
+	CustomCSS customCSS();
 }

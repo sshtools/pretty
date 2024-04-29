@@ -6,7 +6,7 @@ import java.util.ResourceBundle;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Parameters;
 
-@Command(name = "rmdir", usageHelpAutoWidth = true, mixinStandardHelpOptions = true, description = "Remove directory")
+@Command(name = "rmdir", usageHelpAutoWidth = true, description = "Remove directory")
 public class Rmdir extends SftpCommand {
 	final static ResourceBundle RESOURCES = ResourceBundle.getBundle(Rmdir.class.getName());
 

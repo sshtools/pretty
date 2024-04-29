@@ -8,10 +8,11 @@
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.text.Font?>
 
-<fx:root type="DialogPane" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1">
-   <content>
+<fx:root type="StackPane" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1">
+	<children>
       <VBox alignment="CENTER" prefWidth="400.0" styleClass="largeSpaced">
          <children>
             <ImageView fitHeight="150.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true">
@@ -30,5 +31,5 @@
             <Label fx:id="copyright" layoutX="10.0" layoutY="192.0" text="%copyright" />
          </children>
       </VBox>
-   </content>
+   </children>
 </fx:root>

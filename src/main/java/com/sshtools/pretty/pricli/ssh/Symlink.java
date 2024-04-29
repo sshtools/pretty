@@ -3,7 +3,7 @@ package com.sshtools.pretty.pricli.ssh;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Parameters;
 
-@Command(name = "symlink", usageHelpAutoWidth = true, mixinStandardHelpOptions = true, description = "Symlink remote file")
+@Command(name = "symlink", usageHelpAutoWidth = true, description = "Symlink remote file")
 public class Symlink extends SftpCommand {
 
 	@Parameters(index = "0", arity = "1", description = "File to link to")

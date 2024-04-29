@@ -22,7 +22,7 @@ import picocli.CommandLine.Parameters;
 
 @Command(name = "ssh", 
          usageHelpAutoWidth = true, 
-         mixinStandardHelpOptions = true, 
+         
          description = "Make SSH connection to remote host.")
 public class Ssh extends AbstractSshCommand {
 	final static ResourceBundle RESOURCES = ResourceBundle.getBundle(Ssh.class.getName());

@@ -1,14 +1,10 @@
 package com.sshtools.pretty.pricli;
 
-import static javafx.application.Platform.runLater;
-
 import java.text.MessageFormat;
-import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.concurrent.Callable;
 
-import javafx.scene.input.Clipboard;
-import javafx.scene.input.DataFormat;
+import javafx.scene.input.ClipboardContent;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.ParentCommand;
 
@@ -33,7 +29,9 @@ public class Copy implements Callable<Integer> {
 		}
 		if (sel == null)
 			throw new IllegalStateException(RESOURCES.getString("empty"));
-		runLater(() -> Clipboard.getSystemClipboard().setContent(Map.of(DataFormat.PLAIN_TEXT, sel)));
+		var content = new ClipboardContent();
+		content.putString(sel);
+		parent.tty().setClipboard(content);
 		parent.cli().result(MessageFormat.format(RESOURCES.getString("copied"), sel.length()));
 		return 0;
 	}

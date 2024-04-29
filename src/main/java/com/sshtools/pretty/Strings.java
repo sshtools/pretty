@@ -8,6 +8,10 @@ import org.jline.utils.AttributedStyle;
 
 public class Strings {
 	
+	public static String toEnumName(String str) {
+		return str.toUpperCase().replace('-', '_').replace(' ', '_');
+	}
+	
 	public static String trimPad(String str, int len) {
 		if(str == null)
 			return null;
@@ -42,6 +46,26 @@ public class Strings {
 			return (int)charSpec.charAt(1);
 		} else {
 			throw new IllegalArgumentException("Illeged character spec.");
+		}
+	}
+
+	public static String formatQuotedArgs(String commandName, String... args) {
+		var f = new StringBuilder(quoteArg(commandName));
+		if(args.length > 0) {
+			for(var arg : args) {
+				f.append(' ');
+				f.append(quoteArg(arg));
+			}
+		}
+		return f.toString();
+	}
+	
+	public static String quoteArg(String str) {
+		if(str.contains("\"") || str.contains(" ") || str.contains("\t")) {
+			return "\"" + str.replace("\\", "\\\\").replace("\"", "\\\"") + "\"";
+		}
+		else {
+			return str;
 		}
 	}
 	

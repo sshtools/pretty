@@ -43,8 +43,7 @@ public class TTYAudioSystem extends JavaFXAudioSystem {
 	}
 
 	protected boolean isMuted() {
-		return tty.ttyContext().getContainer().getConfiguration().getBoolean(Constants.MUTE_KEY,
-				Constants.UI_SECTION);
+		return tty.ttyContext().getContainer().getConfiguration().ui().getBoolean(Constants.MUTE_KEY);
 	}
 
 	@Override

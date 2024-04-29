@@ -7,8 +7,8 @@ import picocli.CommandLine.Command;
 
 @Command(name = "", description = "Pricli, (or 'Pretty Interactive Command Line Interface')", 
 		subcommands = {
-		About.class,  
-		SetConfig.class, Show.class, Quit.class, ClearSubshell.class, Update.class })
+		About.class,  Actions.class,
+		Set.class, Options.class, Quit.class, ClearSubshell.class, Update.class, Subshell.class })
 public final class PricliCommands extends AbstractRootCommand {
 
 	PricliCommands(TTYContext ttyContext, PricliShell screen, TTY tty) {

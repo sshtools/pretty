@@ -11,7 +11,7 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
-@Command(name = "get", usageHelpAutoWidth = true, mixinStandardHelpOptions = true, description = "Download remote file")
+@Command(name = "get", usageHelpAutoWidth = true, description = "Download remote file")
 public class Get extends SftpCommand implements Callable<Integer> {
 	final static ResourceBundle RESOURCES = ResourceBundle.getBundle(Get.class.getName());
 

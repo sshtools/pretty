@@ -16,7 +16,7 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
-@Command(name = "pull", usageHelpAutoWidth = true, mixinStandardHelpOptions = true, description = "Pull file from remote")
+@Command(name = "pull", usageHelpAutoWidth = true, description = "Pull file from remote")
 public class Pull extends SftpCommand {
 	final static ResourceBundle RESOURCES = ResourceBundle.getBundle(Pull.class.getName());
 

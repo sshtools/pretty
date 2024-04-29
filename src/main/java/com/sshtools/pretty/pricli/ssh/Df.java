@@ -12,7 +12,7 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
-@Command(name = "df", usageHelpAutoWidth = true, mixinStandardHelpOptions = true, description = "Display current remote directory")
+@Command(name = "df", usageHelpAutoWidth = true, description = "Display current remote directory")
 public class Df extends SftpCommand {
 	final static ResourceBundle RESOURCES = ResourceBundle.getBundle(Df.class.getName());
 	

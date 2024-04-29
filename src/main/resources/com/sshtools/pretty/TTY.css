@@ -1,8 +1,9 @@
-.terminal-roots {
-	-fx-background-color: -fx-terminal-bg;
+.terminal-canvases {
+	-fx-cursor: text;
 }
 
-.terminal-anchors {	
+.vdu {
+	-fx-background-color: -fx-terminal-bg;
 }
 
 #terminal-tabs .tab-header-background {
@@ -16,4 +17,76 @@
 	-fx-font-weight: bold;
 	-fx-padding: 8px;
 	-fx-background-radius: 8px;
+}
+
+.vdu-scroll-bar {
+    -fx-background-color: transparent;
+}
+
+/*
+.vdu-scroll-bar.auto-hide {
+    -fx-opacity: 0;
+}
+
+.vdu-scroll-bar.auto-hide:hover, .vdu-scroll-bar.auto-hide:pressed {
+    -fx-opacity: 1;
+} */
+
+.vdu-scroll-bar > .thumb {
+    -fx-background-insets: 4;
+    -fx-background-radius: 4;
+}
+
+.vdu-scroll-bar:hover > .thumb, .vdu-scroll-bar:pressed > .thumb {
+    -fx-background-color: accent_color;
+	
+}
+.vdu-scroll-bar > .track {
+    -fx-background-color: track_color;
+    -fx-background-insets: 6;
+    -fx-background-radius: 0;
+}
+.vdu-scroll-bar > .track-background {
+    -fx-background-color: transparent;
+}
+
+/* All this to remove the scroll buttons! https://stackoverflow.com/questions/70513411/how-do-i-remove-scroll-buttons-from-scroll-bar-in-a-scrollpane-javafx */
+
+.vdu-scroll-bar:vertical {
+    -fx-pref-width: 1.12em;
+}
+.vdu-scroll-bar:horizontal {
+    -fx-pref-height: 1.12em;
+}
+.scroll-pane > .vdu-scroll-bar:horizontal > .increment-button,
+.scroll-pane > .vdu-scroll-bar:horizontal > .decrement-button {
+    -fx-padding: 0.0 0.0 0.0 0.0;
+}
+.scroll-pane > .vdu-scroll-bar:vertical > .increment-button,
+.scroll-pane > .vdu-scroll-bar:vertical > .decrement-button {
+    -fx-padding: 0.0 0.0 0.0 0.0;
+}
+.vdu-scroll-bar > .increment-button,
+.vdu-scroll-bar > .decrement-button {
+    -fx-padding: 0.0 0.0 0.0 0.0;
+}
+.vdu-scroll-bar:horizontal > .increment-button,
+.vdu-scroll-bar:horizontal > .decrement-button {
+    -fx-background-insets: 0.0 0.0 0.0 0.0 , 0.0 0.0 0.0 0.0, 0.0 0.0 0.0 0.0, 0.0 0.0 0.0 0.0 0.0;
+}
+.vdu-scroll-bar:vertical > .increment-button,
+.vdu-scroll-bar:vertical > .decrement-button {
+    -fx-background-insets: 0.0 0.0 0.0 0.0, 0.0 0.0 0.0 0.0, 0.0 0.0 0.0 0.0;
+}
+.vdu-scroll-bar:horizontal > .decrement-button > .decrement-arrow {
+    -fx-padding: 0.0 0.0 0.0 0.0;
+}
+.vdu-scroll-bar:horizontal > .increment-button > .increment-arrow {
+    -fx-padding: 0.0 0.0 0.0 0.0;
+}
+.vdu-scroll-bar:vertical > .decrement-button > .decrement-arrow {
+    -fx-padding: 0.0 0.0 0.0 0.0;
+}
+.vdu-scroll-bar:vertical > .increment-button > .increment-arrow {
+    -fx-padding: 0.0 0.0 0.0 0.0;
 }

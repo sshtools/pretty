@@ -5,6 +5,7 @@ import static com.sshtools.jajafx.FXUtil.maybeQueue;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.concurrent.Callable;
@@ -29,28 +30,21 @@ import com.sshtools.terminal.vt.javafx.JavaFXUIToolkit;
 
 import javafx.application.HostServices;
 import javafx.application.Platform;
-import javafx.beans.property.ObjectProperty;
 import javafx.collections.ObservableList;
-import javafx.scene.control.Dialog;
+import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.Window;
-import javafx.util.Pair;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import uk.co.bithatch.nativeimage.annotations.Bundle;
 import uk.co.bithatch.nativeimage.annotations.Reflectable;
-import uk.co.bithatch.nativeimage.annotations.Resource;
 
 @Bundle
-@Resource({ "themes.properties", "themes/black-on-light-yellow.properties", "themes/black-on-white.properties",
-		"themes/green-on-black.properties", "themes/grey-on-black.properties", "themes/solarized-dark.properties",
-		"themes/solarized-light.properties", "themes/tango-dark.properties", "themes/tango-light.properties",
-		"themes/white-onblack.properties", })
 @Reflectable
 public class PrettyApp extends JajaFXApp<Pretty, PrettyAppWindow> implements Listener {
 
@@ -59,10 +53,8 @@ public class PrettyApp extends JajaFXApp<Pretty, PrettyAppWindow> implements Lis
 
 	private final JavaFXUIToolkit uiToolkit;
 	private final AppContextImpl appContext;
-	private final ObjectProperty<DarkMode> darkModeProperty;
 	private final Fonts fonts;
 
-	private boolean optionsVisible; 
 	private static final ThreadLocal<Optional<TTYRequest>> openingRequest = new ThreadLocal<>();
 
 	public PrettyApp() {
@@ -75,7 +67,6 @@ public class PrettyApp extends JajaFXApp<Pretty, PrettyAppWindow> implements Lis
 		fonts = new Fonts(appContext, uiToolkit);
 		setDefaultStandardWindowDecorations(false);
 		setShowFrameTitle(true);
-		darkModeProperty = getContainer().getConfiguration().getEnumProperty(DarkMode.class, Constants.DARK_MODE_KEY, Constants.UI_SECTION);
 //		new EmojiFonts<Font>(fontManager);
 		StartupNotification.registerStartupListener(this);
 	}
@@ -83,14 +74,18 @@ public class PrettyApp extends JajaFXApp<Pretty, PrettyAppWindow> implements Lis
 	public static void main(String[] args) {
 		launch(args);
 	}
-
+	
 	@Override
 	public void needUpdate() {
-		maybeQueue(() -> getWindows().forEach(wnd -> ((PrettyAppWindow) wnd).updateUpdatesState()));
+		maybeQueue(() -> getWindows().forEach(wnd -> {
+			if(wnd instanceof PrettyAppWindow paw)
+				paw.updateUpdatesState(); 
+		}));
 	}
 
 	@Override
 	public void addCommonStylesheets(ObservableList<String> stylesheets) {
+		FXUtil.addIfNotAdded(stylesheets, appContext.customCSS().managedStyles().toUri().toString());
 		var appResource = getClass().getResource("Pretty.css");
 		if (appResource != null) {
 			FXUtil.addIfNotAdded(stylesheets, appResource.toExternalForm());
@@ -124,7 +119,7 @@ public class PrettyApp extends JajaFXApp<Pretty, PrettyAppWindow> implements Lis
 
 	@Override
 	protected DarkMode getDarkMode() {
-		return darkModeProperty.get();
+		return appContext.getConfiguration().ui().getEnum(DarkMode.class, Constants.DARK_MODE_KEY);
 	}
 
 	@Override
@@ -153,7 +148,7 @@ public class PrettyApp extends JajaFXApp<Pretty, PrettyAppWindow> implements Lis
 
 	@Override
 	protected void listenForDarkModeChanges() {
-		darkModeProperty.addListener((c,o,n) -> updateDarkMode());
+		appContext.getConfiguration().bindEnum(DarkMode.class, dm -> updateDarkMode(), null, Constants.DARK_MODE_KEY, Constants.UI_SECTION);
 	}
 
 	@Command(name = "pretty-remote", mixinStandardHelpOptions = true, description = "Remote control of pretty", versionProvider = Pretty.Version.class)
@@ -187,15 +182,33 @@ public class PrettyApp extends JajaFXApp<Pretty, PrettyAppWindow> implements Lis
 
 		private final Themes themes;
 		private final Shells shells;
+		private final Actions actions;
 		private final Monitor monitor;
 		private final SecretStorage passwords;
+		private final Configuration configuration;
+		private JajaFXAppWindow<?> optionsWindow;
+		private JajaFXAppWindow<?> actionsOverviewWindow;
+		private final CustomCSS customCSS;
 
 		AppContextImpl() {
-			themes = new Themes(this);
 			monitor = new Monitor(this);
-			shells = new Shells(monitor, getConfiguration().dir());
+			configuration  =new Configuration(monitor);
+			themes = new Themes(this, monitor);
+			shells = new Shells(this, monitor);
+			actions = new Actions(this, monitor);
 			passwords = new DefaultSecretStorage(this);
-			getConfiguration().monitor(monitor);
+			customCSS = new CustomCSS(this);
+			
+		}
+
+		@Override
+		public List<JajaFXAppWindow<PrettyApp>> getWindows() {
+			return PrettyApp.this.getWindows();
+		}
+
+		@Override
+		public CustomCSS customCSS() {
+			return customCSS;
 		}
 
 		@Override
@@ -219,6 +232,11 @@ public class PrettyApp extends JajaFXApp<Pretty, PrettyAppWindow> implements Lis
 		}
 
 		@Override
+		public Actions getActions() {
+			return actions;
+		}
+
+		@Override
 		public PrettyAppWindow newAppWindow(Stage stage, Optional<TTYRequest> request) {
 			var was =  openingRequest.get();
 			openingRequest.set(request);
@@ -233,48 +251,30 @@ public class PrettyApp extends JajaFXApp<Pretty, PrettyAppWindow> implements Lis
 		@Override
 		public void options(Stage owner) {
 
-			if (optionsVisible)
-				return;
-			optionsVisible = true;
 			Platform.runLater(() -> {
-				try {
+				if(optionsWindow == null) {
 					var options = new Options(this);
-
-					var dialog = new Dialog<Pair<String, String>>();
-
-					dialog.setHeaderText(RESOURCES.getString("optionsText"));
-					dialog.initOwner(owner);
-					dialog.initModality(Modality.NONE);
-
-					var fi = new FontIcon();
-					fi.setIconCode(FontAwesomeSolid.COGS);
-					fi.setIconSize(48);
-					dialog.setGraphic(fi);
-
-					var scene = dialog.getDialogPane();
-					var window = dialog.getDialogPane().getScene().getWindow();
-					dialog.setTitle(" ");
-					window.setOnCloseRequest(event -> window.hide());
-					PrettyApp.this.updateRootStyles(window.getScene().getRoot());
 					
+					var stg = new Stage();
+					optionsWindow = new JajaFXAppWindow<>(stg, options, PrettyApp.this, 640, 680);
+
+					stg.getIcons().add(new Image(appContext.getIcon().toExternalForm()));
+					stg.setResizable(false);
+					stg.setTitle(RESOURCES.getString("optionsText"));
+					stg.show();
 					try {
 						if(Boolean.getBoolean("jaja.debugScene"))
-							ScenicView.show(scene);
+							ScenicView.show(stg.getScene());
 					}
 					catch(Throwable e) {
-					}
-
-					scene.setContent(options);
-					try {
-						dialog.showAndWait();
-					} finally {
-						options.close();
-						optionsVisible = false;
-					}
-				} catch (Exception e) {
-					LOG.error("Failed to show options.", e);
+					}					
 				}
-
+				else if(optionsWindow.stage().isShowing()) {
+					optionsWindow.stage().toFront();
+				}
+				else  {
+					optionsWindow.stage().show();
+				}
 			});
 		}
 
@@ -285,29 +285,78 @@ public class PrettyApp extends JajaFXApp<Pretty, PrettyAppWindow> implements Lis
 
 		@Override
 		public TerminalTheme getSelectedTheme() {
-			var prefs = getContainer().getConfiguration();
-			return themes.resolve(prefs.get(Constants.THEME_KEY, Constants.TERMINAL_SECTION));
+			return themes.resolve(configuration.terminal().get(Constants.THEME_KEY));
 		}
 
 		@Override
 		public void about(Stage owner) {
-
 			Platform.runLater(() -> {
-				var options = new AboutDialog(this);
-				var dialog = new Dialog<Pair<String, String>>();
-				dialog.setDialogPane(options);
-				dialog.setTitle(RESOURCES.getString("about"));
-				dialog.initOwner(owner);
-				var window = options.getScene().getWindow();
-				window.setOnCloseRequest(event -> window.hide());
-				dialog.showAndWait();
-			});
+					var actions = new AboutPane(this);
+					
+					var stg = new Stage();
+					var wnd = new JajaFXAppWindow<>(stg, actions, PrettyApp.this, 400, 400);
+					wnd.scene().getRoot().setId("about-dialog");
 
+					stg.initOwner(owner);
+					stg.initModality(Modality.APPLICATION_MODAL);
+
+					stg.getIcons().add(new Image(appContext.getIcon().toExternalForm()));
+					stg.setResizable(false);
+					stg.setTitle(RESOURCES.getString("about"));
+					try {
+						if(Boolean.getBoolean("jaja.debugScene"))
+							ScenicView.show(stg.getScene());
+					}
+					catch(Throwable e) {
+					}
+					stg.showAndWait();
+			});
+			
+		}
+
+		@Override
+		public void actions(Optional<String> filter) {
+			
+			Platform.runLater(() -> {
+				if(actionsOverviewWindow == null) {
+					var actions = new ActionsPane(this, filter);
+					
+					var stg = new Stage();
+					actionsOverviewWindow = new JajaFXAppWindow<>(stg, actions, PrettyApp.this, 520, 600);
+					
+					var toggleSearch = new FontIcon();
+					toggleSearch.setIconSize(18);
+					toggleSearch.setOnMouseClicked(evt -> {
+						actions.searchVisibleProperty().set(!actions.searchVisibleProperty().get());
+					} );
+					toggleSearch.setIconCode(FontAwesomeSolid.SEARCH);
+					
+					actionsOverviewWindow.titleBar().addAccessories(toggleSearch);
+
+					stg.getIcons().add(new Image(appContext.getIcon().toExternalForm()));
+					stg.setMaxWidth(520);
+					stg.setMinWidth(520);
+					stg.setTitle(RESOURCES.getString("actions"));
+					stg.show();
+					try {
+						if(Boolean.getBoolean("jaja.debugScene"))
+							ScenicView.show(stg.getScene());
+					}
+					catch(Throwable e) {
+					}					
+				}
+				else if(actionsOverviewWindow.stage().isShowing()) {
+					actionsOverviewWindow.stage().toFront();
+				}
+				else  {
+					actionsOverviewWindow.stage().show();
+				}
+			});
 		}
 
 		@Override
 		public Configuration getConfiguration() {
-			return PrettyApp.this.getContainer().getConfiguration();
+			return configuration;
 		}
 
 		@Override

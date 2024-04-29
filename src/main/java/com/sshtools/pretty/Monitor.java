@@ -10,12 +10,23 @@ import java.nio.file.WatchEvent;
 import java.nio.file.WatchEvent.Kind;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * A file monitoring service. Several subsystems such as {@link Shell},
+ * {@link Themes} and {@link Configuration} all use this via an {@link INISet}
+ * to monitor for file changes.
+ * <p>
+ * The base Java file monitoring facilities can only have on key per directoiry
+ * path, so multiple clients cannot monitor the same directory. This class
+ * allows that to happen.
+ */
 public class Monitor {
 
 	@FunctionalInterface
@@ -36,7 +47,8 @@ public class Monitor {
 	}
 
 	private final WatchService watchService;
-	private final Map<WatchKey, Wrapped> callbacks = Collections.synchronizedMap(new HashMap<>());
+	private final Map<WatchKey, List<Wrapped>> callbacks = Collections.synchronizedMap(new HashMap<>());
+	private final Map<Path, WatchKey> pathToWatchKey = Collections.synchronizedMap(new HashMap<>());
 	private final Map<String, Waiting> pending = Collections.synchronizedMap(new HashMap<>());
 
 	@SuppressWarnings("unchecked")
@@ -67,7 +79,7 @@ public class Monitor {
 						}
 
 						var path = (Path) event.context();
-						var full = onChange.dir.resolve(path);
+						var full = onChange.get(0).dir.resolve(path);
 						var fullStr = full.toString();
 						var pnd = pending.get(fullStr);
 
@@ -77,7 +89,7 @@ public class Monitor {
 							}
 							pending.put(fullStr, new Waiting(ctx.scheduler().schedule(() -> {
 								synchronized (pending) {
-									onChange.callback.onChange((WatchEvent<Path>) event);
+									onChange.forEach(w -> w.callback.onChange((WatchEvent<Path>) event));
 									pending.remove(fullStr);
 								}
 							}, 1, TimeUnit.MILLISECONDS), kind));
@@ -87,7 +99,7 @@ public class Monitor {
 							}
 							pending.put(fullStr, new Waiting(ctx.scheduler().schedule(() -> {
 								synchronized (pending) {
-									onChange.callback.onChange((WatchEvent<Path>) event);
+									onChange.forEach(w -> w.callback.onChange((WatchEvent<Path>) event));
 									pending.remove(fullStr);
 								}
 							}, 1, TimeUnit.SECONDS), kind));
@@ -98,14 +110,14 @@ public class Monitor {
 								}
 								pending.put(fullStr, new Waiting(ctx.scheduler().schedule(() -> {
 									synchronized (pending) {
-										onChange.callback.onChange((WatchEvent<Path>) event);
+										onChange.forEach(w -> w.callback.onChange((WatchEvent<Path>) event));
 										pending.remove(fullStr);
 									}
 								}, 1, TimeUnit.SECONDS), kind));
-							} /*else if (pnd != null && pnd.kind != StandardWatchEventKinds.ENTRY_MODIFY) {
-								System.out.println("MOD2");
-								pnd.task.cancel(false);
-							}*/
+							} /*
+								 * else if (pnd != null && pnd.kind != StandardWatchEventKinds.ENTRY_MODIFY) {
+								 * System.out.println("MOD2"); pnd.task.cancel(false); }
+								 */
 						}
 					}
 
@@ -120,16 +132,35 @@ public class Monitor {
 
 	public MonitorHandle monitor(Path path, OnChange cb) {
 		try {
-			var key = path.register(watchService, StandardWatchEventKinds.ENTRY_CREATE,
-					StandardWatchEventKinds.ENTRY_DELETE, StandardWatchEventKinds.ENTRY_MODIFY);
-			callbacks.put(key, new Wrapped(cb, path));
-			return new MonitorHandle() {
-				@Override
-				public void close() {
-					key.cancel();
-					callbacks.remove(key);
+			synchronized (pending) {
+				var key = pathToWatchKey.get(path);
+				if (key == null) {
+					key = path.register(watchService, StandardWatchEventKinds.ENTRY_CREATE,
+							StandardWatchEventKinds.ENTRY_DELETE, StandardWatchEventKinds.ENTRY_MODIFY);
+					pathToWatchKey.put(path, key);
 				}
-			};
+				var l = callbacks.get(key);
+				if (l == null) {
+					l = new ArrayList<>();
+					callbacks.put(key, l);
+				}
+				var wrapped = new Wrapped(cb, path);
+				l.add(wrapped);
+				var fl = l;
+				var fk = key;
+				return new MonitorHandle() {
+					@Override
+					public void close() {
+						synchronized (pending) {
+							fl.remove(wrapped);
+							if (fl.isEmpty()) {
+								callbacks.remove(fk);
+								pathToWatchKey.remove(path);
+							}
+						}
+					}
+				};
+			}
 		} catch (IOException ioe) {
 			throw new UncheckedIOException(ioe);
 		}

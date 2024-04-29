@@ -8,7 +8,7 @@
 	-fx-icon-size: 20px;
 }
 
-.borderless-root #terminal-root {	
+.borderless-root .vdu, .borderless-root .terminal-roots {	
 	-fx-background-radius: 0 0 8px 8px;
 } 
 
@@ -16,6 +16,21 @@
 	-fx-background-radius: 8px 8px 0 0;
 }
 
+/* Action keys */
+
+.action-key {
+    -fx-padding: 3 7 3 7;
+}
+
+.darkMode .action-key {
+	-fx-background-radius: 8px;
+	-fx-background-color: derive(background_color, +40%);
+}
+
+.lightMode .action-key {
+	-fx-background-radius: 8px;
+	-fx-background-color: derive(background_color, -40%);
+}
 
 /* 2 styles are a hack for context menu on title bar on windows */
 .title-bar .menu-item {
@@ -49,3 +64,30 @@
 	-fx-text-fill: #111 !important;
 }
 
+/* Dialog tweaks */
+
+.dialog-pane .header-panel {
+	-fx-padding: 8px !important;
+}
+
+.dialog-pane {
+	-fx-padding: 0;
+}
+
+UpdatePane,
+AboutPane, 
+ActionsPane,
+Options,
+AboutPane ImageView {
+	-fx-background-color: dialog_background_color !important;
+	-fx-padding: 8;
+	-fx-background-radius: 0 0 8px 8px;
+}
+
+ActionsPane .viewport, UpdatePane .root {
+	-fx-background-color: transparent !important;
+}
+
+.root.popup {
+	-fx-cursor: default;
+}

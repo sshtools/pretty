@@ -99,7 +99,6 @@ public class TransferHandler implements TransferListener {
 	
 	static Logger LOG = LoggerFactory.getLogger(TransferHandler.class);
 	final static ResourceBundle RESOURCES = ResourceBundle.getBundle(TransferHandler.class.getName());
-	private static final String TRANSFERS_SECTION = "file-transfer";
 	
 	private class  ActiveTransfer {
 		final Path tmpfile;
@@ -251,7 +250,7 @@ public class TransferHandler implements TransferListener {
 	private void moveAccepted(Transfer transfer, ActiveTransfer active) {
 		LOG.info("Moving temporary download file {} to target {}", active.tmpfile, active.targetfile);
 		try {
-			if(tty.ttyContext().getContainer().getConfiguration().getBoolean("notifications", TRANSFERS_SECTION)) {
+			if(tty.ttyContext().getContainer().getConfiguration().transfers().getBoolean(Constants.NOTIFICATIONS_KEY)) {
 				new ToastBuilder().
 					type(ToastType.INFO).
 					action(RESOURCES.getString("openFolder"), () -> {

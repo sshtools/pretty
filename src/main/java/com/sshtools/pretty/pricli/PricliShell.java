@@ -13,12 +13,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.jline.builtins.Completers;
 import org.jline.console.CommandRegistry;
 import org.jline.console.impl.SystemRegistryImpl;
-import org.jline.keymap.KeyMap;
 import org.jline.reader.EndOfFileException;
 import org.jline.reader.LineReader;
 import org.jline.reader.MaskingCallback;
 import org.jline.reader.Parser;
-import org.jline.reader.Reference;
 import org.jline.reader.UserInterruptException;
 import org.jline.reader.impl.DefaultParser;
 import org.jline.terminal.Terminal;
@@ -27,7 +25,6 @@ import org.jline.utils.AttributedStringBuilder;
 import org.jline.utils.AttributedStyle;
 import org.jline.utils.Curses;
 import org.jline.utils.InfoCmp.Capability;
-import org.jline.widget.TailTipWidgets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,14 +65,14 @@ public abstract class PricliShell implements Closeable {
 
 		parser = new DefaultParser(); /* TODO windows / unix path parsing mode */
 		factory = new PicocliCommandsFactory();		
-		exceptionHandler = new ExceptionHandler(jline, () -> tty.ttyContext().getContainer().getConfiguration().getBoolean(Constants.VERBOSE_EXCEPTIONS_KEY,  Constants.DEBUG_SECTION));
+		exceptionHandler = new ExceptionHandler(jline, () -> tty.ttyContext().getContainer().getConfiguration().debug().getBoolean(Constants.VERBOSE_EXCEPTIONS_KEY));
 		
 		var cmd = newCommand(new PricliCommands(ttyContext, this, tty));
 		var picocliCommands = new PicocliCommandRegistry(cmd);
 		picocliCommands.name(RESOURCES.getString("app"));
 
 		systemRegistry = new SystemRegistryImpl(parser, jline, PricliShell::getCwd, null);
-		systemRegistry.addCompleter(new Completers.FileNameCompleter());
+//		systemRegistry.addCompleter(new Completers.FileNameCompleter());
 		addCommandRegistry(picocliCommands);
 		registry(RESOURCES.getString("ui"), new UICommands(ttyContext, this, tty));
 		registry(RESOURCES.getString("localFileSystem"), new LocalFileSystemCommands(ttyContext, this, tty));
@@ -252,7 +249,7 @@ public abstract class PricliShell implements Closeable {
 	
 	private String getPrompt() {
 		var proto = tty.protocol(); 
-		if(proto instanceof ConsoleProtocol)
+		if(proto == null || proto instanceof ConsoleProtocol)
 			return "→ ";
 		else
 			return proto.displayName() + " → ";

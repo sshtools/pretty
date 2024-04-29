@@ -262,7 +262,7 @@ public class Serial implements Callable<Integer> {
 	}
 
 	@Command(name = "ports", aliases = {
-			"ps" }, usageHelpAutoWidth = true, mixinStandardHelpOptions = true, description = "List available and in use ports.")
+			"ps" }, usageHelpAutoWidth = true, description = "List available and in use ports.")
 	public final static class Ports implements Callable<Integer> {
 		
 		public final static class PortOptions {
@@ -313,7 +313,7 @@ public class Serial implements Callable<Integer> {
 	}
 
 	@Command(name = "set", aliases = {
-			"s" }, usageHelpAutoWidth = true, mixinStandardHelpOptions = true, description = "Set serial port parameters.")
+			"s" }, usageHelpAutoWidth = true, description = "Set serial port parameters.")
 	public static class Set implements Callable<Integer> {
 
 		@ParentCommand
@@ -424,7 +424,7 @@ public class Serial implements Callable<Integer> {
 	}
 
 	@Command(name = "connect", aliases = {
-			"c" }, usageHelpAutoWidth = true, mixinStandardHelpOptions = true, description = "Connect to serial port.")
+			"c" }, usageHelpAutoWidth = true, description = "Connect to serial port.")
 	public final static class Connect extends Set {
 		
 		@ParentCommand
@@ -496,7 +496,7 @@ public class Serial implements Callable<Integer> {
 	}
 
 	@Command(name = "disconnect", aliases = {
-			"d" }, usageHelpAutoWidth = true, mixinStandardHelpOptions = true, description = "Disconnect from serial port.")
+			"d" }, usageHelpAutoWidth = true, description = "Disconnect from serial port.")
 	public final static class Disconnect implements Callable<Integer> {
 		
 		@ParentCommand

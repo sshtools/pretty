@@ -27,7 +27,7 @@ open module com.sshtools.pretty {
 	requires transitive org.jline.builtins;
 	requires org.jline.style;
 	requires com.sshtools.terminal.fonts;
-	requires transitive org.jfxtras.styles.jmetro;
+//	requires transitive org.jfxtras.styles.jmetro;
 	requires com.sshtools.twoslices;
 	requires com.sshtools.agent;
 	requires me.tongfei.progressbar;

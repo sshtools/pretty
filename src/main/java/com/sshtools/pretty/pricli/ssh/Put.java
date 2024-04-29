@@ -7,13 +7,11 @@ import java.util.concurrent.Callable;
 
 import com.sshtools.pretty.pricli.Styling;
 
-import me.tongfei.progressbar.ProgressBarBuilder;
-import me.tongfei.progressbar.ProgressBarStyle;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
-@Command(name = "put", usageHelpAutoWidth = true, mixinStandardHelpOptions = true, description = "Upload local file.")
+@Command(name = "put", usageHelpAutoWidth = true, description = "Upload local file.")
 public class Put extends SftpCommand implements Callable<Integer> {
 	final static ResourceBundle RESOURCES = ResourceBundle.getBundle(Put.class.getName());
 

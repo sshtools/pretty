@@ -1,5 +1,6 @@
 package com.sshtools.pretty;
 
+import static com.sshtools.jajafx.FXUtil.maybeQueue;
 import static com.sshtools.jini.INI.merge;
 
 import java.io.BufferedReader;
@@ -11,12 +12,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.MessageFormat;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.ResourceBundle;
@@ -26,14 +24,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.install4j.api.Util;
-import com.sshtools.jini.INI;
-import com.sshtools.jini.INIReader;
-import com.sshtools.jini.Interpolation;
+import com.pty4j.Platform;
+import com.sshtools.jini.Data;
 import com.sshtools.jini.INI.Section;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.util.StringConverter;
 
-public class Shells {
+public class Shells extends AbstractINISetSystem {
 
 	private final static Logger LOG = LoggerFactory.getLogger(Shells.class);
 	final static ResourceBundle RESOURCES = ResourceBundle.getBundle(Shells.class.getName());
@@ -44,6 +43,10 @@ public class Shells {
 
 	public static final String NATIVE = "native";
 	public static final String PRICLI = "pricli";
+	public static final String WINDOWS_DEFAULT = "cmd";
+	public static final String MAC_OS_DEFAULT = "zsh";
+	public static final String FALLBACK_DEFAULT = "zsh";
+	public static final String UNIX_DEFAULT = "bash";
 	
 	public static record Shell(ShellType type, String id, String commandName, Path path, String[] loginShellArgs, String name, String version, boolean cygwin, String... args) { 
 		
@@ -80,76 +83,88 @@ public class Shells {
 	}
 	
 	private final Map<String, Shell> shells = new LinkedHashMap<>();
+	private final ObservableList<Shell> shellList = FXCollections.observableArrayList();
 	
-	public Shells(Monitor monitor, Path configurationPath) {
-//		String sysroot = System.getenv("SystemRoot");
-		addShell(new Shell(ShellType.BUILTIN, "serial", "serial", (Path)null, null, "Pretty Serial Support", null, false, new String[0]));
-		addShell(new Shell(ShellType.BUILTIN, "ssh", "ssh", (Path)null, null, "Maverick Synergy SSH", null, false, "--prompt"));
-		addShell(new Shell(ShellType.BUILTIN, PRICLI, PRICLI, (Path)null, null, "Built-in shell", null, false));
-		addShell(new Shell(ShellType.BUILTIN, NATIVE, NATIVE, (Path)null, null, "Default native shell", null, false));
+	public Shells(AppContext app, Monitor monitor) {
+		super(app, "shells.d");
 		
-		try(var in = new InputStreamReader(Shells.class.getResourceAsStream("Shells.ini"))) {
-			var rdr = new INIReader.Builder().
-					withInterpolator(Interpolation.defaults()).
-					build();
-			loadShellsFromIni(rdr.read(in));
-		}
-		catch(IOException ioe) {
-			throw new UncheckedIOException(ioe);
-		} catch (ParseException e) {
-			throw new IllegalStateException(e);
-		}
+		addOrUpdateShell(new Shell(ShellType.BUILTIN, "serial", "serial", (Path)null, null, "Pretty Serial Support", null, false, new String[0]));
+		addOrUpdateShell(new Shell(ShellType.BUILTIN, "ssh", "ssh", (Path)null, null, "Maverick Synergy SSH", null, false, "--prompt"));
+		addOrUpdateShell(new Shell(ShellType.BUILTIN, PRICLI, PRICLI, (Path)null, null, "Built-in shell", null, false));
+		addOrUpdateShell(new Shell(ShellType.BUILTIN, NATIVE, NATIVE, (Path)null, null, "Default native shell", null, false));
+		
+		loadShellsFromIni(new INISet.Builder("shells", monitor).
+				withDefault(Shells.class, "Shells.ini").
+				build().document());
 	}
 	
-	private void addShell(Shell shell) {
-		shells.put(shell.id, shell);
+	private void addOrUpdateShell(Shell shell) {
+		var was = shells.put(shell.id, shell);
+		if(was != null) {
+			shellList.remove(was);
+			if(shell.path == null)
+				LOG.info("Updating shell '{}' [{}]", shell.id(), shell.name());
+			else
+				LOG.info("Updating shell '{}' [{}] @ {}", shell.id(), shell.name(), shell.path());
+		}
+		else {
+			if(shell.path == null)
+				LOG.info("Adding shell '{}' [{}]", shell.id(), shell.name());
+			else
+				LOG.info("Adding shell '{}' [{}] @ {}", shell.id(), shell.name(), shell.path());
+		}
+		shellList.add(shell);
 	}
 
-	private void loadShellsFromIni(INI ini) {
+	private void loadShellsFromIni(Data ini) {
 		Arrays.asList(ini.allSections()).forEach(sec -> {
 			try {
 				if(isForOs(sec)) {
-					addShell(shellFromSection(sec));
+					var shl = shellFromSection(sec);
+					maybeQueue(() ->addOrUpdateShell(shl));
 				}
 			}  catch (Exception e) {
 				LOG.debug("Failed to load shell.", e);
 			}
 		});
-	}
-	
-	private boolean isForOs(Section section) {
-		var oss = section.getAllElse("os");
-		if(oss.length == 0) {
-			return true;
-		}
-		var osName = getOs();
-		var expect = true;
-		for(var os : oss) {			
-			if(os.startsWith("!")) {
-				expect = false;
-				os = os.substring(1);
+		ini.onValueUpdate(vu -> {
+			if(vu.parent() instanceof Section sec) {
+				var shl = shellFromSection(sec);
+				maybeQueue(() ->addOrUpdateShell(shl));
 			}
-			else {
-				expect = true;
+		});
+		ini.onSectionUpdate(su -> {
+			switch(su.type()) {
+			case REMOVE:
+				var shl = shells.remove(su.section().key());
+				if(shl != null) {
+					LOG.info("Removing shell '{}' [{}]", shl.id(), shl.name());
+					maybeQueue(() -> shellList.remove(shl));
+				}
+				break;
+			case ADD:
+				addOrUpdateShell(shellFromSection(su.section()));
+				break;
+			default:
+				/* Ignore section updates, we may get partial sections */
+				/* TODO fix this in jini? */
+				break;
 			}
-			os = os.toLowerCase();
-			if(expect != osName.equals(os)) {
-				return false;
-			}
-		}
-		return true;
+		});
+		
 	}
 	
 	private Shell shellFromSection(Section section) {
 		var cmd = section.getOr("command").orElse(section.key());
-		var searchPaths = section.getBoolean("search-path", false);
 		var name = section.get("name", section.key());
 		
-		var path = locate(searchPaths, cmd, merge(
-				section.getAllElse("paths"),
-				section.getAllElse("path")
-			)
+		var paths = merge(
+			section.getAllElse("paths"),
+			section.getAllElse("path")
 		);
+
+		var searchPaths = section.getBoolean("search-path", paths.length == 0);
+		var path = locate(searchPaths, cmd, paths);
 		
 		var version = getVersion(path, section.get("version-pattern", null), merge(
 				section.getAllElse("version-argument"),
@@ -197,8 +212,55 @@ public class Shells {
 	}
 
 	public Optional<Shell> getDefault() {
-		/* TODO best default for operating system, e.g. lookup /etc/passwd on Linux */
-		return shells.isEmpty() ? Optional.empty() : Optional.of(shells.get(NATIVE));
+		if(shells.isEmpty()) {
+			return Optional.empty();
+		}
+		else {
+			var shl = System.getenv("SHELL");
+			if(shl != null) {
+				try {
+					var defShl = getByCommandPath(Paths.get(shl).toRealPath());
+					if(defShl.isPresent())
+						return defShl;
+				}
+				catch(IOException ioe) {
+				}
+			}
+		}
+		
+		if(Platform.isWindows()) {
+			var defShl = getById(WINDOWS_DEFAULT);
+			if(defShl.isPresent())
+				return defShl;
+		}
+		else if(Platform.isMac()) {
+			var defShl = getById(WINDOWS_DEFAULT);
+			if(defShl.isPresent())
+				return defShl;
+		}
+		else if(Platform.isLinux()) {
+			var defShl = getById(FALLBACK_DEFAULT);
+			if(defShl.isPresent())
+				return defShl;
+		}
+		else if(Platform.isLinux()) {
+			var defShl = getById(FALLBACK_DEFAULT);
+			if(defShl.isPresent())
+				return defShl;
+		}
+		
+		/* Fallback, will always exist */
+		return Optional.of(shells.get(PRICLI));
+	}
+
+	public Optional<Shell> getByCommandPath(Path path) {
+		return shells.values().stream().filter(s -> {
+			try {
+				return s.path != null && path.equals(s.path.toRealPath());
+			} catch (IOException e) {
+				return false;
+			}
+		}).findFirst();
 	}
 
 	public Optional<Shell> getByCommandName(String commandName) {
@@ -209,8 +271,8 @@ public class Shells {
 		return Optional.ofNullable(shells.get(id));
 	}
 
-	public List<Shell> getAll() {
-		return Collections.unmodifiableList(new ArrayList<>(shells.values()));
+	public ObservableList<Shell> getAll() {
+		return shellList;
 	}
 
 	public static String toDisplayName(Shell object) {
@@ -242,21 +304,6 @@ public class Shells {
 			}
 		}
 		return Optional.empty();
-	}
-	
-	private String getOs() {
-		if(Util.isWindows()) {
-			return "windows";
-		}
-		else if(Util.isMacOS()) {
-			return "macos";
-		}
-		else if(Util.isLinux()) {
-			return "linux";
-		}
-		else {
-			return "other";
-		}
 	}
 
 	private String getVersion(Path cmd, String pattern,  String... args) {

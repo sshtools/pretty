@@ -13,12 +13,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.sshtools.jini.Data.Handle;
+import com.sshtools.pretty.Actions.On;
+import com.sshtools.pretty.ActionsContextMenu;
+import com.sshtools.pretty.Constants;
+import com.sshtools.pretty.ScrollableTerminal;
 import com.sshtools.pretty.TTY;
 import com.sshtools.pretty.TTYContext;
-import com.sshtools.pretty.TerminalMenu;
 import com.sshtools.terminal.emulation.ResizeStrategy;
 import com.sshtools.terminal.emulation.emulator.DECEmulator;
-import com.sshtools.terminal.vt.javafx.JavaFXScrollBar;
 import com.sshtools.terminal.vt.javafx.JavaFXTerminalPanel;
 
 import javafx.animation.Animation;
@@ -32,10 +34,8 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.geometry.Pos;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.util.Duration;
 
@@ -45,7 +45,6 @@ public final class PricliPopup {
 		AUTO, TOP, BOTTOM
 	}
 	
-	static final String PRICLI_SECTION = "pricli";
 	static Logger LOG = LoggerFactory.getLogger(PricliPopup.class);
 	private static final String SCREEN_TERM_TYPE = "xterm-256color";
 
@@ -57,7 +56,7 @@ public final class PricliPopup {
 	private final Terminal jline;
 	private final LineReader reader;
 	private final JavaFXTerminalPanel term;
-	private final Region root;
+	private final ScrollableTerminal root;
 	private final TTY tty;
 	private final TTYContext ttyContext;
 	private Thread thread;
@@ -80,14 +79,14 @@ public final class PricliPopup {
 				build();
 
 		var vp = term.getViewport();
-		var bd = vp.getPage().data();
 		
 		term.setResizeStrategy(ResizeStrategy.SCREEN);
 
 //		term.getViewport().setTerminalType(SCREEN_TERM_TYPE);
 //		app.getSelectedTheme().aptermterm);
 		
-		var contextMenu = new TerminalMenu(term, tty::setClipboard, tty::clipboardToHost, this::hide).menu();
+		@SuppressWarnings("resource")
+		var contextMenu = new ActionsContextMenu(On.CLI_CONTEXT, ttyContext.getContainer().getActions(), () -> shell());
 
 		var ctrl = (Pane) term.getControl();
 		ctrl.setOnMousePressed((evt) -> {
@@ -110,21 +109,28 @@ public final class PricliPopup {
 			jline.setSize(new Size(cols, rows));
 		});
 		
-		var root = new BorderPane();
-		var scroller = new JavaFXScrollBar(term).getNativeComponent();
 		tty.heightProperty().addListener((c,o,n) -> updateHeight());
-		root.setRight(scroller);
-		root.setCenter(ctrl);
+
+		shell = new PricliShell(term, jline, tty, ttyContext) {
+			@Override
+			public void close() {
+				PricliPopup.this.hide();
+			}
+		};
 		
-		this.root =root;
+		this.root = new ScrollableTerminal(ttyContext, term, contextMenu, shell, On.CLI);
 		autoAlign();
 		
 		/* Bind to configuration */
 		handles.addAll(Arrays.asList(
-			cfg.bindEnum(PopupPosition.class, this::setAlign, this::getAlign, "align", PRICLI_SECTION),
-			cfg.bindFloat(v -> updateHeight(), () -> -1f, "height", PRICLI_SECTION),
-//			cfg.bindInteger(vp::setMaximumBufferSize, bd::getMaximumSize, "buffer-size",PRICLI_SECTION),
-			cfg.bindBoolean(buf::setEnableScrollback, buf::isEnableScrollback, "scroll-back", PRICLI_SECTION)
+			cfg.bindEnum(PopupPosition.class, this::setAlign, this::getAlign, Constants.ALIGN_KEY, Constants.PRICLI_SECTION),
+			cfg.bindFloat(v -> updateHeight(), () -> -1f, Constants.HEIGHT_KEY, Constants.PRICLI_SECTION),
+			cfg.bindInteger(s -> buf.setScrollbackSize(
+					cfg.terminal().getBoolean(Constants.LIMIT_BUFFER_KEY) ? s : -1), 
+					buf::getScrollbackSize, 
+					Constants.BUFFER_SIZE_KEY, Constants.TERMINAL_SECTION),
+			cfg.bindBoolean(s -> buf.setScrollbackSize(s ? cfg.terminal().getInt(Constants.BUFFER_SIZE_KEY): -1), 
+					() -> buf.getScrollbackSize() > -1, Constants.LIMIT_BUFFER_KEY, Constants.TERMINAL_SECTION)
 		));
 
 
@@ -146,20 +152,6 @@ public final class PricliPopup {
 			}
 		});
 
-		term.setOnBeforeKeyTyped(ke -> {
-			if (ke.isAltDown() && ke.getCharacter().equals("/")) {
-				hide();
-				ke.consume();
-			}
-		});
-		
-		shell = new PricliShell(term, jline, tty, ttyContext) {
-			@Override
-			public void close() {
-				PricliPopup.this.hide();
-			}
-		};
-
 		reader = LineReaderBuilder.builder().
 				completer(shell.systemRegistry().completer()).
 				history(new DefaultHistory()).
@@ -170,8 +162,6 @@ public final class PricliPopup {
 				terminal(jline).build();
 		
 		shell.attach(reader);
-
-		show();
 	}
 
 	public void close() {
@@ -180,6 +170,7 @@ public final class PricliPopup {
 	}
 
 	public void hide() {
+		LOG.info("Hiding pricli");
 		visible.set(false);
 		tty.terminal().focusTerminal();
 	}
@@ -197,6 +188,7 @@ public final class PricliPopup {
 	}
 
 	public void show() {
+		LOG.info("Showing pricli");
 		startReader();
 		visible.set(true);
 	}
@@ -296,7 +288,7 @@ public final class PricliPopup {
 	}
 
 	private void updateHeight() {
-		var hf = ttyContext.getContainer().getConfiguration().getFloat("height", PRICLI_SECTION);
+		var hf = ttyContext.getContainer().getConfiguration().pricli().getFloat(Constants.HEIGHT_KEY);
 		if(hf == 0)
 			hf = 0.5f;
 		

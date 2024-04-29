@@ -4,7 +4,7 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
-@Command(name = "rename", usageHelpAutoWidth = true, mixinStandardHelpOptions = true, description = "Symlink remote file")
+@Command(name = "rename", usageHelpAutoWidth = true, description = "Symlink remote file")
 public class Rename extends SftpCommand {
 
 	@Parameters(index = "0", arity = "1", description = "Old path")
