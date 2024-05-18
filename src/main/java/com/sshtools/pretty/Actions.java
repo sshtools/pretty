@@ -13,6 +13,8 @@ import org.slf4j.LoggerFactory;
 
 import com.sshtools.jini.Data;
 import com.sshtools.jini.INI.Section;
+import com.sshtools.jini.config.INISet;
+import com.sshtools.jini.config.Monitor;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -121,7 +123,8 @@ public class Actions extends AbstractINISetSystem {
 	
 	public Actions(AppContext app, Monitor monitor) {
 		super(app, "actions.d");
-		loadActionsFromIni(new INISet.Builder("actions", monitor).
+		loadActionsFromIni(new INISet.Builder("actions").
+				withMonitor(monitor).
 				withDefault(Shells.class, "Actions.ini").
 				build().document());
 	}

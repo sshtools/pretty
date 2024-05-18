@@ -27,6 +27,8 @@ import com.install4j.api.Util;
 import com.pty4j.Platform;
 import com.sshtools.jini.Data;
 import com.sshtools.jini.INI.Section;
+import com.sshtools.jini.config.INISet;
+import com.sshtools.jini.config.Monitor;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -93,7 +95,8 @@ public class Shells extends AbstractINISetSystem {
 		addOrUpdateShell(new Shell(ShellType.BUILTIN, PRICLI, PRICLI, (Path)null, null, "Built-in shell", null, false));
 		addOrUpdateShell(new Shell(ShellType.BUILTIN, NATIVE, NATIVE, (Path)null, null, "Default native shell", null, false));
 		
-		loadShellsFromIni(new INISet.Builder("shells", monitor).
+		loadShellsFromIni(new INISet.Builder("shells").
+				withMonitor(monitor).
 				withDefault(Shells.class, "Shells.ini").
 				build().document());
 	}
@@ -239,11 +242,11 @@ public class Shells extends AbstractINISetSystem {
 				return defShl;
 		}
 		else if(Platform.isLinux()) {
-			var defShl = getById(FALLBACK_DEFAULT);
+			var defShl = getById(UNIX_DEFAULT);
 			if(defShl.isPresent())
 				return defShl;
 		}
-		else if(Platform.isLinux()) {
+		else {
 			var defShl = getById(FALLBACK_DEFAULT);
 			if(defShl.isPresent())
 				return defShl;

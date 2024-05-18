@@ -118,7 +118,7 @@ public final class PricliPopup {
 			}
 		};
 		
-		this.root = new ScrollableTerminal(ttyContext, term, contextMenu, shell, On.CLI);
+		this.root = new ScrollableTerminal(ttyContext, term, contextMenu, () -> shell, On.CLI);
 		autoAlign();
 		
 		/* Bind to configuration */

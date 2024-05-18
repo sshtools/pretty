@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
 import com.sshtools.terminal.emulation.UIToolkit;
 import com.sshtools.terminal.emulation.fonts.FontManager;
 import com.sshtools.terminal.emulation.fonts.FontManager.ManagedFont;
-import com.sshtools.terminal.fonts.TrueTypeFonts;
+//import com.sshtools.terminal.fonts.TrueTypeFonts;
 
 import javafx.scene.text.Font;
 
@@ -31,15 +31,18 @@ public class Fonts extends AbstractINISetSystem  {
 
 	private final FontManager<Font> fontManager;
 	private final Map<String, ManagedFont<Font, ?>> userFonts = new HashMap<>();
-	private final TrueTypeFonts<Font> trueTypeFonts;
+//	private final TrueTypeFonts<Font> trueTypeFonts;
 	private final Path primaryFontsPath;
 	private final List<FontsChangeListener> listeners = new ArrayList<>(); 
 
 	public Fonts(AppContext ctx, UIToolkit<Font, ?> uiToolkit) {
 		super(ctx, "fonts.d");
-		fontManager = new FontManager.Builder<>(uiToolkit).build();
+		fontManager = new FontManager.Builder<>(uiToolkit).
+				build();
 		
-		trueTypeFonts = new TrueTypeFonts<>(fontManager, uiToolkit);
+		new EmojiSupport(fontManager);
+		
+//		trueTypeFonts = new TrueTypeFonts<>(fontManager, uiToolkit);
 		
 		primaryFontsPath = ctx.getConfiguration().dir().resolve("fonts.d");
 		var supplementalFontsPath = primaryFontsPath.resolve("supplemental");
@@ -128,13 +131,15 @@ public class Fonts extends AbstractINISetSystem  {
 				LOG.warn("Font at {} already registered.", fileChanged);
 			} else {
 				/* TODO: This deprecated toURL() works, but fileChanged.toUri().toString() does not, investigate */
-//				var tkFont = uiToolkit.loadFont(null, fileChanged.toFile().toURL().toString(), FontManager.DEFAULT_FONT_SIZE);
-//				fnt = new FontManager.ToolkitFont<Font>(uiToolkit, supplemental, tkFont);
-//				fontManager.addFont(0, fnt);
-				fnt = trueTypeFonts.addFontResource(null, fileChanged.toFile().toURL().toString(), FontManager.DEFAULT_FONT_SIZE, supplemental);
-				userFonts.put(fileChanged.toString(), fnt);
-				LOG.info("User font {} added.", fileChanged);
-				fireFontsChanged();
+				var tkFont = uiToolkit.loadFont(null, fileChanged.toFile().toURL().toString(), FontManager.DEFAULT_FONT_SIZE);
+				fnt = new FontManager.ToolkitFont<Font>(uiToolkit, supplemental, tkFont);
+				fontManager.addFont(0, fnt);
+				
+				
+//				fnt = trueTypeFonts.addFontResource(null, fileChanged.toFile().toURL().toString(), FontManager.DEFAULT_FONT_SIZE, supplemental);
+//				userFonts.put(fileChanged.toString(), fnt);
+//				LOG.info("User font {} added.", fileChanged);
+//				fireFontsChanged();
 			}
 		} catch (Exception ioe) {
 			LOG.error("Failed to load font.", ioe);

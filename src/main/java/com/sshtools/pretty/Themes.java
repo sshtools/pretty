@@ -14,6 +14,8 @@ import org.slf4j.LoggerFactory;
 
 import com.sshtools.jini.INI;
 import com.sshtools.jini.INI.Section;
+import com.sshtools.jini.config.INISet;
+import com.sshtools.jini.config.Monitor;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -33,7 +35,11 @@ public class Themes extends AbstractINISetSystem {
 		} catch (IOException e) {
 			LOG.warn("Failed to create drop-in themes folder.", e);
 		}
-		ini = new INISet.Builder("themes", monitor).withDefault(Themes.class, "Themes.ini").build().document();
+		ini = new INISet.Builder("themes").
+				withMonitor(monitor).
+				withDefault(Themes.class, "Themes.ini").
+				build().
+				document();
 		loadThemesFromIni();
 	}
 	

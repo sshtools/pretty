@@ -234,7 +234,7 @@ public class TTY extends StackPane implements Closeable {
 			ttyContext, 
 			terminalPanel, 
 			new ActionsContextMenu(On.CONTEXT, ttyContext.getContainer().getActions(), () -> cli().shell()), 
-			cli().shell(),
+			() -> cli().shell(),
 			On.TTY
 		);
 

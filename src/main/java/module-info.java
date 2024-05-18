@@ -11,8 +11,7 @@ open module com.sshtools.pretty {
 //	requires pty4j;
 	requires transitive com.sshtools.terminal.vt.javafx;
 	requires transitive java.prefs;
-	requires transitive com.sshtools.jini;
-	requires transitive com.sshtools.jini.schema;
+	requires transitive com.sshtools.jini.config; 
 	requires com.sshtools.jaul;
 	requires transitive com.sshtools.jajafx; 
 	requires transitive com.sshtools.synergy.client;
@@ -26,7 +25,7 @@ open module com.sshtools.pretty {
 	requires transitive org.jline.console;
 	requires transitive org.jline.builtins;
 	requires org.jline.style;
-	requires com.sshtools.terminal.fonts;
+//	requires com.sshtools.terminal.fonts;
 //	requires transitive org.jfxtras.styles.jmetro;
 	requires com.sshtools.twoslices;
 	requires com.sshtools.agent;
@@ -34,5 +33,6 @@ open module com.sshtools.pretty {
 	requires jsyn;
 	requires org.scenicview.scenicview;
 	requires java.scripting;
-	requires java.keyring; 
+	requires java.keyring;
+	requires com.gluonhq.emoji; 
 }

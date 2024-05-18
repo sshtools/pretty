@@ -9,6 +9,7 @@ import java.util.prefs.Preferences;
 
 import com.sshtools.jajafx.JajaFXAppWindow;
 import com.sshtools.jaul.UpdateService;
+import com.sshtools.jini.config.Monitor;
 import com.sshtools.terminal.emulation.UIToolkit;
 
 import javafx.application.HostServices;

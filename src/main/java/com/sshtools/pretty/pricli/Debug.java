@@ -20,7 +20,6 @@ import picocli.CommandLine.Model.CommandSpec;
 @Command(name = "debug", 
          aliases = {"d"},
          footer = "%nAliases: d",
-         helpCommand =  true,
          usageHelpAutoWidth = true, 
          mixinStandardHelpOptions = true, 
          description = "Debug actions.", 
@@ -56,6 +55,7 @@ public class Debug implements Callable<Integer> {
 //			LOG.debug("Normal mode");
 //			DECEmulator.setDebugDelay(0);
 //			return;
+		
 //		} else if (control && shift && keyChar == 'I') {
 //			terminal.onDebugModeRequest.accept(true);
 //			LOG.debug("Display, emulation and buffer debug on");

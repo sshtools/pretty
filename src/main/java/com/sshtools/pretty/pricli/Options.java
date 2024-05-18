@@ -95,23 +95,23 @@ public class Options implements Callable<Integer>, PricliCompleter {
 				kd.values().stream().forEach(v -> Arrays.asList(v).forEach(cv ->  candidates.add(new Candidate(cv))));
 			});
 		}
-		else  {
-//			if(lastArg instanceof PositionalParamSpec pps) {
-//			if(pps.index().min() == 0)  {
-				schema.sections().forEach(sec -> {
-					candidates.add(new Candidate(sec.key()));
-					sec.keys().forEach(key -> {
-						var ck = new Candidate(String.join(".", sec.path()) + "." + key.key());
-						System.out.println(">> " + ck);
-						candidates.add(ck);
-					});
-				});
-//			}
-//				}
-		}
-//		else {
-//			candidates.add(new Candidate("SomeVal"));
+//		else  {
+////			if(lastArg instanceof PositionalParamSpec pps) {
+////			if(pps.index().min() == 0)  {
+//				schema.sections().forEach(sec -> {
+//					candidates.add(new Candidate(sec.key()));
+//					sec.keys().forEach(key -> {
+//						var ck = new Candidate(String.join(".", sec.path()) + "." + key.key());
+//						System.out.println(">> " + ck);
+//						candidates.add(ck);
+//					});
+//				});
+////			}
+////				}
 //		}
+////		else {
+////			candidates.add(new Candidate("SomeVal"));
+////		}
 		
 	}
 
@@ -132,27 +132,27 @@ public class Options implements Callable<Integer>, PricliCompleter {
 			
 			SectionDescriptor grp = null;
 			
-			var sectionDescriptors = schm.sections();
-			
-			for(var sectionDescriptor : sectionDescriptors) {
-				
-				var dsb = new AttributedStringBuilder();
-//				dsb.style(new AttributedStyle().underline());
-//				dsb.style(new AttributedStyle().underlineOff());
-				dsb.append('[');
-				dsb.append(String.join(".", sectionDescriptor.path()));
-				dsb.append("]");
-				dsb.append("   ");
-				dsb.append(sectionDescriptor.name());
-				dsb.toAttributedString().println(trm);
-				
-				for(var key : sectionDescriptor.keys()) {
-					printValue(cfg, trm, sectionDescriptor, key);
-				}
-				
-				wtr.println();
-			}
-			
+//			var sectionDescriptors = schm.sections();
+//			
+//			for(var sectionDescriptor : sectionDescriptors) {
+//				
+//				var dsb = new AttributedStringBuilder();
+////				dsb.style(new AttributedStyle().underline());
+////				dsb.style(new AttributedStyle().underlineOff());
+//				dsb.append('[');
+//				dsb.append(String.join(".", sectionDescriptor.path()));
+//				dsb.append("]");
+//				dsb.append("   ");
+//				dsb.append(sectionDescriptor.name());
+//				dsb.toAttributedString().println(trm);
+//				
+//				for(var key : sectionDescriptor.keys()) {
+//					printValue(cfg, trm, sectionDescriptor, key);
+//				}
+//				
+//				wtr.println();
+//			}
+//			
 			
 			
 //			cfg.

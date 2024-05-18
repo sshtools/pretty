@@ -3,6 +3,7 @@ package com.sshtools.pretty;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +42,7 @@ public class ScrollableTerminal extends BorderPane {
 	private Transition fading;
 
 	@SuppressWarnings("unchecked")
-	public ScrollableTerminal(TTYContext ttyContext, JavaFXTerminalPanel terminalPanel, ContextMenu contextMenu, PricliShell shell, On on) {
+	public ScrollableTerminal(TTYContext ttyContext, JavaFXTerminalPanel terminalPanel, ContextMenu contextMenu, Supplier<PricliShell> shell, On on) {
 		
 		emulator = (DECEmulator<JavaFXTerminalPanel>)terminalPanel.getViewport();
 		emulator.addTerminalBufferListener(new ViewportListener() {
@@ -116,14 +117,14 @@ public class ScrollableTerminal extends BorderPane {
 					if (consumed.remove(kcc.getCode()) != null) {
 						LOG.info("Accelerated keyrelease action {} activated by {}", action.id(),
 								action.accelerator().getDisplayText());
-						shell.execute(action.fullCommand());
+						shell.get().execute(action.fullCommand());
 						evt.consume();
 					}
 				} else if (action.accelerator() instanceof KeyCharacterCombination kcc) {
 					if (consumed.remove(kcc.getCharacter()) != null) {
 						LOG.info("Accelerated keyrelease action {} activated by {}", action.id(),
 								action.accelerator().getDisplayText());
-						shell.execute(action.fullCommand());
+						shell.get().execute(action.fullCommand());
 						evt.consume();
 					}
 				}
@@ -135,7 +136,7 @@ public class ScrollableTerminal extends BorderPane {
 					if (action.hasAccelerator() && action.accelerator().match(evt)) {
 						LOG.info("Accelerated action {} activated by {}", action.id(),
 								action.accelerator().getDisplayText());
-						shell.execute(action.fullCommand());
+						shell.get().execute(action.fullCommand());
 						evt.consume();
 						break;
 					}

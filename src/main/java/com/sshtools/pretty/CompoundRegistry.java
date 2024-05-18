@@ -10,6 +10,7 @@ import org.jline.console.CmdDesc;
 import org.jline.console.CommandRegistry;
 import org.jline.reader.impl.completer.SystemCompleter;
 
+@Deprecated
 public class CompoundRegistry implements CommandRegistry {
 	
 	private List<CommandRegistry> subregistries = new CopyOnWriteArrayList<>();

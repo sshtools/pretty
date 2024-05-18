@@ -1,5 +1,6 @@
 package com.sshtools.pretty;
 
+
 import static com.sshtools.jajafx.FXUtil.maybeQueue;
 
 import java.net.URL;
@@ -25,6 +26,7 @@ import com.sshtools.jajafx.FXUtil;
 import com.sshtools.jajafx.JajaFXApp;
 import com.sshtools.jajafx.JajaFXAppWindow;
 import com.sshtools.jaul.UpdateService;
+import com.sshtools.jini.config.Monitor;
 import com.sshtools.terminal.emulation.UIToolkit;
 import com.sshtools.terminal.vt.javafx.JavaFXUIToolkit;
 
@@ -191,7 +193,7 @@ public class PrettyApp extends JajaFXApp<Pretty, PrettyAppWindow> implements Lis
 		private final CustomCSS customCSS;
 
 		AppContextImpl() {
-			monitor = new Monitor(this);
+			monitor = new Monitor(scheduler());
 			configuration  =new Configuration(monitor);
 			themes = new Themes(this, monitor);
 			shells = new Shells(this, monitor);

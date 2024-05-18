@@ -261,6 +261,11 @@
 
 	<dependencies>
 		<dependency>
+		    <groupId>com.gluonhq</groupId>
+		    <artifactId>emoji</artifactId>
+		    <version>1.0.1</version>
+		</dependency>
+		<dependency>
 			<groupId>ch.obermuhlner</groupId>
 			<artifactId>java-scriptengine</artifactId>
 			<version>2.0.0</version>
@@ -314,12 +319,17 @@
 		<dependency>
 			<groupId>com.sshtools</groupId>
 			<artifactId>jini-lib</artifactId>
-			<version>0.3.2-SNAPSHOT</version> 
+			<version>0.3.2</version> 
 		</dependency>
 		<dependency>
 			<groupId>com.sshtools</groupId>
 			<artifactId>jini-schema</artifactId>
-			<version>0.3.2-SNAPSHOT</version>
+			<version>0.3.2</version>
+		</dependency>
+		<dependency>
+			<groupId>com.sshtools</groupId>
+			<artifactId>jini-config</artifactId>
+			<version>0.3.2</version>
 		</dependency>
 		<dependency>
 			<groupId>org.jline</groupId>
@@ -352,11 +362,11 @@
 			<artifactId>maverick-synergy-client</artifactId>
 			<version>${maverick.synergy.version}</version>
 		</dependency>
-		<dependency>
+		<!--<dependency>
 			<groupId>com.sshtools</groupId>
 			<artifactId>terminal-fonts</artifactId>
 			<version>4.0.0-SNAPSHOT</version>
-		</dependency>
+		</dependency>-->
 		<dependency>
 			<groupId>com.sshtools</groupId>
 			<artifactId>terminal-javafx</artifactId>
