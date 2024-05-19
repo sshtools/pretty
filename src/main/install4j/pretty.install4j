@@ -28,7 +28,7 @@
         <entry>jkeychain*</entry>
       </macSearchedJars>
     </codeSigning>
-    <jreBundles jdkProviderId="AdoptOpenJDK" release="21/jdk-21.0.2+13">
+    <jreBundles jdkProviderId="AdoptOpenJDK" release="22/jdk-22.0.1+8">
       <modules />
     </jreBundles>
   </application>

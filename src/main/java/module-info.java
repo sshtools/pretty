@@ -20,7 +20,7 @@ open module com.sshtools.pretty {
 	requires org.kordamp.ikonli.fontawesome5;
 	requires transitive org.jline.terminal;
 	requires transitive org.jline.reader;
-	requires picocli.shell.jline3;
+	requires picocli.shell.jline3; 
 	requires info.picocli;
 	requires transitive org.jline.console;
 	requires transitive org.jline.builtins;
