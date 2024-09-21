@@ -13,7 +13,7 @@ pipeline {
 				 */
 				stage ('Linux Pretty Installers') {
 					agent {
-						label 'install4j && linux'
+						label 'install4j && linux && x86_64'
 					}
 					steps {
 						configFileProvider([
