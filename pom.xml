@@ -10,13 +10,13 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<javafx.version>22</javafx.version>
+		<javafx.version>21.0.4</javafx.version>
 		<languages>da,nl,fi,fr,de,it,no,pl,ru,sv,es,ja,he,pt</languages>
 		<native.maven.plugin.version>0.9.9</native.maven.plugin.version>
 		<picocli.version>4.7.5</picocli.version>
-		<native.image.version>0.9.1-SNAPSHOT</native.image.version>
+		<native.image.version>0.9.1</native.image.version>
 		<jline.version>3.26.0</jline.version>
-		<maverick.synergy.version>3.1.1</maverick.synergy.version>
+		<maverick.synergy.version>3.1.2</maverick.synergy.version>
 
 		<build.phase>continuous</build.phase>
 		<build.mediaTypes>
@@ -175,7 +175,7 @@
 				<plugin>
 					<groupId>com.install4j</groupId>
 					<artifactId>install4j-maven</artifactId>
-					<version>10.0.6</version>
+					<version>10.0.7</version>
 				</plugin>
 				<plugin>
 					<groupId>org.codehaus.mojo</groupId>
@@ -319,17 +319,17 @@
 		<dependency>
 			<groupId>com.sshtools</groupId>
 			<artifactId>jini-lib</artifactId>
-			<version>0.3.2</version> 
+			<version>0.3.3</version> 
 		</dependency>
 		<dependency>
 			<groupId>com.sshtools</groupId>
 			<artifactId>jini-schema</artifactId>
-			<version>0.3.2</version>
+			<version>0.3.3</version>
 		</dependency>
 		<dependency>
 			<groupId>com.sshtools</groupId>
 			<artifactId>jini-config</artifactId>
-			<version>0.3.2</version>
+			<version>0.3.3</version>
 		</dependency>
 		<dependency>
 			<groupId>org.jline</groupId>
@@ -439,7 +439,7 @@
 		    		<artifactId>slf4j-api</artifactId>
 		    	</exclusion>
 		    </exclusions>
-		</dependency>
+		</dependency> 
 		<dependency>
 			<groupId>org.openjfx</groupId>
 			<artifactId>javafx-fxml</artifactId>
@@ -501,7 +501,7 @@
 		<dependency>
 			<groupId>com.install4j</groupId>
 			<artifactId>install4j-runtime</artifactId>
-			<version>10.0.6</version>
+			<version>10.0.7</version>
 
 			<!-- MUST be provided, the runtime is added by I4J itself -->
 			<scope>provided</scope>
