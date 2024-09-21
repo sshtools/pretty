@@ -10,7 +10,10 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		
 		<javafx.version>21.0.4</javafx.version>
+		<javafx.linux.aarch64.version>23</javafx.linux.aarch64.version>
+		
 		<languages>da,nl,fi,fr,de,it,no,pl,ru,sv,es,ja,he,pt</languages>
 		<native.maven.plugin.version>0.9.9</native.maven.plugin.version>
 		<picocli.version>4.7.5</picocli.version>
@@ -1100,31 +1103,31 @@
 										<artifactItem>
 											<groupId>org.openjfx</groupId>
 											<artifactId>javafx-base</artifactId>
-											<version>${javafx.version}</version>
+											<version>${javafx.linux.aarch64.version}</version>
 											<classifier>linux-aarch64</classifier>
 										</artifactItem>
 										<artifactItem>
 											<groupId>org.openjfx</groupId>
 											<artifactId>javafx-controls</artifactId>
-											<version>${javafx.version}</version>
+											<version>${javafx.linux.aarch64.version}</version>
 											<classifier>linux-aarch64</classifier>
 										</artifactItem>
 										<artifactItem>
 											<groupId>org.openjfx</groupId>
 											<artifactId>javafx-graphics</artifactId>
-											<version>${javafx.version}</version>
+											<version>${javafx.linux.aarch64.version}</version>
 											<classifier>linux-aarch64</classifier>
 										</artifactItem>
 										<artifactItem>
 											<groupId>org.openjfx</groupId>
 											<artifactId>javafx-fxml</artifactId>
-											<version>${javafx.version}</version>
+											<version>${javafx.linux.aarch64.version}</version>
 											<classifier>linux-aarch64</classifier>
 										</artifactItem>
 										<artifactItem>
 											<groupId>org.openjfx</groupId>
 											<artifactId>javafx-media</artifactId>
-											<version>${javafx.version}</version>
+											<version>${javafx.linux.aarch64.version}</version>
 											<classifier>linux-aarch64</classifier>
 										</artifactItem>
 									</artifactItems>
