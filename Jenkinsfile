@@ -4,6 +4,13 @@ pipeline {
 		maven 'Maven 3.9.0' 
 		jdk 'Graal JDK 22' 
 	}
+	
+	environment {
+	    /* Constants / Configuration */
+	    BUILD_PROPERTIES_ID = "b60f3998-d8fd-434b-b3c8-ed52aa52bc2e"
+	    BUILD_PROPERTIES_NAME = "jadaptive.build.properties"
+	    MAVEN_CONFIG_ID = "14324b85-c597-44e8-a575-61f925dba528"
+	}
 
 	stages {
 		stage ('Pretty Installers') {
@@ -18,14 +25,14 @@ pipeline {
 					steps {
 						configFileProvider([
 					 			configFile(
-					 				fileId: 'bb62be43-6246-4ab5-9d7a-e1f35e056d69',  
+					 				fileId: "${env.BUILD_PROPERTIES_ID}",  
 					 				replaceTokens: true,
-					 				targetLocation: 'hypersocket.build.properties',
+					 				targetLocation: "${env.BUILD_PROPERTIES_NAME}",
 					 				variable: 'BUILD_PROPERTIES'
 					 			)
 					 		]) {
 					 		withMaven(
-					 			globalMavenSettingsConfig: '4bc608a8-6e52-4765-bd72-4763f45bfbde'
+					 			globalMavenSettingsConfig: "${env.MAVEN_CONFIG_ID}"
 					 		) {
 					 		  	sh 'mvn -U -Dbuild.mediaTypes=unixInstaller,unixArchive,linuxRPM,linuxDeb ' +
 					 		  	   '-Dbuild.projectProperties=$BUILD_PROPERTIES ' +
@@ -53,14 +60,14 @@ pipeline {
 					steps {
 						configFileProvider([
 					 			configFile(
-					 				fileId: 'bb62be43-6246-4ab5-9d7a-e1f35e056d69',  
+					 				fileId: "${env.BUILD_PROPERTIES_ID}",  
 					 				replaceTokens: true,
-					 				targetLocation: 'hypersocket.build.properties',
+					 				targetLocation: "${env.BUILD_PROPERTIES_NAME}",
 					 				variable: 'BUILD_PROPERTIES'
 					 			)
 					 		]) {
 					 		withMaven(
-					 			globalMavenSettingsConfig: '4bc608a8-6e52-4765-bd72-4763f45bfbde'
+					 			globalMavenSettingsConfig: "${env.MAVEN_CONFIG_ID}"
 					 		) {
 					 		  	bat 'mvn -U -Dinstall4j.verbose=true -Dbuild.mediaTypes=windows,windowsArchive ' +
 					 		  	    '"-Dbuild.projectProperties=%BUILD_PROPERTIES%" ' +
@@ -88,17 +95,17 @@ pipeline {
 					steps {
 						configFileProvider([
 					 			configFile(
-					 				fileId: 'bb62be43-6246-4ab5-9d7a-e1f35e056d69',  
+					 				fileId: "${env.BUILD_PROPERTIES_ID}",  
 					 				replaceTokens: true,
-					 				targetLocation: 'hypersocket.build.properties',
+					 				targetLocation: "${env.BUILD_PROPERTIES_NAME}",
 					 				variable: 'BUILD_PROPERTIES'
 					 			)
 					 		]) {
 					 		withMaven(
-					 			globalMavenSettingsConfig: '4bc608a8-6e52-4765-bd72-4763f45bfbde'
+					 			globalMavenSettingsConfig: "${env.MAVEN_CONFIG_ID}"
 					 		) {
 					 			// -Dinstall4j.disableNotarization=true 
-					 		  	sh 'mvn -U -Dbuild.mediaTypes=macos,macosFolder,macosFolderArchive ' +
+					 		  	sh 'mvn -X -U -Dbuild.mediaTypes=macos,macosFolder,macosFolderArchive ' +
 					 		  	   '-Dbuild.projectProperties=$BUILD_PROPERTIES ' +
 					 		  	   '-DbuildInstaller=true -P translate clean package'
 					 		  	
@@ -149,8 +156,7 @@ pipeline {
     			}
     			
     			/* Merge all updates.xml into one */
-    			withMaven(
-		 			globalMavenSettingsConfig: '4bc608a8-6e52-4765-bd72-4763f45bfbde',
+    			withMaven(globalMavenSettingsConfig: "${env.MAVEN_CONFIG_ID}"
 		 		) {
 					sh 'mvn -P merge-installers com.sshtools:updatesxmlmerger-maven-plugin:merge'
 		 		}

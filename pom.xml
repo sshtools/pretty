@@ -21,19 +21,17 @@
 		<jline.version>3.26.0</jline.version>
 		<maverick.synergy.version>3.1.2</maverick.synergy.version>
 
-		<build.phase>continuous</build.phase>
-		<build.mediaTypes>
-			windows,unixInstaller,macos,macosFolder,windowsArchive,unixArchive,linuxRPM,linuxDeb,macosArchive,macosFolderArchive</build.mediaTypes>
-		<build.install4j.project>
-			${project.basedir}/src/main/install4j/pretty.install4j</build.install4j.project>
-		<build.projectProperties>${basedir}/hypersocket.build.properties</build.projectProperties>
-		<build.userProperties>${user.home}/.hypersocket.build.properties</build.userProperties>
-		
+		<build.arch>${os.arch}</build.arch>
+		<build.platform>${build.os.family}-${os.arch}</build.platform>
+		<build.projectProperties>${project.basedir}/jadaptive.build.properties</build.projectProperties>
+		<build.userProperties>${user.home}/.jadaptive.build.properties</build.userProperties>
+		<build.mediaTypes>windows,unixInstaller,macos,macosFolder,windowsArchive,unixArchive,linuxRPM,linuxDeb,macosArchive,macosFolderArchive</build.mediaTypes>
+		<build.buildIds></build.buildIds>
 		<install4j.phase>continuous</install4j.phase>
-		<install4j.mediaTypes>windows,unixInstaller,macos,macosFolder,windowsArchive,unixArchive,linuxRPM,linuxDeb,macosArchive,macosFolderArchive</install4j.mediaTypes>
-		<install4j.macSigning>true</install4j.macSigning>
-		<install4j.macPkcs12File>~/.logonbox-developer-id.p12</install4j.macPkcs12File>
-		<install4j.windowsSigning>true</install4j.windowsSigning>
+		<install4j.exe.suffix></install4j.exe.suffix>
+		<install4j.updatesBase>http://localhost/${project.name}</install4j.updatesBase>
+		<install4j.jaulAppId>UNSET</install4j.jaulAppId>
+		<install4j.jaulUpdaterId>999</install4j.jaulUpdaterId>
 	</properties>
 
 	<url>https://jadaptive.com</url>
@@ -198,7 +196,7 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-compiler-plugin</artifactId>
-					<version>3.10.1</version>
+					<version>3.12.1</version>
 					<configuration>
 						<source>22</source>
 						<target>22</target>
@@ -1148,9 +1146,9 @@
 								<configuration>
 									<variables>
 										<install4j.phase>${install4j.phase}</install4j.phase>
+			                            <install4j.exeSuffix>${install4j.exe.suffix}</install4j.exeSuffix>
 										<install4j.appleId>${install4j.appleId}</install4j.appleId>
-										<install4j.macSigning>${install4j.macSigning}</install4j.macSigning>
-										<install4j.windowsSigning>${install4j.windowsSigning}</install4j.windowsSigning>>
+										<install4j.macPkcs12File>${install4j.macPkcs12File}</install4j.macPkcs12File>
 										<install4j.windowsKeystoreIssuer>${install4j.windowsKeystoreIssuer}</install4j.windowsKeystoreIssuer>>
 										<install4j.windowsKeystoreSerial>${install4j.windowsKeystoreSerial}</install4j.windowsKeystoreSerial>>
 										<install4j.windowsKeystoreSubject>${install4j.windowsKeystoreSubject}</install4j.windowsKeystoreSubject>
@@ -1158,9 +1156,11 @@
 										<install4j.jaulAppId>${install4j.jaulAppId}</install4j.jaulAppId>
 										<install4j.jaulUpdaterId>${install4j.jaulUpdaterId}</install4j.jaulUpdaterId>
 									</variables>
+			                        <mediaTypes>${build.mediaTypes}</mediaTypes>
+			                        <buildIds>${build.buildIds}</buildIds>
+									<verbose>true</verbose>
 									<release>${product.version}-${build.number}</release>
-									<mediaTypes>${build.mediaTypes}</mediaTypes>
-									<projectFile>${build.install4j.project}</projectFile>
+									<projectFile>src/main/install4j/pretty.install4j</projectFile>
 								</configuration>
 							</execution>
 						</executions>
