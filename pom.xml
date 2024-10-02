@@ -11,7 +11,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		
-		<javafx.version>21.0.4</javafx.version>
+		<javafx.version>23</javafx.version>
 		<javafx.linux.aarch64.version>23</javafx.linux.aarch64.version>
 		
 		<languages>da,nl,fi,fr,de,it,no,pl,ru,sv,es,ja,he,pt</languages>
@@ -29,9 +29,10 @@
 		<build.buildIds></build.buildIds>
 		<install4j.phase>continuous</install4j.phase>
 		<install4j.exe.suffix></install4j.exe.suffix>
-		<install4j.updatesBase>http://localhost/${project.name}</install4j.updatesBase>
-		<install4j.jaulAppId>UNSET</install4j.jaulAppId>
-		<install4j.jaulUpdaterId>999</install4j.jaulUpdaterId>
+		<install4j.updatesBase>https://sshtools-public.s3.eu-west-1.amazonaws.com/pretty</install4j.updatesBase>
+		<install4j.jaulAppId>com.sshtools.Pretty</install4j.jaulAppId>
+		<install4j.jaulUpdaterId>54</install4j.jaulUpdaterId>
+		<install4j.jaulBranches></install4j.jaulBranches>
 	</properties>
 
 	<url>https://jadaptive.com</url>
@@ -176,7 +177,7 @@
 				<plugin>
 					<groupId>com.install4j</groupId>
 					<artifactId>install4j-maven</artifactId>
-					<version>10.0.7</version>
+					<version>10.0.8</version>
 				</plugin>
 				<plugin>
 					<groupId>org.codehaus.mojo</groupId>
@@ -216,7 +217,7 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-jar-plugin</artifactId>
-					<version>3.3.0</version>
+					<version>3.4.1</version>
 				</plugin>
 				<plugin>
 					<groupId>com.nervepoint</groupId>
@@ -487,7 +488,7 @@
 		<dependency>
 			<groupId>com.sshtools</groupId>
 			<artifactId>jaul</artifactId>
-			<version>0.9.11-SNAPSHOT</version>
+			<version>0.9.12-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.controlsfx</groupId>
@@ -502,7 +503,7 @@
 		<dependency>
 			<groupId>com.install4j</groupId>
 			<artifactId>install4j-runtime</artifactId>
-			<version>10.0.7</version>
+			<version>10.0.8</version>
 
 			<!-- MUST be provided, the runtime is added by I4J itself -->
 			<scope>provided</scope>
@@ -1155,6 +1156,7 @@
 										<install4j.updatesBase>${install4j.updatesBase}</install4j.updatesBase>
 										<install4j.jaulAppId>${install4j.jaulAppId}</install4j.jaulAppId>
 										<install4j.jaulUpdaterId>${install4j.jaulUpdaterId}</install4j.jaulUpdaterId>
+										<install4j.jaulBranches>${install4j.jaulBranches}</install4j.jaulBranches>
 									</variables>
 			                        <mediaTypes>${build.mediaTypes}</mediaTypes>
 			                        <buildIds>${build.buildIds}</buildIds>
