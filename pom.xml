@@ -465,7 +465,7 @@
 		<dependency>
 			<groupId>com.sshtools</groupId>
 			<artifactId>jajafx-lib</artifactId>
-			<version>0.9.5-SNAPSHOT</version>
+			<version>0.9.6-SNAPSHOT</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.openjfx</groupId>

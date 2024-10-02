@@ -115,7 +115,7 @@ public class PrettyApp extends JajaFXApp<Pretty, PrettyAppWindow> implements Lis
 	}
 
 	@Override
-	protected TTYStack createContent(Stage stage) {
+	protected TTYStack createContent(Stage stage, PrettyAppWindow window) {
 		return new TTYStack(appContext, stage);
 	}
 
@@ -126,8 +126,9 @@ public class PrettyApp extends JajaFXApp<Pretty, PrettyAppWindow> implements Lis
 
 	@Override
 	protected JajaFXAppWindow<?> createAppWindow(Stage stage) {
-		var ctx = createContent(stage);
-		var aw = new PrettyAppWindow(stage, ctx, this, appContext);
+		var aw = new PrettyAppWindow(stage, this, appContext);
+		var ctx = createContent(stage, aw);
+		aw.setContext(ctx);
 		ctx.setAppWindow(aw);
 		
 		var req = openingRequest.get();
@@ -258,7 +259,8 @@ public class PrettyApp extends JajaFXApp<Pretty, PrettyAppWindow> implements Lis
 					var options = new Options(this);
 					
 					var stg = new Stage();
-					optionsWindow = new JajaFXAppWindow<>(stg, options, PrettyApp.this, 640, 680);
+					optionsWindow = new JajaFXAppWindow<>(stg, PrettyApp.this, 640, 680);
+					optionsWindow.setContent(options);
 
 					stg.getIcons().add(new Image(appContext.getIcon().toExternalForm()));
 					stg.setResizable(false);
@@ -296,7 +298,8 @@ public class PrettyApp extends JajaFXApp<Pretty, PrettyAppWindow> implements Lis
 					var actions = new AboutPane(this);
 					
 					var stg = new Stage();
-					var wnd = new JajaFXAppWindow<>(stg, actions, PrettyApp.this, 400, 400);
+					var wnd = new JajaFXAppWindow<>(stg, PrettyApp.this, 400, 400);
+					wnd.setContent(actions);
 					wnd.scene().getRoot().setId("about-dialog");
 
 					stg.initOwner(owner);
@@ -324,7 +327,8 @@ public class PrettyApp extends JajaFXApp<Pretty, PrettyAppWindow> implements Lis
 					var actions = new ActionsPane(this, filter);
 					
 					var stg = new Stage();
-					actionsOverviewWindow = new JajaFXAppWindow<>(stg, actions, PrettyApp.this, 520, 600);
+					actionsOverviewWindow = new JajaFXAppWindow<>(stg, PrettyApp.this, 520, 600);
+					actionsOverviewWindow.setContent(actions);
 					
 					var toggleSearch = new FontIcon();
 					toggleSearch.setIconSize(18);

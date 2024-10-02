@@ -32,21 +32,24 @@ public class PrettyAppWindow extends JajaFXAppWindow<PrettyApp> {
 
 	private FontIcon bell;
 	private Label updateIconLabel;
+	private TTYContext ttyContext;
 	private final AppContext ctx;
-	private final TTYContext ttyContext;
 	private final Handle muteHandle;
 
-	public PrettyAppWindow(Stage stage, TTYContext ttyContext, PrettyApp app, AppContext ctx) {
-		super(stage, ttyContext.content(), app);
+	public PrettyAppWindow(Stage stage, PrettyApp app, AppContext ctx) {
+		super(stage, app);
 		
 		this.ctx = ctx;
-		this.ttyContext = ttyContext;
 		
 		scene.getRoot().getStyleClass().add("pretty");
 		scene.setFill(Color.TRANSPARENT);
 		
 		muteHandle = ctx.getConfiguration().bindBoolean(this::updateMuteIcon, null, Constants.MUTE_KEY, Constants.UI_SECTION);
 
+	}
+	
+	public void setContext(TTYContext context) {
+		setContent(context.content());
 	}
 	
 	public TTYContext ttyContext() {
@@ -173,7 +176,8 @@ public class PrettyAppWindow extends JajaFXAppWindow<PrettyApp> {
 						var updateDialogPane = new UpdatePane(ctx);
 						
 						var stg = new Stage();
-						var wnd = new JajaFXAppWindow<>(stg, updateDialogPane, app, 400, 400);
+						var wnd = new JajaFXAppWindow<>(stg, app, 400, 400);
+						wnd.setContent(updateDialogPane);
 						wnd.stage().sizeToScene();
 						wnd.scene().getRoot().setId("update-dialog");
 
