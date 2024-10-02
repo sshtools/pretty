@@ -823,6 +823,35 @@
 			<id>merge-installers</id>
 			<build>
 				<plugins>
+                    <plugin>
+                        <artifactId>maven-clean-plugin</artifactId>
+                        <version>3.1.0</version>
+                        <executions>
+                            <execution>
+                                <id>clean-extensions</id>
+                                <phase>clean</phase>
+                                <goals>
+                                    <goal>clean</goal>
+                                </goals>
+                                <configuration>
+                                    <filesets>
+                                        <fileset>
+                                            <directory>target/media</directory>
+                                        </fileset>
+                                        <fileset>
+                                            <directory>target/media-linux</directory>
+                                        </fileset>
+                                        <fileset>
+                                            <directory>target/media-macos</directory>
+                                        </fileset>
+                                        <fileset>
+                                            <directory>target/media-windows</directory>
+                                        </fileset>
+                                    </filesets>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
 					<plugin>
 						<groupId>com.sshtools</groupId>
 						<artifactId>updatesxmlmerger-maven-plugin</artifactId>
@@ -889,6 +918,29 @@
 							</execution>
 						</executions>
 					</plugin>
+                    <plugin>
+                        <artifactId>maven-clean-plugin</artifactId>
+                        <version>3.1.0</version>
+                        <executions>
+                            <execution>
+                                <id>clean-extensions</id>
+                                <phase>clean</phase>
+                                <goals>
+                                    <goal>clean</goal>
+                                </goals>
+                                <configuration>
+                                    <filesets>
+                                        <fileset>
+                                            <directory>target/dependencies</directory>
+                                        </fileset>
+                                        <fileset>
+                                            <directory>target/media</directory>
+                                        </fileset>
+                                    </filesets>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-dependency-plugin</artifactId>
