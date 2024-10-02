@@ -32,7 +32,7 @@
         <entry>junixsocket*</entry>
       </macSearchedJars>
     </codeSigning>
-    <jreBundles jdkProviderId="AdoptOpenJDK" release="22/jdk-22.0.1+8">
+    <jreBundles jdkProviderId="AdoptOpenJDK" release="22/jdk-22.0.2+9">
       <modules />
     </jreBundles>
   </application>
@@ -285,30 +285,7 @@ return console.askOkCancel(message, true);
                 </serializedBean>
                 <condition>!context.getBooleanVariable("sys.programGroupDisabled")</condition>
               </action>
-              <action id="125" beanClass="com.install4j.runtime.beans.actions.misc.RunExecutableAction" actionElevationType="elevated" rollbackBarrierExitCode="0" failureStrategy="askRetryQuit">
-                <serializedBean>
-                  <property name="arguments" type="array" elementType="string" length="5">
-                    <element index="0">--jaul-register</element>
-                    <element index="1">com.sshtools.Pretty</element>
-                    <element index="2">GUI</element>
-                    <element index="3">54</element>
-                    <element index="4">https://sshtools-public.s3.eu-west-1.amazonaws.com/pretty/${compiler:install4j.phase}/updates.xml</element>
-                  </property>
-                  <property name="executable">
-                    <object class="java.io.File">
-                      <string>jaul</string>
-                    </object>
-                  </property>
-                  <property name="logArguments" type="boolean" value="true" />
-                  <property name="timeout" type="int" value="20" />
-                  <property name="wait" type="boolean" value="true" />
-                  <property name="workingDirectory">
-                    <object class="java.io.File">
-                      <string>.</string>
-                    </object>
-                  </property>
-                </serializedBean>
-              </action>
+              <action id="149" beanClass="com.sshtools.jaul.RegisterJaulAppAction" actionElevationType="elevated" rollbackBarrierExitCode="0" />
             </actions>
             <formComponents>
               <formComponent id="16" beanClass="com.install4j.runtime.beans.formcomponents.ProgressComponent">
@@ -430,26 +407,7 @@ return console.askYesNo(message, true);
           </screen>
           <screen id="27" beanClass="com.install4j.runtime.beans.screens.UninstallationScreen" rollbackBarrierExitCode="0">
             <actions>
-              <action id="124" beanClass="com.install4j.runtime.beans.actions.misc.RunExecutableAction" actionElevationType="elevated" rollbackBarrierExitCode="0">
-                <serializedBean>
-                  <property name="arguments" type="array" elementType="string" length="2">
-                    <element index="0">--jaul-deregister</element>
-                    <element index="1">com.sshtools.Pretty</element>
-                  </property>
-                  <property name="executable">
-                    <object class="java.io.File">
-                      <string>pretty</string>
-                    </object>
-                  </property>
-                  <property name="timeout" type="int" value="20" />
-                  <property name="wait" type="boolean" value="true" />
-                  <property name="workingDirectory">
-                    <object class="java.io.File">
-                      <string>.</string>
-                    </object>
-                  </property>
-                </serializedBean>
-              </action>
+              <action id="150" beanClass="com.sshtools.jaul.DeregisterJaulAppAction" rollbackBarrierExitCode="0" />
               <action id="29" beanClass="com.install4j.runtime.beans.actions.UninstallFilesAction" actionElevationType="elevated" rollbackBarrierExitCode="0" />
             </actions>
             <formComponents>
@@ -1331,7 +1289,7 @@ return true;</property>
         <entry location="mac-aarch64" />
         <entry location="linux-aarch64" />
       </exclude>
-      <jreBundle jdkProviderId="AdoptOpenJDK" release="21/jdk-21.0.2+13" usePack200="false" overrideJdkRelease="true" />
+      <jreBundle jdkProviderId="AdoptOpenJDK" release="21/jdk-21.0.2+13" usePack200="false" />
     </macosFolder>
     <linuxRPM name="Linux RPM x86_64" id="37" mediaFileName="${compiler:sys.shortName}-${compiler:sys.platform}--x86_64-${compiler:sys.version}">
       <exclude>
@@ -1383,7 +1341,7 @@ return true;</property>
         <entry location="linux" />
         <entry location="linux-aarch64" />
       </exclude>
-      <jreBundle jdkProviderId="AdoptOpenJDK" release="21/jdk-21.0.2+13" usePack200="false" overrideJdkRelease="true" />
+      <jreBundle jdkProviderId="AdoptOpenJDK" release="21/jdk-21.0.2+13" usePack200="false" />
     </macosFolder>
   </mediaSets>
   <buildOptions verbose="true" />
