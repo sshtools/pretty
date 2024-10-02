@@ -139,6 +139,12 @@ pipeline {
 					echo 'Full Maven Version ' + env.FULL_VERSION
 				}
 				
+    			/* Merge all updates.xml into one */
+    			withMaven(globalMavenSettingsConfig: "${env.MAVEN_CONFIG_ID}"
+		 		) {
+					sh 'mvn clean'
+		 		}
+				
 				/* Unstash installers */
 	 		  	unstash 'linux-pretty'
 	 		  	unstash 'windows-pretty'
