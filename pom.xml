@@ -11,8 +11,8 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		
-		<javafx.version>23</javafx.version>
-		<javafx.linux.aarch64.version>23</javafx.linux.aarch64.version>
+		<javafx.version>25.0.2</javafx.version>
+		<javafx.linux.aarch64.version>25.0.2</javafx.linux.aarch64.version>
 		
 		<languages>da,nl,fi,fr,de,it,no,pl,ru,sv,es,ja,he,pt</languages>
 		<native.maven.plugin.version>0.9.9</native.maven.plugin.version>
@@ -25,7 +25,7 @@
 		<build.platform>${build.os.family}-${os.arch}</build.platform>
 		<build.projectProperties>${project.basedir}/jadaptive.build.properties</build.projectProperties>
 		<build.userProperties>${user.home}/.jadaptive.build.properties</build.userProperties>
-		<build.mediaTypes>windows,unixInstaller,macos,macosFolder,windowsArchive,unixArchive,linuxRPM,linuxDeb,macosArchive,macosFolderArchive</build.mediaTypes>
+		<build.mediaTypes>windows,unixInstaller,macosFolder,windowsArchive,unixArchive,linuxRPM,linuxDeb,macosFolderArchive</build.mediaTypes>
 		<build.buildIds></build.buildIds>
 		<install4j.phase>continuous</install4j.phase>
 		<install4j.exe.suffix></install4j.exe.suffix>
@@ -177,7 +177,7 @@
 				<plugin>
 					<groupId>com.install4j</groupId>
 					<artifactId>install4j-maven</artifactId>
-					<version>10.0.8</version>
+					<version>11.0.5</version>
 				</plugin>
 				<plugin>
 					<groupId>org.codehaus.mojo</groupId>
@@ -199,8 +199,8 @@
 					<artifactId>maven-compiler-plugin</artifactId>
 					<version>3.12.1</version>
 					<configuration>
-						<source>22</source>
-						<target>22</target>
+						<source>25</source>
+						<target>25</target>
 						<encoding>UTF-8</encoding>
 					</configuration>
 				</plugin>
@@ -465,7 +465,53 @@
 		<dependency>
 			<groupId>com.sshtools</groupId>
 			<artifactId>jajafx-lib</artifactId>
-			<version>0.9.6-SNAPSHOT</version>
+			<version>0.9.10</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.openjfx</groupId>
+					<artifactId>javafx-base</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.openjfx</groupId>
+					<artifactId>javafx-controls</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.openjfx</groupId>
+					<artifactId>javafx-graphics</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.openjfx</groupId>
+					<artifactId>javafx-fxml</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>com.sshtools</groupId>
+			<artifactId>jajafx-updateable</artifactId>
+			<version>0.9.10</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.openjfx</groupId>
+					<artifactId>javafx-base</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.openjfx</groupId>
+					<artifactId>javafx-controls</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.openjfx</groupId>
+					<artifactId>javafx-graphics</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.openjfx</groupId>
+					<artifactId>javafx-fxml</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>com.sshtools</groupId>
+			<artifactId>jajafx-jmetro</artifactId>
+			<version>0.9.10</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.openjfx</groupId>
@@ -488,7 +534,13 @@
 		<dependency>
 			<groupId>com.sshtools</groupId>
 			<artifactId>jaul</artifactId>
-			<version>0.9.12-SNAPSHOT</version>
+			<version>0.9.24</version>
+			<exclusions>
+            	<exclusion>
+            		<groupId>com.install4j</groupId>
+            		<artifactId>install4j-runtime</artifactId>
+            	</exclusion>
+	        </exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.controlsfx</groupId>
@@ -503,7 +555,7 @@
 		<dependency>
 			<groupId>com.install4j</groupId>
 			<artifactId>install4j-runtime</artifactId>
-			<version>10.0.8</version>
+			<version>11.0.5</version>
 
 			<!-- MUST be provided, the runtime is added by I4J itself -->
 			<scope>provided</scope>
@@ -544,7 +596,7 @@
 		<dependency>
 			<groupId>com.sshtools</groupId>
 			<artifactId>pty4j21</artifactId>
-			<version>0.22.0-SNAPSHOT</version> 
+			<version>0.22.0</version> 
 		</dependency>
 		<dependency>
 			<groupId>org.jetbrains.pty4j</groupId>
@@ -589,14 +641,6 @@
 			<releases>
 				<enabled>false</enabled>
 			</releases>
-		</repository>
-		<repository>
-			<id>ej</id>
-			<url>https://maven.ej-technologies.com/repository/</url>
-			<releases />
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
 		</repository>
 		<repository>
 			<id>jitpack.io</id>
@@ -662,10 +706,6 @@
 		</repository>
 	</repositories>
 	<pluginRepositories>
-		<pluginRepository>
-			<id>ej-technologies</id>
-			<url>https://maven.ej-technologies.com/repository</url>
-		</pluginRepository>
 		<pluginRepository>
 			<id>libs-releases</id>
 			<url>https://artifactory.jadaptive.com/libs-releases-local</url>
@@ -1197,6 +1237,10 @@
 									<goal>compile</goal>
 								</goals>
 								<configuration>
+									<!--For install4j11 -->
+                                    <license>${install4j.testing.license}</license>
+                                    <installDir>${install4j11.home}</installDir>
+                                    
 									<variables>
 										<install4j.phase>${install4j.phase}</install4j.phase>
 			                            <install4j.exeSuffix>${install4j.exe.suffix}</install4j.exeSuffix>
@@ -1209,6 +1253,12 @@
 										<install4j.jaulAppId>${install4j.jaulAppId}</install4j.jaulAppId>
 										<install4j.jaulUpdaterId>${install4j.jaulUpdaterId}</install4j.jaulUpdaterId>
 										<install4j.jaulBranches>${install4j.jaulBranches}</install4j.jaulBranches>
+										<install4j.appleIdPassword>${install4j.appleIdPassword}</install4j.appleIdPassword>
+                                        <install4j.appleIssuerId>${install4j.appleIssuerId}</install4j.appleIssuerId>
+                                        <install4j.appleKeyId>${install4j.appleKeyId}</install4j.appleKeyId>
+                                        <install4j.applePrivateKeyFile>${install4j.applePrivateKeyFile}</install4j.applePrivateKeyFile>
+                                        <install4j.safeNet.pin>${install4j.safeNet.pin}</install4j.safeNet.pin>
+										<install4j.timestamp.server>${install4j.timestamp.server}</install4j.timestamp.server>
 									</variables>
 			                        <mediaTypes>${build.mediaTypes}</mediaTypes>
 			                        <buildIds>${build.buildIds}</buildIds>

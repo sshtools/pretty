@@ -34,5 +34,6 @@ open module com.sshtools.pretty {
 	requires org.scenicview.scenicview;
 	requires java.scripting;
 	requires java.keyring;
-	requires com.gluonhq.emoji; 
+	requires com.gluonhq.emoji;
+	requires com.sshtools.jajafx.updateable; 
 }

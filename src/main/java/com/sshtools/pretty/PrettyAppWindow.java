@@ -10,6 +10,7 @@ import org.scenicview.ScenicView;
 
 import com.sshtools.jajafx.JajaFXAppWindow;
 import com.sshtools.jajafx.TitleBar;
+import com.sshtools.jajafx.updateable.UpdateableJajaFXAppWindow;
 import com.sshtools.jini.Data.Handle;
 
 import javafx.animation.FadeTransition;
@@ -27,7 +28,7 @@ import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
 import javafx.util.Duration;
 
-public class PrettyAppWindow extends JajaFXAppWindow<PrettyApp> {
+public class PrettyAppWindow extends UpdateableJajaFXAppWindow<PrettyApp> {
 	private final static ResourceBundle RESOURCES = ResourceBundle.getBundle(PrettyAppWindow.class.getName());
 
 	private FontIcon bell;
@@ -49,6 +50,7 @@ public class PrettyAppWindow extends JajaFXAppWindow<PrettyApp> {
 	}
 	
 	public void setContext(TTYContext context) {
+		this.ttyContext = context;
 		setContent(context.content());
 	}
 	

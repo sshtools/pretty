@@ -2,7 +2,7 @@ pipeline {
  	agent none
  	tools {
 		maven 'Maven 3.9.0' 
-		jdk 'Graal JDK 22' 
+		jdk 'JDK 25' 
 	}
 	
 	environment {
@@ -105,7 +105,7 @@ pipeline {
 					 			globalMavenSettingsConfig: "${env.MAVEN_CONFIG_ID}"
 					 		) {
 					 			// -Dinstall4j.disableNotarization=true 
-					 		  	sh 'mvn -X -U -Dbuild.mediaTypes=macos,macosFolder,macosFolderArchive ' +
+					 		  	sh 'mvn -X -U -Dbuild.mediaTypes=macosFolder,macosFolderArchive ' +
 					 		  	   '-Dbuild.projectProperties=$BUILD_PROPERTIES ' +
 					 		  	   '-DbuildInstaller=true -P translate clean package'
 					 		  	

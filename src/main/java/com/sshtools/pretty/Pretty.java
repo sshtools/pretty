@@ -7,9 +7,9 @@ import java.util.ResourceBundle;
 
 import org.slf4j.event.Level;
 
-import com.sshtools.jajafx.AppUpdateService;
-import com.sshtools.jajafx.DelegatingAppUpdateService;
-import com.sshtools.jajafx.JajaApp;
+import com.sshtools.jajafx.updateable.AppUpdateService;
+import com.sshtools.jajafx.updateable.DelegatingAppUpdateService;
+import com.sshtools.jajafx.updateable.UpdateableJajaApp;
 import com.sshtools.jaul.AppCategory;
 import com.sshtools.jaul.ArtifactVersion;
 import com.sshtools.jaul.JaulApp;
@@ -24,7 +24,7 @@ import uk.co.bithatch.nativeimage.annotations.Bundle;
 @Command(name = "pretty", mixinStandardHelpOptions = true, description = "A Terminal Emulator", versionProvider = Pretty.Version.class)
 @JaulApp(id = Pretty.TOOLBOX_APP_ID, category = AppCategory.GUI, updaterId = "54", updatesUrl = "https://sshtools-public.s3.eu-west-1.amazonaws.com/pretty/${phase}/updates.xml")
 @Bundle
-public class Pretty extends JajaApp<PrettyApp, PrettyAppWindow> {
+public class Pretty extends UpdateableJajaApp<PrettyApp, PrettyAppWindow> {
 
 	private final static ResourceBundle RESOURCES = ResourceBundle.getBundle(Pretty.class.getName());
 
@@ -56,7 +56,7 @@ public class Pretty extends JajaApp<PrettyApp, PrettyAppWindow> {
 	@Option(names = { "-c", "--cwd" }, description = "Working directory for local shells.")
 	private Optional<Path> workingDirectory;
 
-	public final static class PrettyBuilder extends JajaAppBuilder<Pretty, PrettyBuilder, PrettyApp> {
+	public final static class PrettyBuilder extends UpdateableJajaAppBuilder<Pretty, PrettyBuilder, PrettyApp> {
 
 		public static PrettyBuilder create() {
 			return new PrettyBuilder();

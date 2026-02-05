@@ -3,7 +3,7 @@ package com.sshtools.pretty;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 
-import com.sshtools.jajafx.UpdatePage;
+import com.sshtools.jajafx.updateable.UpdatePage;
 
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;

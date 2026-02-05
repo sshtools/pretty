@@ -23,8 +23,9 @@ import org.slf4j.LoggerFactory;
 import com.install4j.api.launcher.StartupNotification;
 import com.install4j.api.launcher.StartupNotification.Listener;
 import com.sshtools.jajafx.FXUtil;
-import com.sshtools.jajafx.JajaFXApp;
 import com.sshtools.jajafx.JajaFXAppWindow;
+import com.sshtools.jajafx.updateable.UpdateableJajaFXApp;
+import com.sshtools.jajafx.updateable.UpdateableJajaFXAppWindow;
 import com.sshtools.jaul.UpdateService;
 import com.sshtools.jini.config.Monitor;
 import com.sshtools.terminal.emulation.UIToolkit;
@@ -48,7 +49,7 @@ import uk.co.bithatch.nativeimage.annotations.Reflectable;
 
 @Bundle
 @Reflectable
-public class PrettyApp extends JajaFXApp<Pretty, PrettyAppWindow> implements Listener {
+public class PrettyApp extends UpdateableJajaFXApp<Pretty, PrettyAppWindow> implements Listener {
 
 	private final static Logger LOG = LoggerFactory.getLogger(PrettyApp.class);
 	private final static ResourceBundle RESOURCES = ResourceBundle.getBundle(PrettyApp.class.getName());
@@ -125,7 +126,7 @@ public class PrettyApp extends JajaFXApp<Pretty, PrettyAppWindow> implements Lis
 	}
 
 	@Override
-	protected JajaFXAppWindow<?> createAppWindow(Stage stage) {
+	protected UpdateableJajaFXAppWindow<?> createAppWindow(Stage stage) {
 		var aw = new PrettyAppWindow(stage, this, appContext);
 		var ctx = createContent(stage, aw);
 		aw.setContext(ctx);
