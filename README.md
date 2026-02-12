@@ -2,6 +2,8 @@
 
 A deceptively powerful modern terminal emulator
 
+<img width="600" height="487" alt="pretty" src="https://github.com/user-attachments/assets/c2419506-8120-4f5f-9b66-6626e06b3949" />
+
 ## Features
 
  * Cross platform, for Linux, Mac OS and Windows.
