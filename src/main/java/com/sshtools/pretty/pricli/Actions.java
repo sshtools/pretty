@@ -37,7 +37,7 @@ public class Actions implements Callable<Integer> {
 	public Integer call() throws Exception {
 		
 		if (dialog) {
-			parent.ttyContext().getContainer().actions(filter);
+			parent.ttyContext().getContainer().actions(filter, parent.ttyContext().stage());
 		} else {
 			
 			ActionGroup grp = null;

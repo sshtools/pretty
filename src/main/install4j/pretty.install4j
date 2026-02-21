@@ -66,7 +66,7 @@
   <launchers>
     <launcher name="pretty" id="52" menuName="Push SFTP GUI" addMacApplicationCategory="true" macApplicationCategory="public.app-category.utilities" useCustomMacosExecutableName="true" customMacosExecutableName="Pretty">
       <executable name="pretty" iconSet="true" executableDir="." stderrFile="${installer:sys.userHome}/.pretty/pretty.log" redirectStdout="true" stdoutFile="${installer:sys.userHome}/.pretty/pretty.log" executableMode="gui" singleInstance="true" />
-      <java mainClass="com.sshtools.pretty/com.sshtools.pretty.Pretty" mainMode="module" vmParameters="-Dinstall4j.installationDir=${launcher:sys.launcherDirectory} --enable-preview --enable-native-access=com.sshtools.pty4j">
+      <java mainClass="com.sshtools.pretty/com.sshtools.pretty.Pretty" mainMode="module" vmParameters="-Dinstall4j.installationDir=${launcher:sys.launcherDirectory}  --enable-native-access=com.sshtools.pty4j  --enable-native-access=javafx.media">
         <modulePath>
           <directory location="lib" failOnError="false" />
           <directory location="mac" failOnError="false" />

@@ -23,6 +23,7 @@ import javafx.scene.image.Image;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.MouseButton;
 import javafx.scene.paint.Color;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
@@ -175,28 +176,7 @@ public class PrettyAppWindow extends UpdateableJajaFXAppWindow<PrettyApp> {
 						}
 						
 
-						var updateDialogPane = new UpdatePane(ctx);
-						
-						var stg = new Stage();
-						var wnd = new JajaFXAppWindow<>(stg, app, 400, 400);
-						wnd.setContent(updateDialogPane);
-						wnd.stage().sizeToScene();
-						wnd.scene().getRoot().setId("update-dialog");
-
-						stg.initOwner(stage());
-//						stg.initModality(Modality.APPLICATION_MODAL);
-
-						stg.getIcons().add(new Image(app.getIcon().toExternalForm()));
-						stg.setResizable(false);
-						stg.setTitle(RESOURCES.getString("update"));
-						try {
-							if(Boolean.getBoolean("jaja.debugScene"))
-								ScenicView.show(stg.getScene());
-						}
-						catch(Throwable e) {
-						}
-						updateDialogPane.onRemindMeTomorrow(() -> stg.hide());
-						stg.showAndWait();
+						ctx.update(stage());
 					});
 
 					ft.setFromValue(1);

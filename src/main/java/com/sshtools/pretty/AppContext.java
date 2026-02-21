@@ -26,7 +26,7 @@ public interface AppContext {
 	
 	void options(Stage owner);
 	
-	void actions(Optional<String> filter);
+	void actions(Optional<String> filter, Stage owner);
 
 	TerminalTheme getSelectedTheme();
 	
@@ -38,7 +38,7 @@ public interface AppContext {
 
 	UpdateService getUpdateService();
 
-	Preferences getPreferences();
+	Preferences getAppPreferences();
 
 	UIToolkit<Font, Color> getUiToolkit();
 
@@ -73,4 +73,6 @@ public interface AppContext {
 	ScheduledExecutorService scheduler();
 
 	CustomCSS customCSS();
+
+	void update(Stage owner);
 }

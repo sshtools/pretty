@@ -19,7 +19,7 @@
 		<picocli.version>4.7.5</picocli.version>
 		<native.image.version>0.9.1</native.image.version>
 		<jline.version>3.26.0</jline.version>
-		<maverick.synergy.version>3.1.2</maverick.synergy.version>
+		<maverick.synergy.version>3.1.4</maverick.synergy.version>
 
 		<build.arch>${os.arch}</build.arch>
 		<build.platform>${build.os.family}-${os.arch}</build.platform>
@@ -321,17 +321,17 @@
 		<dependency>
 			<groupId>com.sshtools</groupId>
 			<artifactId>jini-lib</artifactId>
-			<version>0.3.3</version> 
+			<version>0.6.7</version> 
 		</dependency>
 		<dependency>
 			<groupId>com.sshtools</groupId>
 			<artifactId>jini-schema</artifactId>
-			<version>0.3.3</version>
+			<version>0.6.7</version> 
 		</dependency>
 		<dependency>
 			<groupId>com.sshtools</groupId>
 			<artifactId>jini-config</artifactId>
-			<version>0.3.3</version>
+			<version>0.6.7</version> 
 		</dependency>
 		<dependency>
 			<groupId>org.jline</groupId>
@@ -460,12 +460,12 @@
 		<dependency>
 			<groupId>com.sshtools</groupId>
 			<artifactId>two-slices</artifactId>
-			<version>0.9.2</version>
+			<version>0.9.5</version>
 		</dependency>
 		<dependency>
 			<groupId>com.sshtools</groupId>
 			<artifactId>jajafx-lib</artifactId>
-			<version>0.9.10</version>
+			<version>0.9.12</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.openjfx</groupId>
@@ -488,7 +488,7 @@
 		<dependency>
 			<groupId>com.sshtools</groupId>
 			<artifactId>jajafx-updateable</artifactId>
-			<version>0.9.10</version>
+			<version>0.9.12</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.openjfx</groupId>
@@ -511,7 +511,7 @@
 		<dependency>
 			<groupId>com.sshtools</groupId>
 			<artifactId>jajafx-jmetro</artifactId>
-			<version>0.9.10</version>
+			<version>0.9.12</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.openjfx</groupId>
@@ -579,12 +579,12 @@
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
-			<version>2.0.9</version>
+			<version>2.0.17</version>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-simple</artifactId>
-			<version>2.0.9</version>
+			<version>2.0.17</version>
 		</dependency>
 		<!--
 		<dependency>
@@ -596,7 +596,7 @@
 		<dependency>
 			<groupId>com.sshtools</groupId>
 			<artifactId>pty4j21</artifactId>
-			<version>0.22.0</version> 
+			<version>0.22.1</version> 
 		</dependency>
 		<dependency>
 			<groupId>org.jetbrains.pty4j</groupId>
@@ -634,14 +634,6 @@
 
 	</dependencies>
 	<repositories>
-		<repository>
-			<id>oss-snapshots</id>
-			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
-			<snapshots/>
-			<releases>
-				<enabled>false</enabled>
-			</releases>
-		</repository>
 		<repository>
 			<id>jitpack.io</id>
 			<url>https://jitpack.io</url>

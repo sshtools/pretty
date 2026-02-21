@@ -15,6 +15,9 @@ import java.util.prefs.Preferences;
 
 import org.jline.utils.AttributedStringBuilder;
 import org.jline.utils.AttributedStyle;
+import org.kordamp.ikonli.javafx.FontIcon;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.pty4j.Platform;
 import com.sshtools.jajafx.FXUtil;
@@ -41,6 +44,7 @@ import javafx.scene.Node;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
@@ -56,12 +60,15 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.stage.Stage;
 import javafx.util.StringConverter;
 import uk.co.bithatch.nativeimage.annotations.Bundle;
 
 @Bundle
 public class Options extends StackPane implements Closeable {
 	final static ResourceBundle RESOURCES = ResourceBundle.getBundle(Options.class.getName());
+	
+	private final static Logger  LOG = LoggerFactory.getLogger(Options.class);
 
 	@FXML
 	private Tab generalTab;
@@ -114,6 +121,8 @@ public class Options extends StackPane implements Closeable {
 	@FXML
 	private HBox customCommandOptions;
 	@FXML
+	private Hyperlink checkForUpdates;
+	@FXML
 	private TextArea customCommand;
 	@FXML
 	private ToggleGroup passwords;
@@ -123,6 +132,8 @@ public class Options extends StackPane implements Closeable {
 	private VBox scrollBarModes;
 	@FXML
 	private ColorPicker accentColor;
+	@FXML
+	private FontIcon updateSpinner;
 
 	private final PrefBind prefBind;
 	private final Preferences prefs;
@@ -134,7 +145,7 @@ public class Options extends StackPane implements Closeable {
 	public Options(AppContext app) {
 		this.app = app;
 		
-		prefs = app.getPreferences();
+		prefs = app.getAppPreferences();
 		var cfg = app.getConfiguration();
 		
 		var loader = new FXMLLoader(getClass().getResource("Options.fxml"));
@@ -172,7 +183,7 @@ public class Options extends StackPane implements Closeable {
 			if(n != null) {
 				cfg.terminal().put(Constants.SHELL_KEY,n.id());
 			}
-			updateAvailable();
+			updateState();
 		});
 		var initialShellName = cfg.terminal().get(Constants.SHELL_KEY);
 		var initialShell = app.getShells().getById(initialShellName); 
@@ -370,15 +381,42 @@ public class Options extends StackPane implements Closeable {
 
 		handles.add(cfg.bind(legacyPty.selectedProperty(), Constants.LEGACY_PTY_KEY, Constants.TERMINAL_SECTION));		
 		legacyPty.managedProperty().bind(legacyPty.visibleProperty());
-		legacyPty.selectedProperty().addListener((c,o,n) -> updateAvailable());
-
+		legacyPty.selectedProperty().addListener((c,o,n) -> updateState());
+		
 		/* Java Preferences stuff, i.e. Jaul updates */
 		prefBind = new PrefBind(prefs);
 		prefBind.bind(automaticUpdates);
 		prefBind.bind(Phase.class, phase);
+		
+		updateSpinner.setVisible(false);
 
-		updateAvailable();
+		updateState();
 
+	}
+	
+	@FXML
+	public void checkForUpdates(ActionEvent evt) {
+		var usrv = app.getUpdateService();
+		checkForUpdates.setDisable(true);
+		updateSpinner.setVisible(true);
+		FXUtil.spin(updateSpinner, true);
+		usrv.getContext().getScheduler().execute(() -> {
+			try {
+				usrv.checkForUpdate();
+			} catch (IOException e) {
+				LOG.error("Failed to check for updates", e);
+			} finally {
+				maybeQueue(() -> { 
+					checkForUpdates.setDisable(false);
+					updateSpinner.setVisible(false);
+					FXUtil.spin(updateSpinner, false);
+					updateState();
+					if(usrv.isNeedsUpdating()) {
+						app.update((Stage) getParent().getScene().getWindow());
+					}
+				});
+			}
+		});
 	}
 	
 	@FXML
@@ -396,7 +434,7 @@ public class Options extends StackPane implements Closeable {
 		app.getHostServices().showDocument(app.getThemes().getDropInPath().toUri().toString());
 	}
 	
-	private void updateAvailable() {
+	private void updateState() {
 		var sel = defaultShell.getSelectionModel().getSelectedItem();
 		loginShell.setVisible(sel != null && sel.loginShellArgs() != null && sel.loginShellArgs().length > 0);
 		legacyPty.setVisible(System.getProperty("os.name").toLowerCase().contains("windows"));

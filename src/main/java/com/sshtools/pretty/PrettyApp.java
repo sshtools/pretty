@@ -260,6 +260,11 @@ public class PrettyApp extends UpdateableJajaFXApp<Pretty, PrettyAppWindow> impl
 					var options = new Options(this);
 					
 					var stg = new Stage();
+					stg.initOwner(owner);
+					stg.setOnCloseRequest(eh -> {
+						optionsWindow = null;
+						stg.close();
+					});
 					optionsWindow = new JajaFXAppWindow<>(stg, PrettyApp.this, 640, 680);
 					optionsWindow.setContent(options);
 
@@ -321,7 +326,7 @@ public class PrettyApp extends UpdateableJajaFXApp<Pretty, PrettyAppWindow> impl
 		}
 
 		@Override
-		public void actions(Optional<String> filter) {
+		public void actions(Optional<String> filter, Stage owner) {
 			
 			Platform.runLater(() -> {
 				if(actionsOverviewWindow == null) {
@@ -330,6 +335,11 @@ public class PrettyApp extends UpdateableJajaFXApp<Pretty, PrettyAppWindow> impl
 					var stg = new Stage();
 					actionsOverviewWindow = new JajaFXAppWindow<>(stg, PrettyApp.this, 520, 600);
 					actionsOverviewWindow.setContent(actions);
+					stg.setOnCloseRequest(eh -> {
+						actionsOverviewWindow = null;
+						stg.close();
+					});
+					stg.initOwner(owner);
 					
 					var toggleSearch = new FontIcon();
 					toggleSearch.setIconSize(18);
@@ -362,6 +372,31 @@ public class PrettyApp extends UpdateableJajaFXApp<Pretty, PrettyAppWindow> impl
 		}
 
 		@Override
+		public void update(Stage owner) {
+			var updateDialogPane = new UpdatePane(this);
+			
+			var stg = new Stage();
+			stg.initOwner(owner);
+			stg.initModality(Modality.WINDOW_MODAL);
+			var wnd = new JajaFXAppWindow<>(stg, PrettyApp.this, 400, 400);
+			wnd.setContent(updateDialogPane);
+			wnd.stage().sizeToScene();
+			wnd.scene().getRoot().setId("update-dialog");
+			stg.getIcons().add(new Image(getIcon().toExternalForm()));
+			stg.setResizable(false);
+			stg.setTitle(RESOURCES.getString("update"));
+			try {
+				if(Boolean.getBoolean("jaja.debugScene"))
+					ScenicView.show(stg.getScene());
+			}
+			catch(Throwable e) {
+			}
+			stg.setOnCloseRequest(eh -> updateDialogPane.hidden());
+			updateDialogPane.onRemindMeTomorrow(() -> stg.hide());
+			stg.showAndWait();
+		}
+
+		@Override
 		public Configuration getConfiguration() {
 			return configuration;
 		}
@@ -382,8 +417,8 @@ public class PrettyApp extends UpdateableJajaFXApp<Pretty, PrettyAppWindow> impl
 		}
 
 		@Override
-		public Preferences getPreferences() {
-			return getContainer().getAppPreferences();
+		public Preferences getAppPreferences() {
+			return getContainer().getRegisteredApp().getAppPreferences();
 		}
 
 		@Override
