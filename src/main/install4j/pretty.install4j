@@ -66,7 +66,7 @@
   <launchers>
     <launcher name="pretty" id="52" menuName="Push SFTP GUI" addMacApplicationCategory="true" macApplicationCategory="public.app-category.utilities" useCustomMacosExecutableName="true" customMacosExecutableName="Pretty">
       <executable name="pretty" iconSet="true" executableDir="." stderrFile="${installer:sys.userHome}/.pretty/pretty.log" redirectStdout="true" stdoutFile="${installer:sys.userHome}/.pretty/pretty.log" executableMode="gui" singleInstance="true" />
-      <java mainClass="com.sshtools.pretty/com.sshtools.pretty.Pretty" mainMode="module" vmParameters="-Dinstall4j.installationDir=${launcher:sys.launcherDirectory}  --enable-native-access=com.sshtools.pty4j  --enable-native-access=javafx.media">
+      <java mainClass="com.sshtools.pretty/com.sshtools.pretty.Pretty" mainMode="module" vmParameters="-Dinstall4j.installationDir=${launcher:sys.launcherDirectory}  --enable-native-access=com.sshtools.pty4j  --enable-native-access=javafx.media --enable-native-access=javafx.graphics --enable-native-access=com.install4j.runtime">
         <modulePath>
           <directory location="lib" failOnError="false" />
           <directory location="mac" failOnError="false" />
@@ -1301,7 +1301,7 @@ return true;</property>
       </exclude>
       <jreBundle jdkProviderId="AdoptOpenJDK" release="21/jdk-21.0.2+13" usePack200="false" />
     </macosFolder>
-    <linuxRPM name="Linux RPM x86_64" id="37" mediaFileName="${compiler:sys.shortName}-${compiler:sys.platform}--x86_64-${compiler:sys.version}">
+    <linuxRPM name="Linux RPM x86_64" id="37" mediaFileName="${compiler:sys.shortName}-${compiler:sys.platform}-x86_64-${compiler:sys.version}">
       <exclude>
         <entry location="mac" />
         <entry location="win" />
@@ -1335,7 +1335,7 @@ return true;</property>
       </exclude>
       <jreBundle platform="linux-aarch64" />
     </linuxDeb>
-    <linuxRPM name="Linux RPM aarch64" id="139" mediaFileName="${compiler:sys.shortName}-${compiler:sys.platform}--aarch64-${compiler:sys.version}">
+    <linuxRPM name="Linux RPM aarch64" id="139" mediaFileName="${compiler:sys.shortName}-${compiler:sys.platform}-aarch64-${compiler:sys.version}">
       <exclude>
         <entry location="mac" />
         <entry location="win" />

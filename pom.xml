@@ -321,17 +321,17 @@
 		<dependency>
 			<groupId>com.sshtools</groupId>
 			<artifactId>jini-lib</artifactId>
-			<version>0.6.7</version> 
+			<version>0.6.8</version> 
 		</dependency>
 		<dependency>
 			<groupId>com.sshtools</groupId>
 			<artifactId>jini-schema</artifactId>
-			<version>0.6.7</version> 
+			<version>0.6.8</version> 
 		</dependency>
 		<dependency>
 			<groupId>com.sshtools</groupId>
 			<artifactId>jini-config</artifactId>
-			<version>0.6.7</version> 
+			<version>0.6.8</version> 
 		</dependency>
 		<dependency>
 			<groupId>org.jline</groupId>
@@ -351,7 +351,7 @@
 		<dependency>
 			<groupId>me.tongfei</groupId>
 			<artifactId>progressbar</artifactId>
-			<version>0.10.1-SNAPSHOT</version>
+			<version>0.10.2</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.jline</groupId>

@@ -48,11 +48,11 @@ public final class Configuration {
 	}
 
 	public Section transfers() {
-		return ini.section(Constants.TRANSFERS_SECTION);
+		return ini.obtainSection(Constants.TRANSFERS_SECTION);
 	}
 
 	public Section terminal() {
-		return ini.section(Constants.TERMINAL_SECTION);
+		return ini.obtainSection(Constants.TERMINAL_SECTION);
 	}
 
 	public Section ui() {
@@ -210,7 +210,9 @@ public final class Configuration {
 				}
 			});
 		});
-		setter.accept(sec.get(key));
+		if(sec.contains(key)) {
+			setter.accept(sec.get(key));
+		}
 		return () -> {
 			vuhndl.close();
 		};
