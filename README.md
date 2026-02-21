@@ -16,6 +16,22 @@ A deceptively powerful modern terminal emulator
  * Desktop notifications via either Iterm2 or Kitty protocols.
  * File transfers using SSH, Iterm2 or Kitty protocols (WIP).
  * Tabs or Windowed user interface.
+ 
+## Get Pretty
+
+There are alpha builds available in the [releases](https://github.com/sshtools/pretty/releases) page. 
+
+Once installed, you can get update inside Pretty itself. Currently you will need to make sure you select the `Continuous Developer Builds` update channel to get developer updates until the early access or stable version is release..
+
+Or, just clone this repository and run `mvn exec:java` (you will need Java 25 and Maven installed).
+
+## Known Issues
+
+There are a number ...
+
+ * Scrollback buffer implementation is a bit slow.
+ * Sixel images are not erased when characters drawn over them.
+ * Wide mode switching unreliable.
     
 ## Goals
 

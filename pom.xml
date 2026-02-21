@@ -166,6 +166,23 @@
 					<mainClass>com.sshtools.pretty.Pretty</mainClass>
 				</configuration>
 			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>3.6.3</version>
+				<configuration>
+          			<includePluginDependencies>true</includePluginDependencies>
+					<mainClass>com.sshtools.pretty/com.sshtools.pretty.Pretty</mainClass>
+				</configuration>
+				<dependencies>
+					<dependency>
+						<groupId>com.install4j</groupId>
+						<artifactId>install4j-runtime</artifactId>
+						<version>11.0.5</version>
+						<scope>compile</scope>
+					</dependency>
+				</dependencies>
+			</plugin>
 		</plugins>
 		<pluginManagement>
 			<plugins>
@@ -586,13 +603,6 @@
 			<artifactId>slf4j-simple</artifactId>
 			<version>2.0.17</version>
 		</dependency>
-		<!--
-		<dependency>
-			<groupId>org.jetbrains.pty4j</groupId>
-			<artifactId>pty4j</artifactId>
-			<version>0.12.13</version>
-		</dependency> 
-		-->
 		<dependency>
 			<groupId>com.sshtools</groupId>
 			<artifactId>pty4j21</artifactId>
@@ -608,67 +618,20 @@
 			<artifactId>dbus-java-transport-native-unixsocket</artifactId>
 			<version>4.3.1</version>
 		</dependency>
-		<!--<dependency>
-			<groupId>io.github.palexdev</groupId>
-			<artifactId>scenicview</artifactId>
-			<version>17.0.2</version>
-			<exclusions>
-				<exclusion>
-					<groupId>org.openjfx</groupId>
-					<artifactId>javafx-base</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.openjfx</groupId>
-					<artifactId>javafx-controls</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.openjfx</groupId>
-					<artifactId>javafx-graphics</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.openjfx</groupId>
-					<artifactId>javafx-fxml</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>-->
 
 	</dependencies>
 	<repositories>
-		<repository>
-			<id>jitpack.io</id>
-			<url>https://jitpack.io</url>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-			<releases />
-		</repository>
-		<repository>
-			<id>public-releases</id>
-			<name>public-releases</name>
-			<url>https://artifactory.jadaptive.com/public-releases</url>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-			<releases />
-		</repository>
-		<repository>
-			<id>public-snapshots</id>
-			<name>public-snapshots</name>
-			<url>https://artifactory.jadaptive.com/public-snapshots</url>
-			<releases>
-				<enabled>false</enabled>
-			</releases>
-			<snapshots />
-		</repository>
-		<repository>
-			<id>ext-snapshots-local</id>
-			<name>artifactory.jadaptive.com-ext-snapshots</name>
-			<url>https://artifactory.jadaptive.com/ext-snapshots-local</url>
-			<releases>
-				<enabled>false</enabled>
-			</releases>
-			<snapshots />
-		</repository>
+		
+        <repository>
+            <id>oss-snapshots</id>
+            <url>https://central.sonatype.com/repository/maven-snapshots</url>
+            <snapshots />
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+        </repository>
+        
+        <!-- For JSyn and Purejavacomm -->
 		<repository>
 			<id>ext-releases-local</id>
 			<name>artifactory.jadaptive.com-ext-releases</name>
@@ -678,67 +641,7 @@
 			</snapshots>
 			<releases />
 		</repository>
-		<repository>
-			<id>opensource-releases</id>
-			<name>opensource-releases</name>
-			<url>https://artifactory.jadaptive.com/opensource-releases</url>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-			<releases />
-		</repository>
-		<repository>
-			<id>opensource-snapshots</id>
-			<name>opensource-snapshots</name>
-			<url>https://artifactory.jadaptive.com/opensource-snapshots</url>
-			<releases>
-				<enabled>false</enabled>
-			</releases>
-			<snapshots />
-		</repository>
 	</repositories>
-	<pluginRepositories>
-		<pluginRepository>
-			<id>libs-releases</id>
-			<url>https://artifactory.jadaptive.com/libs-releases-local</url>
-			<releases />
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-		</pluginRepository>
-		<pluginRepository>
-			<id>libs-snapshots</id>
-			<url>https://artifactory.jadaptive.com/libs-snapshots-local</url>
-			<releases>
-				<enabled>false</enabled>
-			</releases>
-			<snapshots />
-		</pluginRepository>
-		<pluginRepository>
-			<id>opensource-releases</id>
-			<url>https://artifactory.jadaptive.com/opensource-releases</url>
-			<releases />
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-		</pluginRepository>
-		<pluginRepository>
-			<id>opensource-snapshots</id>
-			<url>https://artifactory.jadaptive.com/opensource-snapshots</url>
-			<releases>
-				<enabled>false</enabled>
-			</releases>
-			<snapshots />
-		</pluginRepository>
-		<pluginRepository>
-			<id>sonatype-oss-shapshots-plugins</id>
-			<url>https://oss.sonatype.org/content/groups/public</url>
-			<snapshots />
-			<releases>
-				<enabled>false</enabled>
-			</releases>
-		</pluginRepository>
-	</pluginRepositories>
 	<profiles>
 		<!-- Activate translations -->
 		<profile>
