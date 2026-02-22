@@ -11,7 +11,7 @@ public class Strings {
 	
 	public static Path parseFilePath(String path) {
 		if(path.startsWith("~\\") || path.startsWith("~/")) {
-			return Path.of(System.getProperty("user.home")).resolve(path.substring(1));
+			return Path.of(System.getProperty("user.home") + path.substring(1));
 		}
 		else {
 			return Path.of(path);

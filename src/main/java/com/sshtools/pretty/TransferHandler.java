@@ -144,9 +144,7 @@ public class TransferHandler implements TransferListener {
 			    
 				Platform.runLater(() -> {
 
-						/*TODO configurable directory, and maybe option at download time */
-					    var dir = Strings.parseFilePath(
-					    		tty.ttyContext().getContainer().getConfiguration().transfers().get(Constants.DOWNLOADS_KEY));;
+					    var dir = Strings.parseFilePath(tty.ttyContext().getContainer().getConfiguration().transfers().get(Constants.DOWNLOADS_KEY));
 					    var file = dir.resolve(transfer.filename().orElse(RESOURCES.getString("unknownFile")));
 	
 					    transfer.size().ifPresent(sz -> transferStatus.total.addAndGet(sz));
