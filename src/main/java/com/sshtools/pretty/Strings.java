@@ -15,7 +15,7 @@ public class Strings {
 	public static String trimPad(String str, int len) {
 		if(str == null)
 			return null;
-		else if(len < 0) {
+		else if(len < 1) {
 			return "";
 		}
 		else if(str.length() > len) {

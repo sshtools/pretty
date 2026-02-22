@@ -341,7 +341,7 @@ public class ConsoleProtocol implements TerminalProtocol, ResizeListener, Elemen
 	public void draw(TerminalViewport<JavaFXTerminalPanel, ?, ?> vp, int cols) throws IOException {
 		var bldr = new AttributedStringBuilder();
 		bldr.style(AttributedStyle.INVERSE);
-		bldr.append(shellName == null ? RESOURCES.getString("console") : shellName);
+		bldr.append(Strings.trimPad(shellName == null ? RESOURCES.getString("console") : shellName,  cols));
 		bldr.style(AttributedStyle.INVERSE_OFF);
 		vp.write(bldr.toAnsi().getBytes(vp.getCharacterSet()));
 	}

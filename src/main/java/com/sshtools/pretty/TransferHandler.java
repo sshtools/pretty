@@ -128,7 +128,7 @@ public class TransferHandler implements TransferListener {
 			@Override
 			public void handle(long now) {
 				if (updates.getAndSet(0) > 0) {
-					tty.status().redraw();
+					tty.status().redraw(false);
 				}
 			}
 		};
@@ -186,7 +186,7 @@ public class TransferHandler implements TransferListener {
 									} finally {
 									    transfer.size().ifPresent(sz -> { 
 									    	transferStatus.total.addAndGet(-sz);  
-									    	runLater(() -> tty.status().redraw());
+									    	runLater(() -> tty.status().redraw(false));
 									    });
 									}
 								}
@@ -226,7 +226,7 @@ public class TransferHandler implements TransferListener {
 			else {
 			    transfer.size().ifPresent(sz ->  { 
 			    	transferStatus.total.addAndGet(-sz);  
-			    	runLater(() -> tty.status().redraw());
+			    	runLater(() -> tty.status().redraw(false));
 			    });
 				try {
 					active.chan.close();

@@ -134,6 +134,8 @@ public class Options extends StackPane implements Closeable {
 	private ColorPicker accentColor;
 	@FXML
 	private FontIcon updateSpinner;
+	@FXML
+	private CheckBox statusLine;
 
 	private final PrefBind prefBind;
 	private final Preferences prefs;
@@ -342,6 +344,9 @@ public class Options extends StackPane implements Closeable {
 		handles.add(cfg.bindString(sz -> screenSize.setValue(sz), () -> screenSize.getValue(), Constants.SCREEN_SIZE_KEY, Constants.TERMINAL_SECTION));
 		screenSize.valueProperty().addListener((c,o,n) -> cfg.terminal().put(Constants.SCREEN_SIZE_KEY, n));
 		screenSize.getSelectionModel().select("80x24");
+		
+		/* Status Line */
+		handles.add(cfg.bind(statusLine.selectedProperty(), Constants.ENABLED_KEY, Constants.STATUS_SECTION));
 
 		/* Scrolling */
 		automaticScrollBar.setUserData(ScrollBarMode.AUTOMATIC);

@@ -1,5 +1,6 @@
 package com.sshtools.pretty;
 
+import static com.sshtools.jajafx.FXUtil.maybeQueue;
 import static javafx.application.Platform.runLater;
 
 import java.io.Closeable;
@@ -42,6 +43,7 @@ import com.sshtools.terminal.emulation.ResizeStrategy;
 import com.sshtools.terminal.emulation.TerminalInputStream;
 import com.sshtools.terminal.emulation.TerminalOutputStream;
 import com.sshtools.terminal.emulation.TerminalViewport;
+import com.sshtools.terminal.emulation.buffer.FixedSizeInMemoryBufferData;
 import com.sshtools.terminal.emulation.emulator.DECEmulator;
 import com.sshtools.terminal.emulation.emulator.DECModes;
 import com.sshtools.terminal.emulation.emulator.DECModes.StatusLineType;
@@ -164,7 +166,10 @@ public class TTY extends StackPane implements Closeable {
 	private Transition resizeFade;
 	private Path cwd;
 	private Label overlayInfo;
+
+	private DECEmulator<JavaFXTerminalPanel> statusEmulator;
 	
+	@SuppressWarnings("unused")
 	private TTY(Builder bldr) {
 		this.ttyContext = bldr.ttyContext;
 		this.onClose = bldr.onClose;
@@ -214,6 +219,7 @@ public class TTY extends StackPane implements Closeable {
 		emulator.addTitleChangeListener((t, title) -> runLater(() -> this.title.setValue(title)));
 		emulator.setNotifications(new TwoSlicesNotificattions());
 		emulator.addResizeListener((terminal, columns, rows, remote) -> {
+			updateStatusSize();
 			if (remote) {
 				runLater(() -> {
 					if (terminalPanel.getResizeStrategy() == ResizeStrategy.SCREEN) {
@@ -226,7 +232,7 @@ public class TTY extends StackPane implements Closeable {
 		});
 		emulator.addModeChangeListener(modes -> {
 			if(statusTerminal != null)
-				runLater(() -> checkStatusDisplay());
+				checkStatusDisplay();
 		});
 
 		/* Scrolling */
@@ -237,6 +243,73 @@ public class TTY extends StackPane implements Closeable {
 			() -> cli().shell(),
 			On.TTY
 		);
+
+		/* Build this stack */
+		getChildren().add(scrollPane);
+		getChildren().add(overlayInfo);
+		
+		userTitle.addListener((c,o,n) -> updateState());
+		tabColor.addListener((c,o,n) -> updateState());
+		
+		/* Status */
+		status.add(new Status.SizeAndCursor(this));
+		status.add(new Status.InsertReplaceMode(this));
+			
+		var statusHeight = cfg.status().getInt(Constants.HEIGHT_KEY);
+		statusEmulator = new DECEmulator<JavaFXTerminalPanel>(
+			terminalPanel.getViewport().getTerminalType(), 
+			new FixedSizeInMemoryBufferData(statusHeight),
+			sz[0], 
+			statusHeight
+		);
+			
+		statusTerminal = new JavaFXTerminalPanel.Builder().
+				withUiToolkit(ttyContext.getContainer().getUiToolkit()).
+				withFontManager(ttyContext.getContainer().getFonts().getFontManager()).
+				withBuffer(statusEmulator)
+				.build();
+		statusTerminal.setResizeStrategy(ResizeStrategy.SCREEN);
+		statusTerminal.setEventsEnabled(false);
+		statusEmulator.addResizeListener((term,cols,rows,remote) -> checkStatusDisplay());
+		statusEmulator.getModes().setShowCursor(false);
+		
+		var statusControl = statusTerminal.getControl();
+		statusControl.setVisible(false);
+		statusControl.getStyleClass().add("status-display");
+		statusControl.managedProperty().bind(statusControl.visibleProperty());
+		terminalPanel.getViewport().setStatusLineDisplay(statusTerminal);
+		
+		/* Set the height again. TC sets the height based on terminal type, we overide
+		 * it and base it on configuration
+		 */
+		updateStatusSize();
+
+		/* Bind to configuration */
+		handles.addAll(Arrays.asList(
+				/* TODO some need binding */
+//				cfg.bindEnum(ResizeStrategy.class, this::setResizeStrategy, terminalPanel::getResizeStrategy, "resize-strategy", Options.TERMINAL_SECTION),
+//				cfg.bindInteger(buf::setMaximumSize, buf::getMaximumSize, "buffer-size", Options.TERMINAL_SECTION),
+//				cfg.bindString(emulator::setTerminalType, emulator.getTerminalType()::getId, "type", Options.TERMINAL_SECTION),  
+//				cfg.bindString((nsz) -> updateAppearance(), () -> String.format("%dx%d", emulator.getColumns(), emulator.getRows()), "screen-size", Options.TERMINAL_SECTION),
+//				cfg.bindInteger(this::setFontSize, terminalPanel.getFontManager().getDefault().spec()::getSize, "font-size", Options.TERMINAL_SECTION),
+//				cfg.bindStrings(this::setFonts, this::getFonts, "fonts", Options.TERMINAL_SECTION),
+//				cfg.bindStrings((s) -> updateFeatures(), this::getEnabledFeatures, "enabled-features", Options.TERMINAL_SECTION), 
+//				cfg.bindStrings((s) -> updateFeatures(), this::getDisabledFeatures, "disabled-features", Options.TERMINAL_SECTION),
+//				cfg.bindString(this::setThemeName, this::getThemeName, Constants.THEME_KEY, Options.TERMINAL_SECTION),
+//				cfg.bindBoolean(this::setStatusDisplay, this::isStatusDisplay, "enabled", STATUS_SECTION),
+//				cfg.bindBoolean(emulator::setEnableScrollback, emulator::isEnableScrollback, "scroll-back", Options.TERMINAL_SECTION),
+//				cfg.bindBoolean(emulator::setEnableBlinking, emulator::isEnableBlinking, "blinking", Options.TERMINAL_SECTION),
+//				cfg.bindBoolean(emulator.getModes()::setCursorBlink, emulator.getModes()::isCursorBlink, "cursor-blink", Options.TERMINAL_SECTION),
+//				cfg.bindEnum(CursorStyle.class, terminalPanel::setCursorStyle, terminalPanel::getCursorStyle, "cursor-style", Options.TERMINAL_SECTION)
+		));
+		
+		scrollPane.setBottom(statusControl);
+//			statusTerminal.getControl().setVisible(true);
+//			statusTerminal.getControl().setManaged(true);
+
+		/* Setup */
+		updateAppearance();
+		updateState();
 
 		/* Bind to configuration */
 		handles.addAll(Arrays.asList(
@@ -267,21 +340,6 @@ public class TTY extends StackPane implements Closeable {
 				applyTheme();
 			}, null, Constants.DARK_MODE_KEY, Constants.UI_SECTION)
 		));
-
-		/* Build this stack */
-		getChildren().add(scrollPane);
-		getChildren().add(overlayInfo);
-		
-		userTitle.addListener((c,o,n) -> updateState());
-		tabColor.addListener((c,o,n) -> updateState());
-		
-		/* Status */
-		status.add(new Status.SizeAndCursor(this));
-		status.add(new Status.InsertReplaceMode(this));
-
-		/* Setup */
-		updateAppearance();
-		updateState();
 		
 		try {
 			startShell(bldr.request.map(rq -> rq.shell().orElseGet(this::shellForTty)).orElseGet(this::shellForTty));
@@ -364,7 +422,17 @@ public class TTY extends StackPane implements Closeable {
 					terminalPanel.close();
 				}
 				finally {
-					onClose.ifPresent(oc -> oc.accept(this));
+					try {
+						onClose.ifPresent(oc -> oc.accept(this));
+					}
+					finally {
+						if(statusEmulator != null) {
+							try {
+								statusEmulator.close();
+							} catch (IOException e) {
+							}
+						}
+					}
 				}
 			}
 		}
@@ -430,7 +498,9 @@ public class TTY extends StackPane implements Closeable {
 		 * when we switch back to whatever protocol was active before this one.
 		 */
 		var vp = terminalPanel.getViewport();
+		@SuppressWarnings("unused")
 		var bufferRow = vp.getPage().data().get(vp.displayRowToBufferRow(vp.getPage().cursorY())).clone(0, vp.getPage().data());
+		@SuppressWarnings("unused")
 		var cursorX = vp.getPage().cursorX();
 		
 		this.protocols.push(protocol);
@@ -567,67 +637,26 @@ public class TTY extends StackPane implements Closeable {
 	}
 
 	private void checkStatusDisplay() {
-		var enable = ttyContext.getContainer().getConfiguration().status().getBoolean(Constants.ENABLED_KEY);
-		var type = ((DECModes)terminalPanel.getViewport().getModes()).getStatusLineType();
-		var shouldShow = enable && type != StatusLineType.NONE;
-		
-		if(shouldShow != isStatusDisplay()) {
-			if(shouldShow) {
-				if(statusTerminal == null) {
-				
-					var sz = getConfiguredSize();
-					var cfg = ttyContext.getContainer().getConfiguration();
-					var emulator = new DECEmulator<JavaFXTerminalPanel>(terminalPanel.getViewport().getTerminalType(), sz[0], cfg.status().getInt(Constants.HEIGHT_KEY));
-
-					statusTerminal = new JavaFXTerminalPanel.Builder().
-							withUiToolkit(ttyContext.getContainer().getUiToolkit()).
-							withFontManager(ttyContext.getContainer().getFonts().getFontManager()).
-							withBuffer(emulator)
-							.build();
-					statusTerminal.setResizeStrategy(ResizeStrategy.SCREEN);
-					statusTerminal.setEventsEnabled(false);
-					emulator.addResizeListener((term,cols,rows,remote) -> runLater(this::checkStatusDisplay));
-					emulator.getModes().setShowCursor(false);
-					
-					var statusControl = statusTerminal.getControl();
-					terminalPanel.getViewport().setStatusLineDisplay(statusTerminal);
-
-					/* Bind to configuration */
-					handles.addAll(Arrays.asList(
-							/* TODO some need binding */
-//						cfg.bindEnum(ResizeStrategy.class, this::setResizeStrategy, terminalPanel::getResizeStrategy, "resize-strategy", Options.TERMINAL_SECTION),
-//						cfg.bindInteger(buf::setMaximumSize, buf::getMaximumSize, "buffer-size", Options.TERMINAL_SECTION),
-//						cfg.bindString(emulator::setTerminalType, emulator.getTerminalType()::getId, "type", Options.TERMINAL_SECTION),  
-//						cfg.bindString((nsz) -> updateAppearance(), () -> String.format("%dx%d", emulator.getColumns(), emulator.getRows()), "screen-size", Options.TERMINAL_SECTION),
-//						cfg.bindInteger(this::setFontSize, terminalPanel.getFontManager().getDefault().spec()::getSize, "font-size", Options.TERMINAL_SECTION),
-//						cfg.bindStrings(this::setFonts, this::getFonts, "fonts", Options.TERMINAL_SECTION),
-//						cfg.bindStrings((s) -> updateFeatures(), this::getEnabledFeatures, "enabled-features", Options.TERMINAL_SECTION), 
-//						cfg.bindStrings((s) -> updateFeatures(), this::getDisabledFeatures, "disabled-features", Options.TERMINAL_SECTION),
-//						cfg.bindString(this::setThemeName, this::getThemeName, Constants.THEME_KEY, Options.TERMINAL_SECTION),
-//						cfg.bindBoolean(this::setStatusDisplay, this::isStatusDisplay, "enabled", STATUS_SECTION),
-//						cfg.bindBoolean(emulator::setEnableScrollback, emulator::isEnableScrollback, "scroll-back", Options.TERMINAL_SECTION),
-//						cfg.bindBoolean(emulator::setEnableBlinking, emulator::isEnableBlinking, "blinking", Options.TERMINAL_SECTION),
-//						cfg.bindBoolean(emulator.getModes()::setCursorBlink, emulator.getModes()::isCursorBlink, "cursor-blink", Options.TERMINAL_SECTION),
-//						cfg.bindEnum(CursorStyle.class, terminalPanel::setCursorStyle, terminalPanel::getCursorStyle, "cursor-style", Options.TERMINAL_SECTION)
-					));
-					
-					scrollPane.setBottom(statusControl);
-				}
-				
-				if(type == StatusLineType.INDICATOR) {
-					status.attach(statusTerminal.getViewport());
-					updateIndicatorStatus();
-				}
-				else if(status.isAttached()) {
+		var statusCfg = ttyContext.getContainer().getConfiguration().status();
+		var enable = statusCfg.getBoolean(Constants.ENABLED_KEY);
+		if(enable != statusTerminal.getControl().isVisible()) {
+			maybeQueue(() -> statusTerminal.getControl().setVisible(enable));
+		}
+		var type = enable ? ((DECModes)terminalPanel.getViewport().getModes()).getStatusLineType() : StatusLineType.NONE;
+		var isType = getStatusLineType(); 
+		LOG.info("Check status display. Type {}, Enable {}, Should Show {}", type, enable, isType);
+		if(type != isType) {
+			if(type == StatusLineType.INDICATOR) {
+				status.attach(statusTerminal.getViewport());
+				updateIndicatorStatus();
+			}
+			else {
+				if(status.isAttached()) {
 					status.detach();
 				}
-				
-				statusTerminal.getControl().setVisible(true);
-				statusTerminal.getControl().setManaged(true);
-			}
-			else if(statusTerminal != null) {
-				statusTerminal.getControl().setVisible(false);
-				statusTerminal.getControl().setManaged(enable);
+				if(isType == StatusLineType.INDICATOR || type == StatusLineType.NONE) {
+					statusTerminal.getViewport().clearScreen();	
+				}
 			}
 		}
 		else {
@@ -657,7 +686,7 @@ public class TTY extends StackPane implements Closeable {
 	
 	private Path getCustomJavaFXCSSFile() {
 		// TODO per window file
-		return Paths.get(System.getProperty("java.io.tmpdir")).resolve(System.getProperty("user.name") + "-notionator")
+		return Paths.get(System.getProperty("java.io.tmpdir")).resolve(System.getProperty("user.name") + "-pretty")
 				.resolve("term.css");
 	}
 	
@@ -713,8 +742,20 @@ public class TTY extends StackPane implements Closeable {
 		return scn == null ? null : (Stage) scn.getWindow();
 	}
 
+	private StatusLineType getStatusLineType() {
+		if(scrollPane.getBottom() == null || !scrollPane.getBottom().isVisible()) {
+			return StatusLineType.NONE;
+		}
+		else if(status.isAttached()) {
+			return StatusLineType.INDICATOR;
+		}
+		else {
+			return StatusLineType.HOST_WRITABLE;
+		}
+	}
+
 	private boolean isStatusDisplay() {
-		return scrollPane.getBottom() != null && scrollPane.getBottom().isVisible();
+		return getStatusLineType() != StatusLineType.NONE;
 	}
 
 	private void runProtocol(TerminalProtocol proto) {
@@ -768,6 +809,7 @@ public class TTY extends StackPane implements Closeable {
 		}
 	}
 
+	@SuppressWarnings("unused")
 	private void showOverlayTextInfo(Label node, String text) {
 		if(resizeFade != null) {
 			resizeFade.stop();
@@ -879,7 +921,14 @@ public class TTY extends StackPane implements Closeable {
 	}
 
 	private void updateIndicatorStatus() {
-		status.redraw();
+		status.redraw(false);
+	}
+	
+	private void updateStatusSize() {
+		statusTerminal.getViewport().setScreenSize(terminalPanel.getViewport().getColumns(), ttyContext.getContainer().getConfiguration().status().getInt(Constants.HEIGHT_KEY), false);
+		if(getStatusLineType() == StatusLineType.INDICATOR) {
+			status.redraw(true);
+		}
 	}
 	
 	private void updateState() {

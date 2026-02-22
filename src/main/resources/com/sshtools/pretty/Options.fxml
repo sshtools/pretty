@@ -159,6 +159,29 @@
                                     <String fx:value="spaced" />
                                  </styleClass>
                               </VBox>
+                              <Label text="%special">
+                                 <styleClass>
+                                    <String fx:value="h3" />
+                                    <String fx:value="tpad" />
+                                 </styleClass>
+                              </Label>
+                              <VBox>
+                                 <children>
+                                    <HBox alignment="CENTER_LEFT" styleClass="spaced">
+                                       <children>
+                                          <CheckBox fx:id="statusLine" mnemonicParsing="false" text="%statusLine">
+                                             <tooltip>
+                                                <Tooltip text="%statusLine.tooltip" />
+                                             </tooltip>
+                                          </CheckBox>
+                                       </children>
+                                    </HBox>
+                                 </children>
+                                 <styleClass>
+                                    <String fx:value="lpad" />
+                                    <String fx:value="spaced" />
+                                 </styleClass>
+                              </VBox>
 									</children>
 								</VBox>
 							</children>

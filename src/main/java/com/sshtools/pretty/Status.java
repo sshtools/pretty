@@ -68,7 +68,7 @@ public class Status {
 
 		@Override
 		public void modesChanged(Modes mode) {
-			status.redraw();
+			status.redraw(true);
 		}
 
 		@Override
@@ -104,17 +104,17 @@ public class Status {
 
 		@Override
 		public void screenResize(int cols, int rows, boolean remote, ViewportEvent event) {
-			status.redraw();
+			status.redraw(true);
 		}
 
 		@Override
 		public void cursorChanged(int cursorX, int cursorY) {
-			status.redraw();
+			status.redraw(false);
 		}
 
 		@Override
 		public void modesChanged(Modes mode) {
-			status.redraw();
+			status.redraw(true);
 		}
 
 		@Override
@@ -140,24 +140,21 @@ public class Status {
 	private Map<Element, Bounds> layout = Collections.emptyMap();
 	private int lastLayoutCols;
 	
-	public void redraw() {
-		draw(null);
+	public void redraw(boolean clear) {
+		draw(clear);
 	}
 
 	public boolean has(Element element) {
 		return elements.contains(element);
 	}
 	
-	public void draw(Element element) {
+	public void draw(boolean clear) {
 		if(vp !=  null) {
 			layout();
-			if(element == null) {
+			if(clear) {
 				vp.deleteLine(0, SGRState.none());
-				elements.forEach(this::doDraw);
 			}
-			else {
-				doDraw(element);
-			}
+			elements.forEach(this::doDraw);
 		}
 	}
 
@@ -179,6 +176,7 @@ public class Status {
 			}
 			finally {
 				vp = null;
+				redraw(true);
 			}
 		}
 	}
@@ -190,7 +188,7 @@ public class Status {
 			elements.forEach(e -> e.detached(vp));
 		}
 		finally {
-			redraw();
+			redraw(true);
 		}
 	}
 	
@@ -199,7 +197,7 @@ public class Status {
 		element.added(this);
 		elements.add(element);
 		layout();
-		redraw();
+		redraw(true);
 	}
 	
 	public void remove(Element element) {
@@ -207,7 +205,7 @@ public class Status {
 		elements.remove(element);
 		element.removed(this);
 		layout();
-		redraw();
+		redraw(true);
 	}
 
 	public boolean isAttached() {
@@ -218,7 +216,7 @@ public class Status {
 		if(vp != null ) {
 			/* Available space for whole indicator line. This is the width of the viewport,
 			 * less <code>columns - 1</code> for the inter-element gap */
-			var available = vp.getColumns() - (Math.max(0, elements.size() - 1));
+			var available = vp.getColumns() - (Math.max(0, elements.size() - 1)) - 1;
 			var layoutElements = elements;
 			
 			if(available != lastLayoutCols) {
