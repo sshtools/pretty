@@ -368,7 +368,7 @@
                                  <children>
                                     <CheckBox fx:id="fileTransferNotifications" mnemonicParsing="false" selected="true" text="%fileTransferNotifications">
                                        <tooltip>
-                                          <Tooltip text="%automaticUpdates.toolTip" />
+                                          <Tooltip text="%fileTransferNotifications.toolTip" />
                                        </tooltip>
                                     </CheckBox>
                                     <HBox alignment="CENTER_LEFT" styleClass="spaced">
