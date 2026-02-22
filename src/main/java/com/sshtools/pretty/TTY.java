@@ -638,13 +638,21 @@ public class TTY extends StackPane implements Closeable {
 
 	private void checkStatusDisplay() {
 		var statusCfg = ttyContext.getContainer().getConfiguration().status();
-		var enable = statusCfg.getBoolean(Constants.ENABLED_KEY);
+		var closed = statusTerminal.getViewport().getPage().data().isClosed();
+		var enable = !closed && statusCfg.getBoolean(Constants.ENABLED_KEY);
 		if(enable != statusTerminal.getControl().isVisible()) {
 			maybeQueue(() -> statusTerminal.getControl().setVisible(enable));
 		}
+		if(closed) {
+			return;
+		}
 		var type = enable ? ((DECModes)terminalPanel.getViewport().getModes()).getStatusLineType() : StatusLineType.NONE;
-		var isType = getStatusLineType(); 
-		LOG.info("Check status display. Type {}, Enable {}, Should Show {}", type, enable, isType);
+		var isType = getStatusLineType();
+		
+		if(LOG.isDebugEnabled()) {
+			LOG.debug("Check status display. Type {}, Enable {}, Should Show {}", type, enable, isType);
+		}
+		
 		if(type != isType) {
 			if(type == StatusLineType.INDICATOR) {
 				status.attach(statusTerminal.getViewport());

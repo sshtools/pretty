@@ -5,5 +5,5 @@ if [ $# -eq 0 ]; then
 fi
 printf '\033]1337;File=inline=0;width=50%%;height=1;preserveAspectRatio=0'
 printf ":"
-base64 < "$1"
+base64 -w 0 < "$1"
 printf '\a\n'

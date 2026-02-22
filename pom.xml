@@ -477,7 +477,7 @@
 		<dependency>
 			<groupId>com.sshtools</groupId>
 			<artifactId>two-slices</artifactId>
-			<version>0.9.5</version>
+			<version>0.9.6</version>
 		</dependency>
 		<dependency>
 			<groupId>com.sshtools</groupId>
@@ -562,7 +562,7 @@
 		<dependency>
 			<groupId>org.controlsfx</groupId>
 			<artifactId>controlsfx</artifactId>
-			<version>11.1.1</version>
+			<version>11.2.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.miglayout</groupId>

@@ -24,6 +24,7 @@ import com.sshtools.jini.schema.INISchema;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.scene.control.SingleSelectionModel;
 
@@ -56,19 +57,19 @@ public final class Configuration {
 	}
 
 	public Section ui() {
-		return ini.section(Constants.UI_SECTION);
+		return ini.obtainSection(Constants.UI_SECTION);
 	}
 
 	public Section status() {
-		return ini.section(Constants.STATUS_SECTION);
+		return ini.obtainSection(Constants.STATUS_SECTION);
 	}
 
 	public Section debug() {
-		return ini.section(Constants.DEBUG_SECTION);
+		return ini.obtainSection(Constants.DEBUG_SECTION);
 	}
 
 	public Section pricli() {
-		return ini.section(Constants.PRICLI_SECTION);
+		return ini.obtainSection(Constants.PRICLI_SECTION);
 	}
 
 	public INI document() {
@@ -134,6 +135,25 @@ public final class Configuration {
 		});
 		observable.setValue(sec.getBoolean(key));
 		ChangeListener<Boolean> l = (c, o, n) -> {
+			sec.put(key, n);
+		};
+		observable.addListener(l);
+		return () -> {
+			observable.removeListener(l);
+			vuhndl.close();
+		};
+	}
+
+	public Handle bind(StringProperty observable, String key, String... path) {
+		var sec = resolve(ini, path);
+		var vuhndl = sec.onValueUpdate(ve -> {
+			maybeQueue(() -> {
+				if (ve.key().equals(key))
+					observable.set(sec.get(key));
+			});
+		});
+		observable.setValue(sec.get(key));
+		ChangeListener<String> l = (c, o, n) -> {
 			sec.put(key, n);
 		};
 		observable.addListener(l);

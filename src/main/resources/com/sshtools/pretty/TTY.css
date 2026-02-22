@@ -6,6 +6,20 @@
 	-fx-background-color: -fx-terminal-bg;
 }
 
+.status-display {
+    -fx-border-color: accent_color transparent transparent transparent;
+    -fx-border-style: solid;
+    -fx-border-size: 2 0 0 0;
+    -fx-border-insets: 2 1 1 1;
+    
+    /*
+    -fx-border-width: 1, 1;
+    -fx-border-style: solid, segments(1, 2);
+    -fx-border-radius: 0, 0;
+    -fx-border-insets: 1 1 1 1, 0;
+    */
+}
+
 #terminal-tabs .tab-header-background {
 	-fx-background-insets: 0 0 0 0;
 	-fx-background-color: -fx-terminal-bg;

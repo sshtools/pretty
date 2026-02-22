@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import java.lang.String?>
+<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.ColorPicker?>
 <?import javafx.scene.control.ComboBox?>
@@ -13,6 +14,7 @@
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.ToggleGroup?>
 <?import javafx.scene.control.Tooltip?>
 <?import javafx.scene.layout.AnchorPane?>
@@ -348,6 +350,32 @@
                                        <children>
                                           <Hyperlink fx:id="checkForUpdates" onAction="#checkForUpdates" text="%checkForUpdates" />
                                           <FontIcon fx:id="updateSpinner" iconLiteral="fas-spinner" styleClass="icon-success" />
+                                       </children>
+                                    </HBox>
+                                 </children>
+                                 <styleClass>
+                                    <String fx:value="lpad" />
+                                    <String fx:value="spaced" />
+                                 </styleClass>
+                              </VBox>
+                              <Label text="%fileTransfers">
+                                 <styleClass>
+                                    <String fx:value="h3" />
+                                    <String fx:value="tpad" />
+                                 </styleClass>
+                              </Label>
+                              <VBox>
+                                 <children>
+                                    <CheckBox fx:id="fileTransferNotifications" mnemonicParsing="false" selected="true" text="%fileTransferNotifications">
+                                       <tooltip>
+                                          <Tooltip text="%automaticUpdates.toolTip" />
+                                       </tooltip>
+                                    </CheckBox>
+                                    <HBox alignment="CENTER_LEFT" styleClass="spaced">
+                                       <children>
+                                          <Label prefWidth="120.0" text="%downloads" />
+                                          <TextField fx:id="downloads" />
+                                          <Button fx:id="browseDownloads" mnemonicParsing="false" onAction="#browseDownloads" text="%browseDownloads" />
                                        </children>
                                     </HBox>
                                  </children>

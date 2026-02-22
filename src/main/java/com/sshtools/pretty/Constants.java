@@ -51,6 +51,7 @@ public class Constants {
 	
 	// Transfer
 	public static final String NOTIFICATIONS_KEY = "notifications";
+	public static final String DOWNLOADS_KEY = "downloads";
 	
 	// Pricli
 	public static final String HEIGHT_KEY = "height";

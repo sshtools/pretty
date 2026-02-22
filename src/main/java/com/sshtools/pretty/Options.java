@@ -3,8 +3,10 @@ package com.sshtools.pretty;
 import static com.sshtools.jajafx.FXUtil.maybeQueue;
 
 import java.io.Closeable;
+import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.nio.file.Paths;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -54,12 +56,14 @@ import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import javafx.util.StringConverter;
 import uk.co.bithatch.nativeimage.annotations.Bundle;
@@ -136,6 +140,10 @@ public class Options extends StackPane implements Closeable {
 	private FontIcon updateSpinner;
 	@FXML
 	private CheckBox statusLine;
+	@FXML
+	private CheckBox fileTransferNotifications;;
+	@FXML
+	private TextField downloads;
 
 	private final PrefBind prefBind;
 	private final Preferences prefs;
@@ -388,6 +396,10 @@ public class Options extends StackPane implements Closeable {
 		legacyPty.managedProperty().bind(legacyPty.visibleProperty());
 		legacyPty.selectedProperty().addListener((c,o,n) -> updateState());
 		
+		/* File transfers */
+		handles.add(cfg.bind(fileTransferNotifications.selectedProperty(), Constants.NOTIFICATIONS_KEY, Constants.TRANSFERS_SECTION));
+		handles.add(cfg.bind(downloads.textProperty(), Constants.DOWNLOADS_KEY, Constants.TRANSFERS_SECTION));
+		
 		/* Java Preferences stuff, i.e. Jaul updates */
 		prefBind = new PrefBind(prefs);
 		prefBind.bind(automaticUpdates);
@@ -437,6 +449,35 @@ public class Options extends StackPane implements Closeable {
 	@FXML
 	public void dropInThemes(ActionEvent evt) {
 		app.getHostServices().showDocument(app.getThemes().getDropInPath().toUri().toString());
+	}
+	
+	@FXML
+	public void browseDownloads(ActionEvent evt) {
+		var chooser = new DirectoryChooser();
+		chooser.setTitle(RESOURCES.getString("downloads"));
+		var rawPath = downloads.getText();
+		if(rawPath != null && !rawPath.isBlank()) {
+			var expanded = rawPath.startsWith("~") ? System.getProperty("user.home") + rawPath.substring(1) : rawPath;
+			var initial = new File(expanded);
+			if(initial.exists() && initial.isDirectory()) {
+				chooser.setInitialDirectory(initial);
+			}
+		}
+		var window = getScene() == null ? null : getScene().getWindow();
+		var selected = chooser.showDialog(window);
+		if(selected != null) {
+			var home = System.getProperty("user.home");
+			var selectedPath = selected.toPath().toAbsolutePath().normalize();
+			var display = selectedPath.toString();
+			if(home != null && !home.isBlank()) {
+				var homePath = Paths.get(home).toAbsolutePath().normalize();
+				if(selectedPath.startsWith(homePath)) {
+					var suffix = homePath.relativize(selectedPath).toString();
+					display = suffix.isEmpty() ? "~" : "~" + File.separator + suffix;
+				}
+			}
+			downloads.setText(display);
+		}
 	}
 	
 	private void updateState() {

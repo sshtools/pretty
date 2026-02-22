@@ -1,5 +1,6 @@
 package com.sshtools.pretty;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -7,6 +8,15 @@ import org.jline.utils.AttributedStringBuilder;
 import org.jline.utils.AttributedStyle;
 
 public class Strings {
+	
+	public static Path parseFilePath(String path) {
+		if(path.startsWith("~\\") || path.startsWith("~/")) {
+			return Path.of(System.getProperty("user.home")).resolve(path.substring(1));
+		}
+		else {
+			return Path.of(path);
+		}
+	}
 	
 	public static String toEnumName(String str) {
 		return str.toUpperCase().replace('-', '_').replace(' ', '_');

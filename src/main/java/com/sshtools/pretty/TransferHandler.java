@@ -7,8 +7,6 @@ import java.io.UncheckedIOException;
 import java.nio.channels.WritableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.text.MessageFormat;
 import java.util.Collections;
@@ -16,7 +14,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import org.jline.utils.AttributedStringBuilder;
@@ -68,7 +68,7 @@ public class TransferHandler implements TransferListener {
 			var bldr = new AttributedStringBuilder();
 			bldr.style(AttributedStyle.INVERSE);
 			var completed = accepted.values().stream().collect(Collectors.summarizingLong(t -> t.progress.get())).getSum();
-			var frac = (float)((double)completed / total.doubleValue());
+			var frac = Math.min(1.0, (float)((double)completed / total.doubleValue()));
 			var pc = (int)((frac )* 100f);
 			String background;
 			var space = cols - 2;
@@ -101,13 +101,11 @@ public class TransferHandler implements TransferListener {
 	final static ResourceBundle RESOURCES = ResourceBundle.getBundle(TransferHandler.class.getName());
 	
 	private class  ActiveTransfer {
-		final Path tmpfile;
 		final Path targetfile;
 		final WritableByteChannel chan;
 		final AtomicLong progress = new AtomicLong();
-		public ActiveTransfer(Path tmpfile, Path targetfile, WritableByteChannel chan) {
+		public ActiveTransfer(Path targetfile, WritableByteChannel chan) {
 			super();
-			this.tmpfile = tmpfile;
 			this.targetfile = targetfile;
 			this.chan = chan;
 		}
@@ -138,70 +136,71 @@ public class TransferHandler implements TransferListener {
 	public Optional<WritableByteChannel> started(Transfer transfer) throws IOException {
 		if(transfer.direction() == Direction.DOWNLOAD) {
 
-			/*TODO configurable directory, and maybe option at download time */
-		    var dir = Paths.get(System.getProperty("user.home")).resolve("Downloads");
-		    var file = dir.resolve(transfer.filename().orElse(RESOURCES.getString("unknownFile")));
-		    var tmpfile = dir.resolve("." + file.getFileName().toString() + ".transfer");
-		    tmpfile.toFile().deleteOnExit();
+			
+			var sem = new Semaphore(1);
+			var chanResult = new AtomicReference<WritableByteChannel>();
+			try {
+				sem.acquire();
+			    
+				Platform.runLater(() -> {
 
-		    if(!Files.exists(dir)) {
-				Files.createDirectories(dir);
-		    }
-		    var chan = Files.newByteChannel(tmpfile, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
-		    accepted.put(transfer, new ActiveTransfer(tmpfile, null, chan));
-		    transfer.size().ifPresent(sz -> transferStatus.total.addAndGet(sz));
-			checkIndicator();
-		    
-			Platform.runLater(() -> {
-					var alert = new Alert(AlertType.CONFIRMATION);
-					alert.initOwner(tty.ttyContext().stage());
-					alert.setTitle(RESOURCES.getString("downloadTitle"));
-					alert.setHeaderText(RESOURCES.getString("download"));
-					alert.setContentText(MessageFormat.format(RESOURCES.getString("downloadText"), file.getFileName()));
+						/*TODO configurable directory, and maybe option at download time */
+					    var dir = Strings.parseFilePath(
+					    		tty.ttyContext().getContainer().getConfiguration().transfers().get(Constants.DOWNLOADS_KEY));;
+					    var file = dir.resolve(transfer.filename().orElse(RESOURCES.getString("unknownFile")));
+	
+					    transfer.size().ifPresent(sz -> transferStatus.total.addAndGet(sz));
+						checkIndicator();
 					
-					var accept = new ButtonType(RESOURCES.getString("accept"));
-					var cancel = new ButtonType(RESOURCES.getString("reject"), ButtonData.CANCEL_CLOSE);
-	
-					alert.getButtonTypes().setAll(accept, cancel);
-	
-					var result = alert.showAndWait();
-					synchronized(accepted) {
-						var was = accepted.get(transfer);
-						if (result.isPresent() && result.get() == accept) {
-							var end = new ActiveTransfer(was.tmpfile, file, was.chan);
-							accepted.put(transfer, end);
-							if(was.chan == null) {
-								/* Already closed, but not yet moved */
-								moveAccepted(transfer, end);
-							}
-						} 	
-						else {
-							LOG.info("Rejecting file by closing stream and deleting temporary file.");
-							try {
-								if(was.chan != null) {
-									try {
-										was.chan.close();
-									}
-									catch(Exception e) {									
-									} finally {
-									    transfer.size().ifPresent(sz -> { 
-									    	transferStatus.total.addAndGet(-sz);  
-									    	runLater(() -> tty.status().redraw(false));
-									    });
-									}
+						var alert = new Alert(AlertType.CONFIRMATION);
+						alert.initOwner(tty.ttyContext().stage());
+						alert.setTitle(RESOURCES.getString("downloadTitle"));
+						alert.setHeaderText(RESOURCES.getString("download"));
+						alert.setContentText(MessageFormat.format(RESOURCES.getString("downloadText"), file.getFileName()));
+						
+						var accept = new ButtonType(RESOURCES.getString("accept"));
+						var cancel = new ButtonType(RESOURCES.getString("reject"), ButtonData.CANCEL_CLOSE);
+		
+						alert.getButtonTypes().setAll(accept, cancel);
+		
+						var result = alert.showAndWait();
+						synchronized(accepted) {
+							if (result.isPresent() && result.get() == accept) {
+								
+								try {
+								    if(!Files.exists(dir)) {
+										Files.createDirectories(dir);
+								    }
+								    var chan = Files.newByteChannel(file, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
+								    accepted.put(transfer, new ActiveTransfer(file, chan));
+								    chanResult.set(chan);
 								}
-								Files.delete(was.tmpfile);
-							} catch (IOException e) {
-								LOG.warn("Failed to delete temporary file.", e);
-							} finally {
-								accepted.remove(transfer);
+								catch(IOException ioe) {
+									/* TODO better error handling here, and option to retry */
+									LOG.error("Failed to create file for download.", ioe);
+								}
+								checkIndicator();
+							} 	
+							else {
+								LOG.info("Rejecting file.");
 								checkIndicator();
 							}
 						}
-					}
-			});
-
-		    return Optional.of(chan);
+						
+						sem.release();
+				});
+				
+				try {
+					sem.acquire();
+					return Optional.ofNullable(chanResult.get());
+				}
+				finally {
+					sem.release();
+				}
+			}
+			catch(InterruptedException ie) {
+				throw new IOException("Interrupted while waiting for user to accept download.", ie);	
+			}
 		}
 		else 
 			throw new IllegalStateException();
@@ -235,39 +234,22 @@ public class TransferHandler implements TransferListener {
 					throw new UncheckedIOException(ioe);
 				}
 				finally {
-					if(active.targetfile == null) {
-						/* Not accepted yet */
-						accepted.put(transfer, new ActiveTransfer(active.tmpfile, null, null));
-					}
-					else {
-						moveAccepted(transfer, active);
+
+					if(tty.ttyContext().getContainer().getConfiguration().transfers().getBoolean(Constants.NOTIFICATIONS_KEY)) {
+						new ToastBuilder().
+							type(ToastType.INFO).
+							action(RESOURCES.getString("openFolder"), () -> {
+								tty.ttyContext().getContainer().getHostServices().showDocument(active.targetfile.getParent().toUri().toString());
+							}).
+							title(RESOURCES.getString("downloadComplete")).
+							content(MessageFormat.format(RESOURCES.getString("downloadCompleteText"), transfer.filename().orElse(RESOURCES.getString("unknownFile")))).
+							toast();
 					}
 				}
 			}
 		}
 	}
 
-	private void moveAccepted(Transfer transfer, ActiveTransfer active) {
-		LOG.info("Moving temporary download file {} to target {}", active.tmpfile, active.targetfile);
-		try {
-			if(tty.ttyContext().getContainer().getConfiguration().transfers().getBoolean(Constants.NOTIFICATIONS_KEY)) {
-				new ToastBuilder().
-					type(ToastType.INFO).
-					action(RESOURCES.getString("openFolder"), () -> {
-						tty.ttyContext().getContainer().getHostServices().showDocument(active.targetfile.getParent().toUri().toString());
-					}).
-					title(RESOURCES.getString("downloadComplete")).
-					content(MessageFormat.format(RESOURCES.getString("downloadCompleteText"), transfer.filename().orElse(RESOURCES.getString("unknownFile")))).
-					toast();
-			}
-			Files.move(active.tmpfile, active.targetfile, StandardCopyOption.REPLACE_EXISTING);
-		} catch (IOException e) {
-			throw new UncheckedIOException(e);
-		} finally {
-			accepted.remove(transfer);
-			checkIndicator();
-		}
-	}
 	
 	private void checkIndicator() {
 		var shouldShow = !accepted.isEmpty();
