@@ -193,8 +193,8 @@ public class ConsoleProtocol implements TerminalProtocol, ResizeListener, Elemen
 
 		var terminal = tty.terminal();
 		var viewport = terminal.getViewport();
-
-		synchronized (viewport.getBufferLock()) {
+		
+//		viewport.enqueue(() -> {
 			// Process
 			if (pty == null) {
 				var bldr = new PtyProcessBuilder();
@@ -252,7 +252,8 @@ public class ConsoleProtocol implements TerminalProtocol, ResizeListener, Elemen
 
 			// Direct terminal input back to pty
 			viewport.setInput((data, offset, len) -> pty.getOutputStream().write(data, offset, len));
-		}
+//		});
+
 
 		tty.attached(this);
 		tty.status().add(this);
@@ -265,12 +266,16 @@ public class ConsoleProtocol implements TerminalProtocol, ResizeListener, Elemen
 					}
 				}
 			} else {
-				try (var offHeap = Arena.ofConfined()) {
+				try (var offHeap = Arena.ofShared()) {
 					var mem = offHeap.allocate(65536);
 					int rd;
 					while ((rd = pty.getPtyInputStream().fastRead(mem, (int) mem.byteSize())) != -1) {
-						viewport.write((idx) -> mem.get(ValueLayout.JAVA_BYTE, idx), 0, rd);
-						viewport.flush();
+						var frd = rd;
+						viewport.call(() -> {
+							viewport.write((idx) -> mem.get(ValueLayout.JAVA_BYTE, idx), 0, frd);
+							viewport.flush();
+							return null;
+						}).get();
 					}
 				}
 			}

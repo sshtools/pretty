@@ -23,10 +23,7 @@ public class Copy implements Callable<Integer> {
 	@Override
 	public Integer call() throws Exception {
 		var buf = parent.tty().terminal().getViewport();
-		String sel;
-		synchronized (buf.getBufferLock()) {
-			sel = buf.getSelection();
-		}
+		var sel = buf.getSelection();
 		if (sel == null)
 			throw new IllegalStateException(RESOURCES.getString("empty"));
 		var content = new ClipboardContent();

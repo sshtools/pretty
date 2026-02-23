@@ -67,7 +67,7 @@ public class TerminalTheme {
 
 	public void apply(JavaFXTerminalPanel terminalPanel, int bgAlphaPercent) {
 		var vp = terminalPanel.getViewport();
-		synchronized (vp.getBufferLock()) {
+		vp.enqueue(() -> {
 			var colors = terminalPanel.getViewport().getColors();
 			colors.setBG(background().withAlphaPercent(bgAlphaPercent));
 			colors.setFG(foreground().withAlphaPercent(bgAlphaPercent));
@@ -79,7 +79,7 @@ public class TerminalTheme {
 			cols.setPalette(Size.PAL256, pal256().orElseGet(() -> Colors.PAL256_DEFAULT.getColors()));
 			terminalPanel.getControl().setEffect(effect());
 			vp.redisplay();
-		}
+		});
 	}
 
 	public Effect effect() {

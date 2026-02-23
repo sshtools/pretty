@@ -26,15 +26,16 @@ public class Reset implements Callable<Integer> {
 
 		var term = parent.tty().terminal();
 		var buf = term.getViewport();
-		synchronized(buf.getBufferLock()) {
+		buf.enqueue(() -> {
 			if(hard)
 				buf.hardReset();
 			else
 				buf.softReset();
-		}
-		runLater(() -> {
-			term.getAudio().beep();
+			runLater(() -> {
+				term.getAudio().beep();
+			});
 		});
+		
 		return 0;
 	}
 }

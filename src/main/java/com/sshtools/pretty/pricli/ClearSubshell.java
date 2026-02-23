@@ -19,9 +19,7 @@ public class ClearSubshell implements Callable<Integer> {
 	@Override
 	public Integer call() throws Exception {
 		var buf = parent.cli().terminal().getViewport();
-		synchronized(buf.getBufferLock()) {
-			buf.clearScreen();
-		}
+		buf.enqueue(buf::clearScreen);
 		return 0;
 	}
 }

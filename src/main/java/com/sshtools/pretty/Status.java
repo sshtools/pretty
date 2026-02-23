@@ -12,6 +12,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import org.jline.utils.AttributedStringBuilder;
 import org.jline.utils.AttributedStyle;
 
+import com.sshtools.pretty.Status.Element;
 import com.sshtools.terminal.emulation.Modes;
 import com.sshtools.terminal.emulation.SGRState;
 import com.sshtools.terminal.emulation.TerminalViewport;
@@ -58,7 +59,16 @@ public class Status {
 
 		public InsertReplaceMode(TTY tty) {
 			terminal = tty.terminal().getViewport();
-			terminal.addTerminalBufferListener(this);
+		}
+
+		@Override
+		public void attached(TerminalViewport<JavaFXTerminalPanel, ?, ?> vp) {
+			vp.addTerminalBufferListener(this);
+		}
+
+		@Override
+		public void detached(TerminalViewport<JavaFXTerminalPanel, ?, ?> vp) {
+			vp.removeTerminalBufferListener(this);
 		}
 
 		@Override
@@ -94,7 +104,16 @@ public class Status {
 
 		public SizeAndCursor(TTY tty) {
 			terminal = tty.terminal().getViewport();
-			terminal.addTerminalBufferListener(this);
+		}
+
+		@Override
+		public void attached(TerminalViewport<JavaFXTerminalPanel, ?, ?> vp) {
+			vp.addTerminalBufferListener(this);
+		}
+
+		@Override
+		public void detached(TerminalViewport<JavaFXTerminalPanel, ?, ?> vp) {
+			vp.removeTerminalBufferListener(this);
 		}
 
 		@Override

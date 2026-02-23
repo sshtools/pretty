@@ -32,13 +32,11 @@ public class Record implements Callable<Integer> {
 	@Override
 	public Integer call() throws Exception {
 		var buffer = parent.tty().terminal().getViewport();
-		synchronized (buffer.getBufferLock()) {
-			if (buffer.getRecordingWriter() == null) {
-				buffer.setRecordPrintableOnly(printableOnly);
-				buffer.startRecording(Files.newBufferedWriter(path));
-			} else
-				throw new IllegalStateException(RESOURCES.getString("alreadyRecording"));
-		}
+		if (buffer.getRecordingWriter() == null) {
+			buffer.setRecordPrintableOnly(printableOnly);
+			buffer.startRecording(Files.newBufferedWriter(path));
+		} else
+			throw new IllegalStateException(RESOURCES.getString("alreadyRecording"));
 		parent.cli().result(MessageFormat.format(RESOURCES.getString("recording"), path.getFileName().toString()));
 		return 0;
 	}

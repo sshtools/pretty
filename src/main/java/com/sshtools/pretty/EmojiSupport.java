@@ -3,6 +3,9 @@ package com.sshtools.pretty;
 import java.util.List;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.gluonhq.emoji.Emoji;
 import com.gluonhq.emoji.EmojiData;
 import com.gluonhq.emoji.util.EmojiImageUtils;
@@ -16,6 +19,8 @@ import javafx.scene.image.Image;
 import javafx.scene.text.Font;
 
 public class EmojiSupport implements SoftFont {
+	
+	private final static Logger LOG = LoggerFactory.getLogger(EmojiSupport.class);
 
 	private Image image;
 
@@ -73,12 +78,12 @@ public class EmojiSupport implements SoftFont {
 		/* TODO the big one .. unicode sequences .. idk how tf thats going to work! */
 		if(c.length == 1) {
 			var res = EmojiData.emojiFromCodepoints(Integer.toHexString(c[0]));
-			if(res.isPresent()) {
-				System.out.println("Lookup of " + c[0] + " (" + (char)c[0] + ") = " + res);
+			if(LOG.isTraceEnabled()) {
+				LOG.trace("Lookup of " + c[0] + " (" + (char)c[0] + ") = " + res.isPresent());
 			}
 			return res;
 		} else
-			throw new UnsupportedOperationException("TODO! :\\");
+			return Optional.empty();
 	}
 
 	@Override

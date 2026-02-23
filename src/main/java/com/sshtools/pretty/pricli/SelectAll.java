@@ -18,9 +18,7 @@ public class SelectAll implements Callable<Integer> {
 	@Override
 	public Integer call() throws Exception {
 		var buf = parent.tty().terminal().getViewport();
-		synchronized(buf.getBufferLock()) {
-			buf.selectAll();
-		}
+		buf.enqueue(buf::selectAll);
 		return 0;
 	}
 }

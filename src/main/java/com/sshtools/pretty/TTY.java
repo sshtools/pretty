@@ -373,10 +373,7 @@ public class TTY extends StackPane implements Closeable {
 	public int clipboardToHost(Clipboard clipboard) {
 		if(Platform.isFxApplicationThread()) {
 			var text = String.valueOf(clipboard.getContent(DataFormat.PLAIN_TEXT));
-			synchronized(terminalPanel.getViewport().getBufferLock()) {
-				terminalPanel.getViewport()
-					.output(text);
-			}
+			terminalPanel.getViewport().enqueue(() -> terminalPanel.getViewport().output(text));
 			showOverlayTextInfo(overlayInfo, RESOURCES.getString("pasted"));
 			return text.length();
 		}
@@ -895,9 +892,9 @@ public class TTY extends StackPane implements Closeable {
 			var ssz = getConfiguredSize();
 			var buf = terminalPanel.getViewport();
 			LOG.info("Sizing font for {} x {}", ssz[0], ssz[1]);
-			synchronized(buf.getBufferLock()) {
+			buf.enqueue(() -> {
 				buf.setScreenSize(ssz[0], ssz[1], false);
-			}
+			});
 		} else if (getStage() != null && rs == ResizeStrategy.SCREEN) {
 			LOG.info("Sizing to scene");
 			getStage().sizeToScene();

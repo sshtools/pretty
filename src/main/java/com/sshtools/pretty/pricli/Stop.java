@@ -21,12 +21,10 @@ public class Stop implements Callable<Integer> {
 	@Override
 	public Integer call() throws Exception {
 		var buffer = parent.tty().terminal().getViewport();
-		synchronized (buffer.getBufferLock()) {
-			if (buffer.getRecordingWriter() == null) {
-				throw new IllegalStateException(RESOURCES.getString("notRecording"));
-			}
-			buffer.stopRecording();
+		if (buffer.getRecordingWriter() == null) {
+			throw new IllegalStateException(RESOURCES.getString("notRecording"));
 		}
+		buffer.stopRecording();
 		parent.cli().result(RESOURCES.getString("stopped"));
 		return 0;
 	}
