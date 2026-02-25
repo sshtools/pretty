@@ -3,6 +3,7 @@ package com.sshtools.pretty;
 import java.io.Closeable;
 import java.util.Optional;
 
+import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import javafx.stage.Stage;
 
@@ -35,5 +36,7 @@ public interface TTYContext extends Closeable {
 	void renameTab(TTY tty);
 	
 	void close();
+
+	void splitTab(TTY other, TTYRequest request, Orientation orientation);
 
 }

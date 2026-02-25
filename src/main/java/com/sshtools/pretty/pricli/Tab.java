@@ -7,7 +7,9 @@ import java.util.ResourceBundle;
 import java.util.concurrent.Callable;
 
 import com.sshtools.pretty.Colors;
+import com.sshtools.pretty.TTYRequest;
 
+import javafx.geometry.Orientation;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Parameters;
 import picocli.CommandLine.ParentCommand;
@@ -21,7 +23,7 @@ import picocli.CommandLine.Model.CommandSpec;
          usageHelpAutoWidth = true, 
          mixinStandardHelpOptions = true, 
          description = "Various commands for tabs.", 
-                 subcommands = {Tab.Name.class, Tab.Detach.class, Tab.Color.class, Tab.Rename.class})
+                 subcommands = {Tab.Name.class, Tab.Detach.class, Tab.Color.class, Tab.Rename.class, Tab.SplitHorizontal.class, Tab.SplitVertical.class, Tab.Close.class})
 public class Tab implements Callable<Integer> {
 	final static ResourceBundle RESOURCES = ResourceBundle.getBundle(Tab.class.getName());
 	@ParentCommand
@@ -144,6 +146,78 @@ public class Tab implements Callable<Integer> {
 				parent.parent.cli().close();
 				runLater(() -> {
 					parent.parent.ttyContext().renameTab(parent.parent.tty());
+				});
+			});
+			return 0;
+		}
+	}
+	
+	@Command(name = "split-horizontal", 
+	         aliases = { "sh" },
+	         footer = "Aliases: sh",
+	         usageHelpAutoWidth = true, 
+	         
+	         description = "Split the currently active tty horizontally and create a new session.")
+	public final static class SplitHorizontal implements Callable<Integer> {
+		@ParentCommand
+		private Tab parent;
+		
+		@Override
+		public Integer call() throws Exception {
+			runLater(() -> {
+				parent.parent.cli().close();
+				runLater(() -> {
+					parent.parent.ttyContext().splitTab(
+							parent.parent.tty(), 
+							new TTYRequest.Builder().build(),
+							Orientation.HORIZONTAL);
+				});
+			});
+			return 0;
+		}
+	}
+	
+	@Command(name = "split-vertical", 
+	         aliases = { "sv" },
+	         footer = "Aliases: sv",
+	         usageHelpAutoWidth = true, 
+	         
+	         description = "Split the currently active tty vertically and create a new session.")
+	public final static class SplitVertical implements Callable<Integer> {
+		@ParentCommand
+		private Tab parent;
+		
+		@Override
+		public Integer call() throws Exception {
+			runLater(() -> {
+				parent.parent.cli().close();
+				runLater(() -> {
+					parent.parent.ttyContext().splitTab(
+							parent.parent.tty(), 
+							new TTYRequest.Builder().build(),
+							Orientation.VERTICAL);
+				});
+			});
+			return 0;
+		}
+	}
+	
+	@Command(name = "close", 
+	         aliases = { "cl" },
+	         footer = "Aliases: cl",
+	         usageHelpAutoWidth = true, 
+	         
+	         description = "Close the current split or tab.")
+	public final static class Close implements Callable<Integer> {
+		@ParentCommand
+		private Tab parent;
+		
+		@Override
+		public Integer call() throws Exception {
+			runLater(() -> {
+				parent.parent.cli().close();
+				runLater(() -> {
+					parent.parent.tty().close();
 				});
 			});
 			return 0;

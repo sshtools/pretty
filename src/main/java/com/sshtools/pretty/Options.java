@@ -452,6 +452,20 @@ public class Options extends StackPane implements Closeable {
 	}
 	
 	@FXML
+	public void useCurrentSize(ActionEvent evt) {
+		var owner = ((Stage)getScene().getWindow()).getOwner();
+		app.getWindows().forEach(wnw -> {
+			if(wnw.stage().equals(owner)) {
+				var pw = (PrettyAppWindow)wnw;
+				pw.ttyContext().activeTty().ifPresent(tty -> {
+					var page = tty.terminal().getViewport().getPage();
+					screenSize.setValue(page.columns() + "x" + page.height());
+				});
+			}
+		});
+	}
+	
+	@FXML
 	public void browseDownloads(ActionEvent evt) {
 		var chooser = new DirectoryChooser();
 		chooser.setTitle(RESOURCES.getString("downloads"));

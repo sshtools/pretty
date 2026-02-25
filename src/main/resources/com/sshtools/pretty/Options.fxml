@@ -146,6 +146,7 @@
                                        <children>
                                           <Label prefWidth="120.0" text="%screenSize" />
                                           <ComboBox fx:id="screenSize" editable="true" prefWidth="150.0" />
+                                          <Hyperlink fx:id="useCurrentSize" onAction="#useCurrentSize" text="%useCurrentSize" />
                                        </children>
                                     </HBox>
                                     <HBox alignment="CENTER_LEFT" styleClass="spaced">

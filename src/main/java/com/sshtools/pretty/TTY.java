@@ -323,7 +323,7 @@ public class TTY extends StackPane implements Closeable {
 			cfg.bindBoolean(s -> emulator.setScrollbackSize(s ? cfg.terminal().getInt(Constants.BUFFER_SIZE_KEY): -1), () -> emulator.getScrollbackSize() > -1, Constants.LIMIT_BUFFER_KEY, Constants.TERMINAL_SECTION),
 			cfg.bindInteger(this::setBackgroundOpacity, this::getBackgroundOpacity, Constants.OPACITY_KEY, Constants.TERMINAL_SECTION),
 			cfg.bindString(emulator::setTerminalType, emulator.getTerminalType()::getId, Constants.TYPE_KEY, Constants.TERMINAL_SECTION),  
-			cfg.bindString((nsz) -> updateAppearance(), () -> String.format("%dx%d", emulator.getColumns(), emulator.getRows()), Constants.SCREEN_SIZE_KEY, Constants.TERMINAL_SECTION),
+//			cfg.bindString((nsz) -> updateAppearance(), () -> String.format("%dx%d", emulator.getColumns(), emulator.getRows()), Constants.SCREEN_SIZE_KEY, Constants.TERMINAL_SECTION),
 			cfg.bindInteger(this::setFontSize, terminalPanel.getFontManager().getDefault().spec()::getSize, Constants.FONT_SIZE_KEY, Constants.TERMINAL_SECTION),
 			cfg.bindStrings(this::setFonts, ttyContext.getContainer().getFonts()::getFonts, Constants.FONTS_KEY, Constants.TERMINAL_SECTION),
 			cfg.bindStrings((s) -> updateFeatures(), this::getEnabledFeatures, Constants.ENABLED_FEATURES, Constants.TERMINAL_SECTION), 
@@ -896,9 +896,9 @@ public class TTY extends StackPane implements Closeable {
 				buf.setScreenSize(ssz[0], ssz[1], false);
 			});
 		} else if (getStage() != null && rs == ResizeStrategy.SCREEN) {
-			LOG.info("Sizing to scene");
-			getStage().sizeToScene();
-			LOG.info("Sized to scene");
+//			LOG.info("Sizing to scene");
+//			getStage().sizeToScene();
+//			LOG.info("Sized to scene");
 		}
 	}
 	

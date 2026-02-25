@@ -20,6 +20,7 @@
 		<native.image.version>0.9.1</native.image.version>
 		<jline.version>3.26.0</jline.version>
 		<maverick.synergy.version>3.1.4</maverick.synergy.version>
+		<jajafx.version>0.9.13</jajafx.version>
 
 		<build.arch>${os.arch}</build.arch>
 		<build.platform>${build.os.family}-${os.arch}</build.platform>
@@ -482,7 +483,7 @@
 		<dependency>
 			<groupId>com.sshtools</groupId>
 			<artifactId>jajafx-lib</artifactId>
-			<version>0.9.12</version>
+			<version>${jajafx.version}</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.openjfx</groupId>
@@ -505,7 +506,7 @@
 		<dependency>
 			<groupId>com.sshtools</groupId>
 			<artifactId>jajafx-updateable</artifactId>
-			<version>0.9.12</version>
+			<version>${jajafx.version}</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.openjfx</groupId>
@@ -528,7 +529,7 @@
 		<dependency>
 			<groupId>com.sshtools</groupId>
 			<artifactId>jajafx-jmetro</artifactId>
-			<version>0.9.12</version>
+			<version>${jajafx.version}</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.openjfx</groupId>

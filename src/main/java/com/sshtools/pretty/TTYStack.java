@@ -3,8 +3,6 @@ package com.sshtools.pretty;
 import static com.sshtools.jajafx.FXUtil.maybeQueue;
 import static javafx.application.Platform.runLater;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
@@ -12,12 +10,14 @@ import java.util.ResourceBundle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.sshtools.jajafx.SplitTabPane;
 import com.sshtools.jini.Data.Handle;
 import com.sshtools.pretty.Actions.Action;
 import com.sshtools.pretty.Actions.On;
 
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javafx.geometry.Orientation;
 import javafx.geometry.Side;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
@@ -28,7 +28,6 @@ import javafx.scene.control.ContextMenu;
 import javafx.scene.control.RadioMenuItem;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
 import javafx.scene.control.TabPane.TabDragPolicy;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleGroup;
@@ -45,6 +44,8 @@ public final class TTYStack extends StackPane implements TTYContext, ListChangeL
 	private final Stage stage;
 	private PrettyAppWindow appWindow;
 	private final ObservableList<Action> actions;
+	private final SplitTabPane tabs;
+	private Handle hndl;
 
 	TTYStack(AppContext appContext, Stage stage) {
 
@@ -65,24 +66,39 @@ public final class TTYStack extends StackPane implements TTYContext, ListChangeL
 		actions = appContext.getActions().actions();
 		actions.addListener(this);
 		
+		tabs = new SplitTabPane();
+		tabs.setTabDragPolicy(TabDragPolicy.REORDER);
+		hndl = getContainer().getConfiguration().bindEnum(Side.class, tabs::setSide, tabs::getSide,
+				"tabs", Constants.TERMINAL_SECTION);
+		tabs.getSelectionModel().selectedItemProperty().addListener((c, o, n) -> {
+			if(n == null)
+				return;
+			var selTty = (TTY) n.getUserData();
+			updateStageTitle();
+			runLater(() -> selTty.terminal().focusTerminal());
+		});
+		
+		getChildren().add(tabs);
+		
 		updateStageTitle();
 	}
 
 	@Override
 	public Optional<TTY> activeTty() {
-		if (getChildren().isEmpty())
-			return Optional.empty();
-		else {
-			var first = getChildren().get(0);
-			if (first instanceof TTY) {
-				return Optional.of((TTY) first);
-			} else {
-				var tabPane = (TabPane) first;
-				var sel = tabPane.getSelectionModel().getSelectedItem();
-				var tty = (TTY) sel.getUserData();
-				return Optional.of(tty);
-			}
-		}
+//		if (getChildren().isEmpty())
+//			return Optional.empty();
+//		else {
+//			var first = getChildren().get(0);
+//			if (first instanceof TTY) {
+//				return Optional.of((TTY) first);
+//			} else {
+//				var tabPane = (TabPane) first;
+//				var sel = tabPane.getSelectionModel().getSelectedItem();
+//				var tty = (TTY) sel.getUserData();
+//				return Optional.of(tty);
+//			}
+//		}
+		return Optional.ofNullable(tabs.getSelectedTab()).map(t -> (TTY) t.getUserData());
 	}
 
 	@Override
@@ -94,6 +110,7 @@ public final class TTYStack extends StackPane implements TTYContext, ListChangeL
 	public void close() {
 		ttys().forEach(tty -> tty.close());
 		actions.removeListener(this);
+		hndl.close();
 		
 	}
 
@@ -104,25 +121,17 @@ public final class TTYStack extends StackPane implements TTYContext, ListChangeL
 
 	@Override
 	public void detachTab(TTY tty) {
-		if (getChildren().size() > 0) {
-			var first = getChildren().get(0);
-			if (!(first instanceof TTY && tty.equals(first) ) ) {
-				var tabPane = (TabPane) first;
-				for(var tab : tabPane.getTabs()) {
-					if(tab.getUserData().equals(tty)) {
-						var newWnd = newWindow(Optional.empty());
-						closeTty(tty);
-						var newCtx = (TTYStack)newWnd.ttyContext();
-						newCtx.getChildren().add(tty);
-						newCtx.updateStageTitle();
-						newCtx.stage.sizeToScene();
-						newCtx.stage.show();
-						return;
-					}
-				}
-			}
-		}
-		throw new IllegalStateException("Not attached.");
+		tabs.getTabs().stream().filter(t -> t.getUserData().equals(tty)).findFirst().ifPresentOrElse(tab -> {
+			var newWnd = newWindow(Optional.empty());
+			closeTty(tty);
+			var newCtx = (TTYStack)newWnd.ttyContext();
+			newCtx.getChildren().add(tty);
+			newCtx.updateStageTitle();
+			newCtx.stage.sizeToScene();
+			newCtx.stage.show();
+		}, () -> { 
+			throw new IllegalStateException("Not attached."); 
+		});
 	}
 
 	@Override
@@ -131,23 +140,24 @@ public final class TTYStack extends StackPane implements TTYContext, ListChangeL
 	}
 
 	public int indexOf(TTY tty) {
-		if (!getChildren().isEmpty()) {
-			var first = getChildren().get(0);
-			if (first instanceof TTY && tty.equals(first)) {
-				return 0;
-			} else if (first instanceof TabPane) {
-				var tabPane = (TabPane) first;
-				var index = 0;
-				for (var tab : tabPane.getTabs()) {
-					var t = (TTY) tab.getUserData();
-					if (t.equals(tty)) {
-						return index;
-					}
-					index++;
-				}
-			}
-		}
-		return -1;
+		return tabs.getTabs().indexOf(tabs.getTabs().stream().filter(t -> t.getUserData().equals(tty)).findFirst().orElse(null));
+//		if (!getChildren().isEmpty()) {
+//			var first = getChildren().get(0);
+//			if (first instanceof TTY && tty.equals(first)) {
+//				return 0;
+//			} else if (first instanceof TabPane) {
+//				var tabPane = (TabPane) first;
+//				var index = 0;
+//				for (var tab : tabPane.getTabs()) {
+//					var t = (TTY) tab.getUserData();
+//					if (t.equals(tty)) {
+//						return index;
+//					}
+//					index++;
+//				}
+//			}
+//		}
+//		return -1;
 	}
 
 	@Override
@@ -157,40 +167,67 @@ public final class TTYStack extends StackPane implements TTYContext, ListChangeL
 			LOG.info("New tab in stack {}", hashCode());
 			
 			var tty = newTty(request);
-			if (getChildren().isEmpty()) {
-				getChildren().add(tty);
-			} else {
-				var first = getChildren().get(0);
-				if (!(first instanceof TabPane)) {
-					var firstTty = (TTY) first;
-					getChildren().remove(firstTty);
-					var firstTab = createTabForTty(firstTty);
+//			if (getChildren().isEmpty()) {
+//				getChildren().add(tty);
+//			} else {
+//				var first = getChildren().get(0);
+//				if (!(first instanceof TabPane)) {
+//					var firstTty = (TTY) first;
+//					getChildren().remove(firstTty);
+//					var firstTab = createTabForTty(firstTty);
+//
+//					var tabs = new TabPane(firstTab);
+//					tabs.setTabDragPolicy(TabDragPolicy.REORDER);
+//					var hndl = getContainer().getConfiguration().bindEnum(Side.class, tabs::setSide, tabs::getSide,
+//							"tabs", Constants.TERMINAL_SECTION);
+//					tabs.setUserData(hndl);
+//					getChildren().add(tabs);
+//
+//					tabs.getSelectionModel().selectedItemProperty().addListener((c, o, n) -> {
+//						var selTty = (TTY) n.getUserData();
+//						updateStageTitle();
+//						runLater(() -> selTty.terminal().focusTerminal());
+//					});
+//					first = tabs;
+//				}
+//
+//				var newTab = createTabForTty(tty);
+//
+//				var tabPane = (TabPane) first;
+//				tabPane.getTabs().add(newTab);
+//				tabPane.getSelectionModel().select(newTab);
+//			}
+			
 
-					var tabs = new TabPane(firstTab);
-					tabs.setTabDragPolicy(TabDragPolicy.REORDER);
-					var hndl = getContainer().getConfiguration().bindEnum(Side.class, tabs::setSide, tabs::getSide,
-							"tabs", Constants.TERMINAL_SECTION);
-					tabs.setUserData(hndl);
-					getChildren().add(tabs);
-
-					tabs.getSelectionModel().selectedItemProperty().addListener((c, o, n) -> {
-						var selTty = (TTY) n.getUserData();
-						updateStageTitle();
-						runLater(() -> selTty.terminal().focusTerminal());
-					});
-					first = tabs;
-				}
-
-				var newTab = createTabForTty(tty);
-
-				var tabPane = (TabPane) first;
-				tabPane.getTabs().add(newTab);
-				tabPane.getSelectionModel().select(newTab);
-			}
+			var newTab = createTabForTty(tty);
+			tabs.getTabs().add(newTab);
+			tabs.getSelectionModel().select(newTab);
+			
+			
 			updateStageTitle();
 		} catch (Exception e) {
 			LOG.error("Failed to add tab.", e);
 		}
+	}
+
+	@Override
+	public void splitTab(TTY other, TTYRequest request, Orientation orientation) {
+		try {
+			LOG.info("New tab in stack {}", hashCode());
+			
+			var otherTab = findTabForTty(other);
+			var tty = newTty(request);
+
+			var newTab = createTabForTty(tty);
+			tabs.splitTab(otherTab, newTab, orientation);
+			tabs.getSelectionModel().select(newTab);
+			
+			
+			updateStageTitle();
+		} catch (Exception e) {
+			LOG.error("Failed to add tab.", e);
+		}
+		
 	}
 
 	@Override
@@ -215,17 +252,18 @@ public final class TTYStack extends StackPane implements TTYContext, ListChangeL
 	}
 
 	public void select(TTY tty) {
-		if (!getChildren().isEmpty()) {
-			var first = getChildren().get(0);
-			if (first instanceof TTY && tty.equals(first)) {
-				return;
-			} else if (first instanceof TabPane) {
-				var tabPane = (TabPane) first;
-				tabPane.getSelectionModel().select(tabPane.getTabs().get(indexOf(tty)));
-				return;
-			}
-		}
-		throw new IllegalStateException();
+//		if (!getChildren().isEmpty()) {
+//			var first = getChildren().get(0);
+//			if (first instanceof TTY && tty.equals(first)) {
+//				return;
+//			} else if (first instanceof TabPane) {
+//				var tabPane = (TabPane) first;
+//				tabPane.getSelectionModel().select(tabPane.getTabs().get(indexOf(tty)));
+//				return;
+//			}
+//		}
+//		throw new IllegalStateException();
+		tabs.getSelectionModel().select(indexOf(tty));
 	}
 
 	public void setAppWindow(PrettyAppWindow appWindow) {
@@ -239,17 +277,19 @@ public final class TTYStack extends StackPane implements TTYContext, ListChangeL
 	}
 
 	public List<TTY> ttys() {
-		if (getChildren().isEmpty())
-			return Collections.emptyList();
-		else {
-			var first = getChildren().get(0);
-			if (first instanceof TTY) {
-				return Arrays.asList((TTY) first);
-			} else {
-				var tabPane = (TabPane) first;
-				return tabPane.getTabs().stream().map(t -> (TTY) t.getUserData()).toList();
-			}
-		}
+//		if (getChildren().isEmpty())
+//			return Collections.emptyList();
+//		else {
+//			var first = getChildren().get(0);
+//			if (first instanceof TTY) {
+//				return Arrays.asList((TTY) first);
+//			} else {
+//				var tabPane = (TabPane) first;
+//				return tabPane.getTabs().stream().map(t -> (TTY) t.getUserData()).toList();
+//			}
+//		}
+
+		return tabs.getTabs().stream().map(t -> (TTY) t.getUserData()).toList();
 	}
 
 	protected Tab createTabForTty(TTY tty) {
@@ -275,31 +315,37 @@ public final class TTYStack extends StackPane implements TTYContext, ListChangeL
 	private void closeTty(TTY tty) {
 		/* TODO remove listeners */
 		maybeQueue(() -> {
-			var ttys = ttys();
-			var idx = ttys.indexOf(tty);
-			if (idx > -1) {
-				var first = getChildren().get(0);
-				if (first instanceof TabPane) {
-					/*
-					 * Now just a single tab, switch back to adding the tty directly to the frames
-					 * stack
-					 */
-					var tabPane = (TabPane) first;
-					if(tabPane.getTabs().size() == 2) {
-						((Handle) tabPane.getUserData()).close();
-						var firstTab = tabPane.getTabs().get(0);
-						getChildren().remove(first);
-						getChildren().add((TTY) firstTab.getUserData());
-					}
-					else {
-						var tab = tabPane.getTabs().get(idx);
-						tabPane.getTabs().remove(tab);		
-					}
-				} else {
-					stage.close();
-				}
-				updateStageTitle();
+			tabs.getTabs().remove(ttys().indexOf(tty));
+			if(tabs.getTabs().isEmpty()) {
+				/* No more tabs, remove the tab pane and add the tty directly to the stack */
+				stage.close();
 			}
+			updateStageTitle();
+			
+			
+//			if (idx > -1) {
+//				var first = getChildren().get(0);
+//				if (first instanceof TabPane) {
+//					/*
+//					 * Now just a single tab, switch back to adding the tty directly to the frames
+//					 * stack
+//					 */
+//					var tabPane = (TabPane) first;
+//					if(tabPane.getTabs().size() == 2) {
+//						((Handle) tabPane.getUserData()).close();
+//						var firstTab = tabPane.getTabs().get(0);
+//						getChildren().remove(first);
+//						getChildren().add((TTY) firstTab.getUserData());
+//					}
+//					else {
+//						var tab = tabPane.getTabs().get(idx);
+//						tabPane.getTabs().remove(tab);		
+//					}
+//				} else {
+//					stage.close();
+//				}
+//				updateStageTitle();
+//			}
 		});
 	}
 
@@ -355,16 +401,17 @@ public final class TTYStack extends StackPane implements TTYContext, ListChangeL
 	}
 
 	private Tab findTabForTty(TTY tty) {
-		var first = getChildren().get(0);
-		if (!(first instanceof TTY)) {
-			var tabPane = (TabPane) first;
-			for(var tab : tabPane.getTabs()) {
-				if(tab.getUserData().equals(tty)) {
-					return tab;
-				}
-			}
-		}
-		throw new IllegalArgumentException("No tab for this tty.");
+		return tabs.getTabs().stream().filter(t -> t.getUserData().equals(tty)).findFirst().orElseThrow(() -> new IllegalArgumentException("No tab for this tty."));
+//		var first = getChildren().get(0);
+//		if (!(first instanceof TTY)) {
+//			var tabPane = (TabPane) first;
+//			for(var tab : tabPane.getTabs()) {
+//				if(tab.getUserData().equals(tty)) {
+//					return tab;
+//				}
+//			}
+//		}
+//		throw new IllegalArgumentException("No tab for this tty.");
 	}
 
 	private boolean maybeClose(TTY tty) {
