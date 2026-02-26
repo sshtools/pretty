@@ -20,7 +20,7 @@
 		<native.image.version>0.9.1</native.image.version>
 		<jline.version>3.26.0</jline.version>
 		<maverick.synergy.version>3.1.4</maverick.synergy.version>
-		<jajafx.version>0.9.13</jajafx.version>
+		<jajafx.version>0.9.14</jajafx.version>
 
 		<build.arch>${os.arch}</build.arch>
 		<build.platform>${build.os.family}-${os.arch}</build.platform>

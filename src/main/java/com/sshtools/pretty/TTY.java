@@ -44,6 +44,7 @@ import com.sshtools.terminal.emulation.TerminalInputStream;
 import com.sshtools.terminal.emulation.TerminalOutputStream;
 import com.sshtools.terminal.emulation.TerminalViewport;
 import com.sshtools.terminal.emulation.buffer.FixedSizeInMemoryBufferData;
+import com.sshtools.terminal.emulation.buffer.ScrollBackBufferData.Mode;
 import com.sshtools.terminal.emulation.emulator.DECEmulator;
 import com.sshtools.terminal.emulation.emulator.DECModes;
 import com.sshtools.terminal.emulation.emulator.DECModes.StatusLineType;
@@ -332,6 +333,7 @@ public class TTY extends StackPane implements Closeable {
 			cfg.bindBoolean((s) -> checkStatusDisplay(), this::isStatusDisplay, Constants.ENABLED_KEY, Constants.STATUS_SECTION),
 			cfg.bindBoolean(emulator::setEnableBlinking, emulator::isEnableBlinking, Constants.BLINKING_KEY, Constants.TERMINAL_SECTION),
 			cfg.bindBoolean(emulator.getModes()::setCursorBlink, emulator.getModes()::isCursorBlink, Constants.CURSOR_BLINK_KEY, Constants.TERMINAL_SECTION),
+			cfg.bindEnum(Mode.class, emulator::setScrollbackMode, emulator::getScrollbackMode, Constants.BUFFER_MODE_KEY, Constants.TERMINAL_SECTION),
 			cfg.bindEnum(CursorStyle.class, terminalPanel::setCursorStyle, terminalPanel::getCursorStyle, Constants.CURSOR_STYLE_KEY, Constants.TERMINAL_SECTION),
 			cfg.bindEnum(ScrollBarMode.class, scrollPane::setScrollBar, scrollPane::getScrollBar, Constants.SCROLL_BAR_KEY, Constants.TERMINAL_SECTION),
 //			cfg.bindBoolean(scroller.getNativeComponent()::setVisible, scroller.getNativeComponent()::isVisible, Constants.SCROLL_BAR_KEY, Constants.TERMINAL_SECTION),

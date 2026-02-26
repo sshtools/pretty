@@ -20,6 +20,7 @@ import com.sshtools.pretty.ScrollableTerminal;
 import com.sshtools.pretty.TTY;
 import com.sshtools.pretty.TTYContext;
 import com.sshtools.terminal.emulation.ResizeStrategy;
+import com.sshtools.terminal.emulation.buffer.ScrollBackBufferData.Mode;
 import com.sshtools.terminal.emulation.emulator.DECEmulator;
 import com.sshtools.terminal.vt.javafx.JavaFXTerminalPanel;
 
@@ -125,6 +126,7 @@ public final class PricliPopup {
 		handles.addAll(Arrays.asList(
 			cfg.bindEnum(PopupPosition.class, this::setAlign, this::getAlign, Constants.ALIGN_KEY, Constants.PRICLI_SECTION),
 			cfg.bindFloat(v -> updateHeight(), () -> -1f, Constants.HEIGHT_KEY, Constants.PRICLI_SECTION),
+			cfg.bindEnum(Mode.class, buf::setScrollbackMode, buf::getScrollbackMode, Constants.BUFFER_MODE_KEY, Constants.TERMINAL_SECTION),
 			cfg.bindInteger(s -> buf.setScrollbackSize(
 					cfg.terminal().getBoolean(Constants.LIMIT_BUFFER_KEY) ? s : -1), 
 					buf::getScrollbackSize, 

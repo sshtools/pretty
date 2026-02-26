@@ -28,6 +28,7 @@ public class Constants {
 	public static final String OPACITY_KEY = "opacity";
 	public static final String FONTS_KEY = "fonts";
 	public static final String BUFFER_SIZE_KEY = "buffer-size";
+	public static final String BUFFER_MODE_KEY = "buffer-mode";
 	public static final String LIMIT_BUFFER_KEY = "limit-buffer";
 	public static final String FONT_SIZE_KEY = "font-size";
 	public static final String RESIZE_STRATEGY_KEY = "resize-strategy";

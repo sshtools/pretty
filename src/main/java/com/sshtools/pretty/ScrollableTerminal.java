@@ -85,7 +85,9 @@ public class ScrollableTerminal extends BorderPane {
 		});
 		scroller.getNativeComponent().setOnMouseExited(evt -> {
 			inScrollBar = false;
-			fadeOutScrollBar();
+			if(getScrollBar() == ScrollBarMode.AUTOMATIC) {
+				fadeOutScrollBar();
+			}
 		});
 		
 		
@@ -184,7 +186,7 @@ public class ScrollableTerminal extends BorderPane {
 				termArea.getChildren().remove(sb);
 				setRight(scroller.getNativeComponent());
 				sb.setVisible(true);
-				sb.setOpacity(0);
+				sb.setOpacity(100);
 				fadeInScrollBar(false);
 				sb.getStyleClass().add("permanent");
 				break;
