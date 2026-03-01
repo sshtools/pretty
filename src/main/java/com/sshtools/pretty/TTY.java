@@ -49,7 +49,10 @@ import com.sshtools.terminal.emulation.emulator.DECEmulator;
 import com.sshtools.terminal.emulation.emulator.DECModes;
 import com.sshtools.terminal.emulation.emulator.DECModes.StatusLineType;
 import com.sshtools.terminal.emulation.emulator.XTERM256Color;
+import com.sshtools.terminal.emulation.events.ViewportEvent;
+import com.sshtools.terminal.emulation.events.ViewportListener;
 import com.sshtools.terminal.emulation.fonts.FontSpec;
+import com.sshtools.terminal.emulation.util.Cell;
 import com.sshtools.terminal.vt.javafx.JavaFXTerminalPanel;
 
 import javafx.animation.FadeTransition;
@@ -204,6 +207,14 @@ public class TTY extends StackPane implements Closeable {
 				withFontManager(ttyContext.getContainer().getFonts().getFontManager()).
 				withBuffer(emulator)
 				.build();
+		terminalPanel.getViewport().addViewportListener(new ViewportListener() {
+			@Override
+			public void selectionChanged(Cell start, Cell end, Cell point, ViewportEvent event) {
+				if(terminalPanel.isSetClipboardOnSelect() && emulator.getSelectionLength() > 0) {
+					Platform.runLater(() ->showOverlayTextInfo(overlayInfo, RESOURCES.getString("copied"))); 
+				}
+			}
+		});
 		theme.apply(terminalPanel, getBackgroundOpacity());
 
 		/* Overlay status */
@@ -332,6 +343,7 @@ public class TTY extends StackPane implements Closeable {
 			cfg.bindString(this::setThemeId, this::getThemeId, Constants.THEME_KEY, Constants.TERMINAL_SECTION),
 			cfg.bindBoolean((s) -> checkStatusDisplay(), this::isStatusDisplay, Constants.ENABLED_KEY, Constants.STATUS_SECTION),
 			cfg.bindBoolean(emulator::setEnableBlinking, emulator::isEnableBlinking, Constants.BLINKING_KEY, Constants.TERMINAL_SECTION),
+			cfg.bindBoolean(terminalPanel::setSetClipboardOnSelect, terminalPanel::isSetClipboardOnSelect, Constants.COPY_ON_SELECT, Constants.TERMINAL_SECTION),
 			cfg.bindBoolean(emulator.getModes()::setCursorBlink, emulator.getModes()::isCursorBlink, Constants.CURSOR_BLINK_KEY, Constants.TERMINAL_SECTION),
 			cfg.bindEnum(Mode.class, emulator::setScrollbackMode, emulator::getScrollbackMode, Constants.BUFFER_MODE_KEY, Constants.TERMINAL_SECTION),
 			cfg.bindEnum(CursorStyle.class, terminalPanel::setCursorStyle, terminalPanel::getCursorStyle, Constants.CURSOR_STYLE_KEY, Constants.TERMINAL_SECTION),

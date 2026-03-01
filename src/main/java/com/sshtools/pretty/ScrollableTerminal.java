@@ -45,7 +45,7 @@ public class ScrollableTerminal extends BorderPane {
 	public ScrollableTerminal(TTYContext ttyContext, JavaFXTerminalPanel terminalPanel, ContextMenu contextMenu, Supplier<PricliShell> shell, On on) {
 		
 		emulator = (DECEmulator<JavaFXTerminalPanel>)terminalPanel.getViewport();
-		emulator.addTerminalBufferListener(new ViewportListener() {
+		emulator.addViewportListener(new ViewportListener() {
 			@Override
 			public void windowBaseChanged(int windowBase, ViewportEvent event) {
 				if(getScrollBar() == ScrollBarMode.AUTOMATIC && !inScrollBar) {

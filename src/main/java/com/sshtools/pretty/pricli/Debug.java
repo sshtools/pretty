@@ -6,16 +6,18 @@ import org.jline.terminal.Terminal;
 import org.jline.utils.AttributedStringBuilder;
 import org.jline.utils.AttributedStyle;
 
+import com.sshtools.terminal.emulation.DefaultViewport;
+import com.sshtools.terminal.emulation.buffer.LineData;
 import com.sshtools.terminal.emulation.emulator.DECEmulator;
 import com.sshtools.terminal.emulation.emulator.DECPage;
 
 import javafx.application.Platform;
 import picocli.CommandLine.Command;
+import picocli.CommandLine.Help.Ansi;
+import picocli.CommandLine.Model.CommandSpec;
 import picocli.CommandLine.Parameters;
 import picocli.CommandLine.ParentCommand;
 import picocli.CommandLine.Spec;
-import picocli.CommandLine.Help.Ansi;
-import picocli.CommandLine.Model.CommandSpec;
 
 @Command(name = "debug", 
          aliases = {"d"},
@@ -23,7 +25,12 @@ import picocli.CommandLine.Model.CommandSpec;
          usageHelpAutoWidth = true, 
          mixinStandardHelpOptions = true, 
          description = "Debug actions.", 
-         subcommands = {Debug.Pack.class, Debug.Emulator.class,Debug.Open.class})
+         subcommands = {
+			 Debug.Pack.class, 
+			 Debug.Emulator.class,
+			 Debug.Viewport.class,
+			 Debug.Open.class
+			})
 public class Debug implements Callable<Integer> {
 
 	@ParentCommand
@@ -95,6 +102,53 @@ public class Debug implements Callable<Integer> {
 		public Integer call() throws Exception {
 			parent.parent.ttyContext().getContainer().open(args == null ? new String[0] : args);
 			return 0;
+		}
+
+	}
+
+
+	@Command(name = "viewport", aliases = {"v", "vp"}, usageHelpAutoWidth = true, description = "Show information about the state of the viewport.")
+	public final static class Viewport implements Callable<Integer> {
+
+		@ParentCommand
+		private Debug parent;
+		
+		@Override
+		public Integer call() throws Exception {
+			var jline = parent.parent.cli().jline();
+			var tty = parent.parent.tty();
+			var dpy = tty.terminal();
+			var emu = (DECEmulator<?>)dpy.getViewport(); 
+			var page = emu.getPage();
+			var bufferData = page.data();
+			for (var r = 0; r < page.height(); r++) {
+				var row = bufferData.get(r);
+				printRow(jline, r, row);
+			}
+			jline.writer().println();
+
+			return 0;
+		}
+
+		private void printRow(Terminal jline, int no, LineData row) {
+			var as = new AttributedStringBuilder();
+			
+			as.style(AttributedStyle.BOLD);
+			as.append(String.format("%07d", no));
+			as.style(AttributedStyle.BOLD_OFF);
+			as.append(": ");
+			
+			var attrs = row.getLineAttributes();
+			as.append(" attrs=0x");
+			as.append(String.format("%02x", attrs));
+			as.append(" soft=");
+			as.append(String.valueOf((attrs & com.sshtools.terminal.emulation.Viewport.LINE_SOFT_WRAPPED) != 0));
+			as.append(" hard=");
+			as.append(String.valueOf((attrs & com.sshtools.terminal.emulation.Viewport.LINE_HARD_BREAK) != 0));
+			as.append(" size=0x");
+			as.append(String.format("%02x", (byte) (attrs & DefaultViewport.LINE_SIZE_MASK)));
+			
+			as.println(jline);
 		}
 
 	}

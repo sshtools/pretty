@@ -63,12 +63,12 @@ public class Status {
 
 		@Override
 		public void attached(TerminalViewport<JavaFXTerminalPanel, ?, ?> vp) {
-			vp.addTerminalBufferListener(this);
+			vp.addViewportListener(this);
 		}
 
 		@Override
 		public void detached(TerminalViewport<JavaFXTerminalPanel, ?, ?> vp) {
-			vp.removeTerminalBufferListener(this);
+			vp.removeViewportListener(this);
 		}
 
 		@Override
@@ -108,12 +108,12 @@ public class Status {
 
 		@Override
 		public void attached(TerminalViewport<JavaFXTerminalPanel, ?, ?> vp) {
-			vp.addTerminalBufferListener(this);
+			vp.addViewportListener(this);
 		}
 
 		@Override
 		public void detached(TerminalViewport<JavaFXTerminalPanel, ?, ?> vp) {
-			vp.removeTerminalBufferListener(this);
+			vp.removeViewportListener(this);
 		}
 
 		@Override
