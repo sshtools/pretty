@@ -210,7 +210,7 @@ public class TTY extends StackPane implements Closeable {
 		terminalPanel.getViewport().addViewportListener(new ViewportListener() {
 			@Override
 			public void selectionChanged(Cell start, Cell end, Cell point, ViewportEvent event) {
-				if(terminalPanel.isSetClipboardOnSelect() && emulator.getSelectionLength() > 0) {
+				if(terminalPanel.isSetClipboardOnSelect() && emulator.getSelectionLength() > 0 &&  event.isMajorChange()) {
 					Platform.runLater(() ->showOverlayTextInfo(overlayInfo, RESOURCES.getString("copied"))); 
 				}
 			}
