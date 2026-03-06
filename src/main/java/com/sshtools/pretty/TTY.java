@@ -7,6 +7,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UncheckedIOException;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -43,6 +44,7 @@ import com.sshtools.terminal.emulation.ResizeStrategy;
 import com.sshtools.terminal.emulation.TerminalInputStream;
 import com.sshtools.terminal.emulation.TerminalOutputStream;
 import com.sshtools.terminal.emulation.TerminalViewport;
+import com.sshtools.terminal.emulation.URIHandler;
 import com.sshtools.terminal.emulation.buffer.FixedSizeInMemoryBufferData;
 import com.sshtools.terminal.emulation.buffer.ScrollBackBufferData.Mode;
 import com.sshtools.terminal.emulation.emulator.DECEmulator;
@@ -54,6 +56,7 @@ import com.sshtools.terminal.emulation.events.ViewportListener;
 import com.sshtools.terminal.emulation.fonts.FontSpec;
 import com.sshtools.terminal.emulation.util.Cell;
 import com.sshtools.terminal.vt.javafx.JavaFXTerminalPanel;
+import com.sshtools.terminal.vt.javafx.JavaFXURIFinder;
 
 import javafx.animation.FadeTransition;
 import javafx.animation.Interpolator;
@@ -67,6 +70,8 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DataFormat;
@@ -170,8 +175,9 @@ public class TTY extends StackPane implements Closeable {
 	private Transition resizeFade;
 	private Path cwd;
 	private Label overlayInfo;
-
+	private URI copiedUri;
 	private DECEmulator<JavaFXTerminalPanel> statusEmulator;
+	private JavaFXURIFinder uriFinder;
 	
 	@SuppressWarnings("unused")
 	private TTY(Builder bldr) {
@@ -207,6 +213,26 @@ public class TTY extends StackPane implements Closeable {
 				withFontManager(ttyContext.getContainer().getFonts().getFontManager()).
 				withBuffer(emulator)
 				.build();
+		
+		uriFinder = new JavaFXURIFinder(terminalPanel, new URIHandler() {
+
+			@Override
+			public boolean clicked(URI uri, int button) throws Exception {
+				System.out.println("URI clicked: " + uri + " with button " + button);
+				if(button == 1) {
+					ttyContext.getContainer().getHostServices().showDocument(uri.toString());
+					return true;
+				}
+				return false;
+			}
+
+			@Override
+			public boolean pressed(URI uri, int button) {
+				copiedUri = uri;
+				return false;
+			}
+		});
+		
 		terminalPanel.getViewport().addViewportListener(new ViewportListener() {
 			@Override
 			public void selectionChanged(Cell start, Cell end, Cell point, ViewportEvent event) {
@@ -251,7 +277,33 @@ public class TTY extends StackPane implements Closeable {
 		scrollPane = new ScrollableTerminal(
 			ttyContext, 
 			terminalPanel, 
-			new ActionsContextMenu(On.CONTEXT, ttyContext.getContainer().getActions(), () -> cli().shell()), 
+			new ActionsContextMenu(On.CONTEXT, ttyContext.getContainer().getActions(), () -> cli().shell()) {
+
+				@Override
+				protected void onRebuild() {
+					var openUri = TTY.this.copiedUri;
+					if(openUri != null) {
+						var mi = new MenuItem(RESOURCES.getString("copyUri"));
+						 mi.setOnAction(evt -> {
+							var content = new ClipboardContent();
+							content.putString(openUri.toString());
+							setClipboard(content);
+						});
+						 
+
+						var ol = new MenuItem(RESOURCES.getString("openUri"));
+						ol.setOnAction(evt -> {
+							ttyContext.getContainer().getHostServices().showDocument(openUri.toString());
+						});
+						 
+						getItems().addAll(0, Arrays.asList(mi, ol, new SeparatorMenuItem()));
+						copiedUri = null;
+					}
+				}
+
+				
+				
+			}, 
 			() -> cli().shell(),
 			On.TTY
 		);
@@ -415,6 +467,7 @@ public class TTY extends StackPane implements Closeable {
 	public void close() {
 		if(!closed) {
 			closed = true;
+			uriFinder.close();
 			try {
 				synchronized(protocols) {
 					while(!protocols.isEmpty()) {
