@@ -44,6 +44,7 @@ public class Constants {
 	public static final String BACKGROUND_TYPE_KEY = "background-type";
 	public static final String BACKGROUND = "background";
 	public static final String COPY_ON_SELECT = "copy-on-select";
+	public static final String REFLOW_KEY = "reflow";
 	
 	// UI
 	public static final String DARK_MODE_KEY = "dark-mode";

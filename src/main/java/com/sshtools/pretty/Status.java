@@ -8,15 +8,18 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 import org.jline.utils.AttributedStringBuilder;
 import org.jline.utils.AttributedStyle;
 
-import com.sshtools.pretty.Status.Element;
 import com.sshtools.terminal.emulation.Modes;
 import com.sshtools.terminal.emulation.SGRState;
 import com.sshtools.terminal.emulation.TerminalViewport;
 import com.sshtools.terminal.emulation.Viewport;
+import com.sshtools.terminal.emulation.buffer.BufferData;
+import com.sshtools.terminal.emulation.buffer.BufferData.ConfigurationChange;
 import com.sshtools.terminal.emulation.events.ViewportEvent;
 import com.sshtools.terminal.emulation.events.ViewportListener;
 import com.sshtools.terminal.vt.javafx.JavaFXTerminalPanel;
@@ -108,12 +111,12 @@ public class Status {
 
 		@Override
 		public void attached(TerminalViewport<JavaFXTerminalPanel, ?, ?> vp) {
-			vp.addViewportListener(this);
+			terminal.addViewportListener(this);
 		}
 
 		@Override
 		public void detached(TerminalViewport<JavaFXTerminalPanel, ?, ?> vp) {
-			vp.removeViewportListener(this);
+			terminal.removeViewportListener(this);
 		}
 
 		@Override
@@ -142,6 +145,11 @@ public class Status {
 		}
 
 		@Override
+		public void bufferConfigurationChanged(ViewportEvent vp, BufferData data, ConfigurationChange... changes) {
+			status.redraw(false);
+		}
+
+		@Override
 		public void draw(TerminalViewport<JavaFXTerminalPanel, ?, ?> vp, int cols) throws IOException {
 			var bldr = new AttributedStringBuilder();
 			bldr.style(AttributedStyle.INVERSE);
@@ -151,45 +159,32 @@ public class Status {
 			bldr.style(AttributedStyle.INVERSE_OFF);
 			vp.write(bldr.toAnsi().getBytes(vp.getCharacterSet()));
 			
-		}		
+		}
 	}
 	
 	private List<Element> elements = new CopyOnWriteArrayList<>();
 	private TerminalViewport<JavaFXTerminalPanel, ?, ?> vp;
 	private Map<Element, Bounds> layout = Collections.emptyMap();
 	private int lastLayoutCols;
+	private ScheduledFuture<?> anim;
+	private volatile boolean needsRedraw;
+	private volatile boolean clearOnRedraw;
 	
 	public void redraw(boolean clear) {
-		draw(clear);
+		needsRedraw = true;
+		clearOnRedraw |= clear;
 	}
 
 	public boolean has(Element element) {
 		return elements.contains(element);
 	}
 	
-	public void draw(boolean clear) {
-		if(vp !=  null) {
-			layout();
-			if(clear) {
-				vp.deleteLine(0, SGRState.none());
-			}
-			elements.forEach(this::doDraw);
-		}
-	}
-
-	private void doDraw(Element element) {
-		try {
-			var bnds = layout.get(element);
-			vp.setCursorPosition(bnds.x(), 0);
-			element.draw(vp, bnds.width());
-		}
-		catch(IOException ioe) {
-			throw new UncheckedIOException(ioe);
-		}
-	}
-	
 	public void detach() {
-		if(vp != null) {
+		if(vp == null) {
+			throw new IllegalStateException("Not attached to a viewport");
+		}
+		else {
+			anim.cancel(false);
 			try {
 				elements.forEach(e -> e.detached(vp));
 			}
@@ -201,10 +196,21 @@ public class Status {
 	}
 	
 	public void attach(TerminalViewport<JavaFXTerminalPanel, ?, ?> vp) {
+		if(this.vp != null) {
+			throw new IllegalStateException("Already attached to a viewport");
+		}
+		
 		this.vp = vp;
+		
+		/* We could get events (and so requests to redraw) very rapidly,
+		 * so we schedule a redraw task at a fixed rate, only actually redrawing
+		 * if the redraw() method was called in the meantime. 
+		 */
+		anim = vp.getScheduler().scheduleAtFixedRate(this::actuallyRedraw, 20, 20, TimeUnit.MILLISECONDS);
+		
 		lastLayoutCols = -1;
 		try {
-			elements.forEach(e -> e.detached(vp));
+			elements.forEach(e -> e.attached(vp));
 		}
 		finally {
 			redraw(true);
@@ -230,6 +236,40 @@ public class Status {
 	public boolean isAttached() {
 		return vp != null;
 	}
+	
+	private void actuallyRedraw() {
+		if(needsRedraw) {
+			try {
+				draw(clearOnRedraw);
+			}
+			finally {
+				clearOnRedraw = false;
+				needsRedraw = false;
+			}
+		}
+	}
+	
+	private void draw(boolean clear) {
+		if(vp !=  null) {
+			if(clear) {
+				layout();
+				vp.deleteLine(0, SGRState.none());
+			}
+			elements.forEach(this::doDraw);
+		}
+	}
+
+	private void doDraw(Element element) {
+		try {
+			var bnds = layout.get(element);
+			vp.setCursorPosition(bnds.x(), 0);
+			element.draw(vp, bnds.width());
+		}
+		catch(IOException ioe) {
+			throw new UncheckedIOException(ioe);
+		}
+	}
+	
 
 	private void layout() {
 		if(vp != null ) {

@@ -256,7 +256,9 @@ public class ConsoleProtocol implements TerminalProtocol, ResizeListener, Elemen
 
 
 		tty.attached(this);
-		tty.status().add(this);
+		viewport.enqueue(() -> {
+			tty.status().add(this);
+		});
 
 		try {
 			if (Boolean.getBoolean("pretty.slowRead")) {

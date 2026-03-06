@@ -244,7 +244,7 @@ public class TTY extends StackPane implements Closeable {
 		});
 		emulator.addModeChangeListener(modes -> {
 			if(statusTerminal != null)
-				checkStatusDisplay();
+				statusTerminal.getViewport().enqueue(() ->checkStatusDisplay());
 		});
 
 		/* Scrolling */
@@ -269,6 +269,7 @@ public class TTY extends StackPane implements Closeable {
 			
 		var statusHeight = cfg.status().getInt(Constants.HEIGHT_KEY);
 		statusEmulator = new DECEmulator<JavaFXTerminalPanel>(
+			"StatusLine",
 			terminalPanel.getViewport().getTerminalType(), 
 			new FixedSizeInMemoryBufferData(statusHeight),
 			sz[0], 
@@ -341,8 +342,9 @@ public class TTY extends StackPane implements Closeable {
 			cfg.bindStrings((s) -> updateFeatures(), this::getEnabledFeatures, Constants.ENABLED_FEATURES, Constants.TERMINAL_SECTION), 
 			cfg.bindStrings((s) -> updateFeatures(), this::getDisabledFeatures, Constants.DISABLED_FEATURES, Constants.TERMINAL_SECTION),
 			cfg.bindString(this::setThemeId, this::getThemeId, Constants.THEME_KEY, Constants.TERMINAL_SECTION),
-			cfg.bindBoolean((s) -> checkStatusDisplay(), this::isStatusDisplay, Constants.ENABLED_KEY, Constants.STATUS_SECTION),
+			cfg.bindBoolean((s) -> emulator.enqueue(() -> checkStatusDisplay()), this::isStatusDisplay, Constants.ENABLED_KEY, Constants.STATUS_SECTION),
 			cfg.bindBoolean(emulator::setEnableBlinking, emulator::isEnableBlinking, Constants.BLINKING_KEY, Constants.TERMINAL_SECTION),
+			cfg.bindBoolean(emulator::setReflow, emulator::isReflow, Constants.REFLOW_KEY, Constants.TERMINAL_SECTION),
 			cfg.bindBoolean(terminalPanel::setSetClipboardOnSelect, terminalPanel::isSetClipboardOnSelect, Constants.COPY_ON_SELECT, Constants.TERMINAL_SECTION),
 			cfg.bindBoolean(emulator.getModes()::setCursorBlink, emulator.getModes()::isCursorBlink, Constants.CURSOR_BLINK_KEY, Constants.TERMINAL_SECTION),
 			cfg.bindEnum(Mode.class, emulator::setScrollbackMode, emulator::getScrollbackMode, Constants.BUFFER_MODE_KEY, Constants.TERMINAL_SECTION),
@@ -651,14 +653,14 @@ public class TTY extends StackPane implements Closeable {
 		var statusCfg = ttyContext.getContainer().getConfiguration().status();
 		var closed = statusTerminal.getViewport().getPage().data().isClosed();
 		var enable = !closed && statusCfg.getBoolean(Constants.ENABLED_KEY);
+		var type = enable ? ((DECModes)terminalPanel.getViewport().getModes()).getStatusLineType() : StatusLineType.NONE;
+		var isType = getStatusLineType();
 		if(enable != statusTerminal.getControl().isVisible()) {
 			maybeQueue(() -> statusTerminal.getControl().setVisible(enable));
 		}
 		if(closed) {
 			return;
 		}
-		var type = enable ? ((DECModes)terminalPanel.getViewport().getModes()).getStatusLineType() : StatusLineType.NONE;
-		var isType = getStatusLineType();
 		
 		if(LOG.isDebugEnabled()) {
 			LOG.debug("Check status display. Type {}, Enable {}, Should Show {}", type, enable, isType);
@@ -666,7 +668,9 @@ public class TTY extends StackPane implements Closeable {
 		
 		if(type != isType) {
 			if(type == StatusLineType.INDICATOR) {
-				status.attach(statusTerminal.getViewport());
+				if(!status.isAttached()) {
+					status.attach(statusTerminal.getViewport());
+				}
 				updateIndicatorStatus();
 			}
 			else {
@@ -958,7 +962,7 @@ public class TTY extends StackPane implements Closeable {
 		else {
 			shortTitle.setValue(userTitle.getValue());
 		}
-		checkStatusDisplay();
+		terminalPanel.getViewport().enqueue(() -> checkStatusDisplay());
 	}
 
 	private void writeJavaFXCSS() {
