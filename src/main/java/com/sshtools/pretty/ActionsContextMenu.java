@@ -2,6 +2,9 @@ package com.sshtools.pretty;
 
 import java.util.function.Supplier;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.sshtools.pretty.Actions.ActionGroup;
 import com.sshtools.pretty.Actions.On;
 import com.sshtools.pretty.pricli.PricliShell;
@@ -11,6 +14,8 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
 
 public class ActionsContextMenu extends ContextMenu  {
+	
+	private final static Logger LOG = LoggerFactory.getLogger(ActionsContextMenu.class);
 	
 	private final Actions actions;
 	private final Supplier<PricliShell> shell;
@@ -46,7 +51,14 @@ public class ActionsContextMenu extends ContextMenu  {
 				item.setAccelerator(act.accelerator());
 			
 			item.setOnAction(e -> {
-				shell.get().execute(act.fullCommand());
+				shell.get().tty().terminal().getViewport().getScheduler().submit(() -> {
+					try {
+						shell.get().execute(act.fullCommand());
+					}
+					catch(Throwable t) {
+						LOG.error("Failed to execute action " + act.label(), t);
+					}	
+				});
 			});
 			
 			getItems().add(item);

@@ -5,7 +5,7 @@ import java.util.Optional;
 
 public interface TerminalProtocol extends Closeable {
 	
-	void attach(TTY tty);
+	void attach(TTY tty) throws Exception;
 
 	void detach();
 	

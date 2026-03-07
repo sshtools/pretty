@@ -139,7 +139,7 @@ public class Themes extends AbstractINISetSystem {
 			themeList.remove(was);
 			LOG.info("Updating theme '{}' [{}]", theme.id(), theme.name());
 		} else {
-			LOG.info("Adding thene '{}' [{}]", theme.id(), theme.name());
+			LOG.info("Adding theme '{}' [{}]", theme.id(), theme.name());
 		}
 		themeList.add(theme);
 	}

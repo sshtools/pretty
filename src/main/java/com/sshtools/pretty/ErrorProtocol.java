@@ -6,12 +6,15 @@ import java.util.ResourceBundle;
 import org.jline.reader.LineReaderBuilder;
 import org.jline.terminal.Size;
 import org.jline.terminal.Terminal;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.sshtools.pretty.pricli.Styling;
 import com.sshtools.terminal.emulation.TerminalViewport;
 import com.sshtools.terminal.emulation.events.ResizeListener;
 
 public class ErrorProtocol implements TerminalProtocol, ResizeListener {
+	static Logger LOG = LoggerFactory.getLogger(ErrorProtocol.class);
 
 	final static ResourceBundle RESOURCES = ResourceBundle.getBundle(ErrorProtocol.class.getName());
 	
@@ -55,6 +58,7 @@ public class ErrorProtocol implements TerminalProtocol, ResizeListener {
 	@Override
 	public void detach() {
 		try {
+			LOG.info("Detaching error protocol");
 			var terminal = tty.terminal();
 			var viewport = terminal.getViewport();
 			viewport.removeResizeListener(this);

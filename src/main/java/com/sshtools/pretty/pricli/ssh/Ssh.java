@@ -7,6 +7,8 @@ import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.jline.reader.LineReader;
+import org.jline.reader.LineReaderBuilder;
 import org.jline.utils.Log;
 
 import com.sshtools.client.tasks.ShellTask;
@@ -72,12 +74,24 @@ public class Ssh extends AbstractSshCommand {
 		else {
 			if(prompt) {
 				var defVal = "localhost";
-				var dest = parent.cli().reader().readLine(
+				
+				var hostnameHistory = parent.tty().ttyContext().hostnameHistory();
+				var parentReader = parent.cli().reader();
+				
+				var hostnameReader = LineReaderBuilder.builder().
+						history(hostnameHistory.history()).
+						terminal(parentReader.getTerminal()).
+						variable(LineReader.HISTORY_FILE, hostnameHistory.path()).
+						variable(LineReader.HISTORY_SIZE, hostnameHistory.maxSize()).
+						build();
+				
+				var dest = hostnameReader.readLine(
 					Styling.styled(RESOURCES.getString("hostname")).toAnsi(parent.cli().jline()),
 					Styling.styled(MessageFormat.format(RESOURCES.getString("hostname.right"), defVal)).toAnsi(parent.cli().jline()),
 					(Character)null,
 					null
 				);
+				
 				if(dest == null) {
 					throw new IllegalStateException("Cancelled.");
 				}
@@ -95,7 +109,17 @@ public class Ssh extends AbstractSshCommand {
 					}
 					
 					var defusr = System.getProperty("user.name");
-					username = parent.cli().reader().readLine(
+
+					var usernameHistory = parent.tty().ttyContext().usernameHistory();
+					
+					var usernameReader = LineReaderBuilder.builder().
+							history(usernameHistory.history()).
+							terminal(parentReader.getTerminal()).
+							variable(LineReader.HISTORY_FILE, usernameHistory.path()).
+							variable(LineReader.HISTORY_SIZE, usernameHistory.maxSize()).
+							build();
+					
+					username = usernameReader.readLine(
 							RESOURCES.getString("username"),
 							Styling.styled(MessageFormat.format(RESOURCES.getString("username.right"), defusr)).toAnsi(parent.cli().jline()), 
 							(Character)null,
@@ -135,9 +159,9 @@ public class Ssh extends AbstractSshCommand {
 		var vdu = tty.terminal().getViewport();
 		var env = tty.environment();
 		var closed = new AtomicBoolean();
-
+		
 		/* Start shell */
-		ssh.addTask(ShellTask.ShellTaskBuilder.create().
+		var tsk = ssh.addTask(ShellTask.ShellTaskBuilder.create().
 				withClient(ssh).
 				withTermType(vdu.getTerminalType().getId())
 				.withColumns(vdu.getColumns()).
@@ -179,6 +203,16 @@ public class Ssh extends AbstractSshCommand {
 						deregisterCommands();
 					}
 				}).build());
+
+		if(!parent.cli().isInteractive()) {
+			try {
+				tsk.waitIndefinitely();
+			}
+			catch(InterruptedException e) {
+				/* We'll get an interrupt here when previous  stacked protocol is detached */
+				tsk.waitIndefinitely();
+			}
+		}
 
 		return 0;
 	}

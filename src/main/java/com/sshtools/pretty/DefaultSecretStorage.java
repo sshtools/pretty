@@ -33,12 +33,14 @@ public class DefaultSecretStorage implements SecretStorage {
 				try {
 					kw.deletePassword(key.protocol() + ":" + key.serviceName(), key.username());
 				} catch (PasswordAccessException e) {
-					LOG.warn("Failed to delete entry from keyring.", e);
+					if(LOG.isDebugEnabled()) {
+						LOG.debug("Failed to delete entry from keyring, likely because it doesn't exist.", e);
+					} 
 				}
 			});
 		}
 	}
-
+ 
 	@Override
 	public char[] secret(Key key, Supplier<char[]> prompt) {
 		char[] pw;
@@ -48,7 +50,6 @@ public class DefaultSecretStorage implements SecretStorage {
 			try {
 				return keyring.get().getPassword(serviceKey, key.username()).toCharArray();
 			} catch (PasswordAccessException e) {
-				LOG.error("Key ring error", e);
 			}
 		}
 

@@ -78,6 +78,7 @@ public class SerialProtocol implements TerminalProtocol, Status.Element {
 			throw new IllegalStateException("Not connected to serial port.");
 
 		try {
+			LOG.info("Detaching serial protocol from port {}", port.getName());
 			tty.status().remove(this);
 			disconnecting = true;
 			var terminal = tty.terminal();

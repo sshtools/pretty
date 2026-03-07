@@ -19,7 +19,7 @@
 		<picocli.version>4.7.5</picocli.version>
 		<native.image.version>0.9.1</native.image.version>
 		<jline.version>3.26.0</jline.version>
-		<maverick.synergy.version>3.1.4</maverick.synergy.version>
+		<maverick.synergy.version>3.2.0-SNAPSHOT</maverick.synergy.version>
 		<jajafx.version>0.9.14</jajafx.version>
 
 		<build.arch>${os.arch}</build.arch>
@@ -382,6 +382,11 @@
 			<artifactId>maverick-synergy-client</artifactId>
 			<version>${maverick.synergy.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>com.sshtools</groupId>
+			<artifactId>maverick-sshagent</artifactId>
+			<version>${maverick.synergy.version}</version>
+		</dependency>
 		<!--<dependency>
 			<groupId>com.sshtools</groupId>
 			<artifactId>terminal-fonts</artifactId>
@@ -403,6 +408,10 @@
 				<exclusion>
 					<groupId>org.openjfx</groupId>
 					<artifactId>javafx-graphics</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-api</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>
@@ -501,6 +510,14 @@
 					<groupId>org.openjfx</groupId>
 					<artifactId>javafx-fxml</artifactId>
 				</exclusion>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>jul-to-slf4j</artifactId>
+				</exclusion>
 			</exclusions>
 		</dependency>
 		<dependency>
@@ -596,12 +613,12 @@
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
+			<artifactId>slf4j-simple</artifactId>
 			<version>2.0.17</version>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-simple</artifactId>
+			<artifactId>jul-to-slf4j</artifactId>
 			<version>2.0.17</version>
 		</dependency>
 		<dependency>
@@ -618,6 +635,12 @@
 			<groupId>com.github.hypfvieh</groupId>
 			<artifactId>dbus-java-transport-native-unixsocket</artifactId>
 			<version>4.3.1</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-api</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 	</dependencies>
@@ -674,11 +697,6 @@
 				</os>
 			</activation>
 			<dependencies>
-				<dependency>
-					<groupId>com.sshtools</groupId>
-					<artifactId>maverick-sshagent-jdk16-sockets</artifactId>
-					<version>${maverick.synergy.version}</version>
-				</dependency>
 			</dependencies>
 		</profile>
 		<profile>
@@ -689,11 +707,6 @@
 				</os>
 			</activation>
 			<dependencies>
-				<dependency>
-					<groupId>com.sshtools</groupId>
-					<artifactId>maverick-sshagent-jdk16-sockets</artifactId>
-					<version>${maverick.synergy.version}</version>
-				</dependency>
 			</dependencies>
 		</profile>
 		<profile>

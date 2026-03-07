@@ -1,12 +1,14 @@
 package com.sshtools.pretty.pricli;
 
+import static javafx.application.Platform.runLater;
+
 import java.util.concurrent.Callable;
 
 import picocli.CommandLine.Command;
-import picocli.CommandLine.ParentCommand;
-import picocli.CommandLine.Spec;
 import picocli.CommandLine.Help.Ansi;
 import picocli.CommandLine.Model.CommandSpec;
+import picocli.CommandLine.ParentCommand;
+import picocli.CommandLine.Spec;
 
 @Command(name = "subshell", 
          aliases = { "sshl" },
@@ -40,7 +42,9 @@ public class Subshell implements Callable<Integer> {
 		
 		@Override
 		public Integer call() throws Exception {
-			parent.parent.tty().hidePricli();
+			runLater(() -> {
+				parent.parent.tty().hidePricli();
+			});
 			return 0;
 		}
 	}
@@ -57,7 +61,9 @@ public class Subshell implements Callable<Integer> {
 		
 		@Override
 		public Integer call() throws Exception {
-			parent.parent.tty().showPricli();
+			runLater(() -> {
+				parent.parent.tty().showPricli();
+			});
 			return 0;
 		}
 	}
@@ -74,7 +80,9 @@ public class Subshell implements Callable<Integer> {
 		
 		@Override
 		public Integer call() throws Exception {
-			parent.parent.tty().togglePricli();
+			runLater(() -> {
+				parent.parent.tty().togglePricli();
+			});
 			return 0;
 		}
 	}

@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
+import org.jline.reader.impl.history.DefaultHistory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,6 +47,8 @@ public final class TTYStack extends StackPane implements TTYContext, ListChangeL
 	private final ObservableList<Action> actions;
 	private final SplitTabPane tabs;
 	private Handle hndl;
+	private final HistoryConfig usernameHistory;
+	private final HistoryConfig hostnameHistory;
 
 	TTYStack(AppContext appContext, Stage stage) {
 
@@ -62,6 +65,9 @@ public final class TTYStack extends StackPane implements TTYContext, ListChangeL
 				}
 			}
 		});
+		
+		usernameHistory = new HistoryConfig(getContainer().getConfiguration().dir().resolve("usernames.history"), 100, new DefaultHistory());
+		hostnameHistory = new HistoryConfig(getContainer().getConfiguration().dir().resolve("hostname.history"), 100, new DefaultHistory());
 		
 		actions = appContext.getActions().actions();
 		actions.addListener(this);
@@ -81,6 +87,16 @@ public final class TTYStack extends StackPane implements TTYContext, ListChangeL
 		getChildren().add(tabs);
 		
 		updateStageTitle();
+	}
+
+	@Override
+	public HistoryConfig usernameHistory() {
+		return usernameHistory;
+	}
+
+	@Override
+	public HistoryConfig hostnameHistory() {
+		return hostnameHistory;
 	}
 
 	@Override

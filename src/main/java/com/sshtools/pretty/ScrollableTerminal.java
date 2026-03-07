@@ -119,14 +119,26 @@ public class ScrollableTerminal extends BorderPane {
 					if (consumed.remove(kcc.getCode()) != null) {
 						LOG.info("Accelerated keyrelease action {} activated by {}", action.id(),
 								action.accelerator().getDisplayText());
-						shell.get().execute(action.fullCommand());
+						try {
+							shell.get().execute(action.fullCommand());
+						}
+						catch(Throwable t) {
+							LOG.error("Failed to execute action " + action.label(), t);
+						}
 						evt.consume();
 					}
 				} else if (action.accelerator() instanceof KeyCharacterCombination kcc) {
 					if (consumed.remove(kcc.getCharacter()) != null) {
 						LOG.info("Accelerated keyrelease action {} activated by {}", action.id(),
 								action.accelerator().getDisplayText());
-						shell.get().execute(action.fullCommand());
+						shell.get().tty().terminal().getViewport().getScheduler().submit(() -> {
+							try {
+								shell.get().execute(action.fullCommand());
+							}
+							catch(Throwable t) {
+								LOG.error("Failed to execute action " + action.label(), t);
+							}	
+						});
 						evt.consume();
 					}
 				}
@@ -138,7 +150,14 @@ public class ScrollableTerminal extends BorderPane {
 					if (action.hasAccelerator() && action.accelerator().match(evt)) {
 						LOG.info("Accelerated action {} activated by {}", action.id(),
 								action.accelerator().getDisplayText());
-						shell.get().execute(action.fullCommand());
+						shell.get().tty().terminal().getViewport().getScheduler().submit(() -> {
+							try {
+								shell.get().execute(action.fullCommand());
+							}
+							catch(Throwable t) {
+								LOG.error("Failed to execute action " + action.label(), t);
+							}	
+						});
 						evt.consume();
 						break;
 					}

@@ -90,6 +90,7 @@ public final class SshProtocol implements TerminalProtocol, ResizeListener, Elem
 			throw new IllegalStateException("Not connected to native console.");
 
 		try {
+			LOG.info("Detaching SSH protocol");
 			tty.status().remove(this);
 			var terminal = tty.terminal();
 			var viewport = terminal.getViewport();
@@ -103,7 +104,7 @@ public final class SshProtocol implements TerminalProtocol, ResizeListener, Elem
 	}
 
 	@Override
-	public void bufferResized(TerminalViewport terminal, int columns, int rows, boolean remote) {
+	public void bufferResized(TerminalViewport<?, ?, ?> terminal, int columns, int rows, boolean remote) {
 		if (!remote)
 			session.changeTerminalDimensions(columns, rows, 0, 0);
 	}

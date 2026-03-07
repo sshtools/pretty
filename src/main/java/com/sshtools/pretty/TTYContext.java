@@ -1,13 +1,22 @@
 package com.sshtools.pretty;
 
 import java.io.Closeable;
+import java.nio.file.Path;
 import java.util.Optional;
+
+import org.jline.reader.History;
 
 import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import javafx.stage.Stage;
 
 public interface TTYContext extends Closeable {
+	
+	public record HistoryConfig(Path path, int maxSize,  History history) {}
+	
+	HistoryConfig usernameHistory();
+	
+	HistoryConfig hostnameHistory();
 	
 	Node content();
 

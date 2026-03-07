@@ -4,6 +4,8 @@ import java.net.UnknownHostException;
 import java.text.MessageFormat;
 import java.util.function.Supplier;
 
+import org.jline.reader.EndOfFileException;
+import org.jline.reader.UserInterruptException;
 import org.jline.terminal.Terminal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,11 +33,17 @@ public class ExceptionHandler implements IExecutionExceptionHandler {
 			throws Exception {
 		LOG.error("User target exception.", ex);
 		var msg = ex.getMessage() == null ? "An unknown error occured." : ex.getMessage();
-		if(ex instanceof UnknownHostException) {
+		if(ex instanceof EndOfFileException) {
+			msg = MessageFormat.format("Session ended unexpectedly.", ex.getMessage());
+		}
+		else if(ex instanceof UnknownHostException) {
 			msg = MessageFormat.format("Could not resolve hostname {0}: Name or service not known.", ex.getMessage());
 		}
+		else if(ex instanceof UserInterruptException) {
+			msg = MessageFormat.format("User interrupted the action.", ex.getMessage());
+		}
 		printExceptionAndMessage(ex, msg);
-		return 0;
+		return 1;
 	}
 
 	public void printExceptionAndMessage(Exception ex, String msg) {

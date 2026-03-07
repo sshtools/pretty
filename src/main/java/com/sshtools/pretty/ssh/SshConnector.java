@@ -11,6 +11,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.sshtools.agent.client.SshAgentClient;
 import com.sshtools.agent.exceptions.AgentNotAvailableException;
 import com.sshtools.client.ExternalKeyAuthenticator;
@@ -30,6 +33,7 @@ import com.sshtools.pretty.SecretStorage.Key;
 import com.sshtools.synergy.ssh.SshContext;
 
 public class SshConnector {
+	static Logger LOG = LoggerFactory.getLogger(SshConnector.class);
 	final static ResourceBundle RESOURCES = ResourceBundle.getBundle(SshConnector.class.getName());
 
 	public final static class Builder {
@@ -379,14 +383,16 @@ public class SshConnector {
 					}
 					var key = new Key("ssh", username, hostname + (port == 22 ? "" : ":" + port));
 
-					for (int i = 0; i < 3; i++) {
-						while (ssh.isConnected() && !ssh.isAuthenticated()) {
-							if (!ssh.authenticate(PasswordAuthenticator.of(() -> {
-								return getCachedSecretOrPrompt(key, RESOURCES.getString("password"));
-							}), TimeUnit.SECONDS.toMillis(authenticationTimeout))) {
-								passwordStorage.ifPresent(ps -> ps.reset(key));
-								break;
-							}
+					for (int i = 0; i < 3 && ssh.isConnected() && !ssh.isAuthenticated(); i++) {
+						LOG.info("Attempting password authentication {} for {}.", i, username);
+						if (!ssh.authenticate(PasswordAuthenticator.of(() -> {
+							var cachedSecretOrPrompt = getCachedSecretOrPrompt(key, RESOURCES.getString("password"));
+							LOG.info("Trying with {} for {}.", cachedSecretOrPrompt, username);
+							return cachedSecretOrPrompt;
+						}), TimeUnit.SECONDS.toMillis(authenticationTimeout))) {
+							LOG.info("Failed, resetting key {}.", key);
+							passwordStorage.ifPresent(ps -> ps.reset(key));
+							break;
 						}
 					}
 				} else {
@@ -414,7 +420,9 @@ public class SshConnector {
 				var str = onPrompt.orElseThrow(() -> new IllegalStateException("No prompt callback set.")).apply(prompt);
 				return str == null ? null : str.toCharArray(); 
 			});
-			return pw == null ? null : new String(pw); 
+			if(pw != null) {
+				return new String(pw);
+			} 
 		}
 		return onPrompt.orElseThrow(() -> new IllegalStateException("No prompt callback set.")).apply(prompt);
 	}

@@ -2,7 +2,6 @@ package com.sshtools.pretty.ssh;
 
 import java.io.IOException;
 
-import org.jline.utils.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,7 +10,6 @@ import com.sshtools.client.sftp.SftpClient;
 import com.sshtools.common.permissions.PermissionDeniedException;
 import com.sshtools.common.sftp.SftpStatusException;
 import com.sshtools.common.ssh.SshException;
-import com.sshtools.pretty.pricli.Serial;
 
 public class SshInstance {
 	static Logger LOG = LoggerFactory.getLogger(SshInstance.class);

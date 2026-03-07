@@ -326,6 +326,7 @@ public class ConsoleProtocol implements TerminalProtocol, ResizeListener, Elemen
 			throw new IllegalStateException("Not connected to native console.");
 
 		try {
+			LOG.info("Detaching console protocol");
 			tty.status().remove(this);
 			var terminal = tty.terminal();
 			var viewport = terminal.getViewport();

@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.ResourceBundle;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.jline.builtins.Completers;
 import org.jline.console.CommandRegistry;
 import org.jline.console.impl.SystemRegistryImpl;
 import org.jline.reader.EndOfFileException;
@@ -57,6 +56,8 @@ public abstract class PricliShell implements Closeable {
 	private JavaFXTerminalPanel terminal;
 	private TTY tty;
 	private LineReader reader;
+
+	private boolean interactive;
 	
 	public PricliShell(JavaFXTerminalPanel terminal, Terminal jline, TTY tty, TTYContext ttyContext) {
 		this.terminal = terminal;
@@ -98,20 +99,13 @@ public abstract class PricliShell implements Closeable {
 		return cwd;
 	}
 
-	public void execute(String cmdline) {
-		try {
-			systemRegistry.execute(cmdline);
-		}
-		catch(Exception e) {
-			printException(e);
-		}
-		catch(Throwable t) {
-			LOG.error("Uncatchable error.", t);
-		}
+	public Object execute(String cmdline) throws Exception {
+		return systemRegistry.execute(cmdline);
 	}
 	
 	public void readCommands() {
 		var lastWasCtrlD = false;
+		interactive = true;
 		try {
 			do {
 				try {
@@ -174,8 +168,13 @@ public abstract class PricliShell implements Closeable {
 				}
 			} while (!canExit.get());
 		} finally {
+			interactive = false;
 			runLater(this::close);
 		}
+	}
+	
+	public boolean isInteractive() {
+		return interactive;
 	}
 
 	public void print(AttributedString message) {
