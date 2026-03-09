@@ -1299,7 +1299,7 @@ return true;</property>
         <entry location="mac-aarch64" />
         <entry location="linux-aarch64" />
       </exclude>
-      <jreBundle jdkProviderId="AdoptOpenJDK" release="21/jdk-21.0.2+13" usePack200="false" />
+      <jreBundle jdkProviderId="AdoptOpenJDK" release="25/jdk-25.0.2+10" usePack200="false" />
     </macosFolder>
     <linuxRPM name="Linux RPM x86_64" id="37" mediaFileName="${compiler:sys.shortName}-${compiler:sys.platform}-x86_64-${compiler:sys.version}">
       <exclude>
@@ -1351,7 +1351,7 @@ return true;</property>
         <entry location="linux" />
         <entry location="linux-aarch64" />
       </exclude>
-      <jreBundle jdkProviderId="AdoptOpenJDK" release="21/jdk-21.0.2+13" usePack200="false" />
+      <jreBundle jdkProviderId="AdoptOpenJDK" release="25/jdk-25.0.2+10" usePack200="false" />
     </macosFolder>
   </mediaSets>
   <buildOptions verbose="true" />
