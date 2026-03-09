@@ -105,7 +105,7 @@ pipeline {
 					 			globalMavenSettingsConfig: "${env.MAVEN_CONFIG_ID}"
 					 		) {
 					 			// -Dinstall4j.disableNotarization=true 
-					 		  	sh 'mvn -X -U -Dbuild.mediaTypes=macosFolder,macosFolderArchive ' +
+					 		  	sh 'mvn -U -Dbuild.mediaTypes=macosFolder,macosFolderArchive ' +
 					 		  	   '-Dbuild.projectProperties=$BUILD_PROPERTIES ' +
 					 		  	   '-DbuildInstaller=true -P translate clean package'
 					 		  	

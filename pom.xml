@@ -21,6 +21,7 @@
 		<jline.version>3.30.7</jline.version>
 		<maverick.synergy.version>3.2.0-SNAPSHOT</maverick.synergy.version>
 		<jajafx.version>0.9.14</jajafx.version>
+		<jfuse.version>0.8.0-beta1</jfuse.version>
 
 		<build.arch>${os.arch}</build.arch>
 		<build.platform>${build.os.family}-${os.arch}</build.platform>
@@ -337,10 +338,10 @@
 			</exclusions>
 		</dependency>
         <dependency>
-            <groupId>org.cryptomator</groupId>
-            <artifactId>jfuse</artifactId>
-            <version>0.7.3</version>
-        </dependency>
+		    <groupId>org.cryptomator</groupId>
+		    <artifactId>jfuse-api</artifactId>
+		    <version>${jfuse.version}</version>
+		</dependency>
 		<dependency>
 			<groupId>com.sshtools</groupId>
 			<artifactId>jini-lib</artifactId>
@@ -713,6 +714,16 @@
 				</os>
 			</activation>
 			<dependencies>
+				<dependency>
+				    <groupId>org.cryptomator</groupId>
+				    <artifactId>jfuse-win</artifactId>
+				    <version>${jfuse.version}</version>
+				</dependency>
+				<dependency>
+					<groupId>com.sshtools</groupId>
+					<artifactId>maverick-sshagent-named-pipes</artifactId>
+					<version>${maverick.synergy.version}</version>
+				</dependency>
 			</dependencies>
 		</profile>
 		<profile>
@@ -723,6 +734,16 @@
 				</os>
 			</activation>
 			<dependencies>
+				<dependency>
+				    <groupId>org.cryptomator</groupId>
+				    <artifactId>jfuse-linux-amd64</artifactId>
+				    <version>${jfuse.version}</version>
+				</dependency>
+				<dependency>
+				    <groupId>org.cryptomator</groupId>
+				    <artifactId>jfuse-linux-aarch64</artifactId>
+				    <version>${jfuse.version}</version>
+				</dependency>
 			</dependencies>
 		</profile>
 		<profile>
@@ -734,9 +755,9 @@
 			</activation>
 			<dependencies>
 				<dependency>
-					<groupId>com.sshtools</groupId>
-					<artifactId>maverick-sshagent-named-pipes</artifactId>
-					<version>${maverick.synergy.version}</version>
+				    <groupId>org.cryptomator</groupId>
+				    <artifactId>jfuse-mac</artifactId>
+				    <version>${jfuse.version}</version>
 				</dependency>
 			</dependencies>
 		</profile>

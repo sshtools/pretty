@@ -28,7 +28,7 @@ open module com.sshtools.pretty {
 	requires transitive org.jline.console;
 	requires transitive org.jline.builtins;
 	requires org.jline.style;
-	requires org.cryptomator.jfuse;
+	requires org.cryptomator.jfuse.api;
 //	requires com.sshtools.terminal.fonts;
 //	requires transitive org.jfxtras.styles.jmetro;
 
