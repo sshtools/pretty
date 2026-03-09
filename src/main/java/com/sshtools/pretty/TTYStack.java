@@ -459,7 +459,7 @@ public final class TTYStack extends StackPane implements TTYContext, ListChangeL
 	}
 
 	private TTY newTty(TTYRequest request) {
-		var tty = new TTY.Builder(this).onClose(this::closeTty).withRequest(request).build();
+		var tty = new TTY.Builder(request.name(), this).onClose(this::closeTty).withRequest(request).build();
 		// TODO remove listener on tab remove / hiding to single
 		tty.title().addListener((c, o, n) -> updateStageTitle());
 		return tty;

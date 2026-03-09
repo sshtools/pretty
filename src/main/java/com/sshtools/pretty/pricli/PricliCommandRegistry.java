@@ -1,7 +1,10 @@
 package com.sshtools.pretty.pricli;
 
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -13,6 +16,8 @@ import org.jline.builtins.Options.HelpException;
 import org.jline.console.ArgDesc;
 import org.jline.console.CmdDesc;
 import org.jline.console.CommandRegistry;
+import org.jline.console.ConsoleEngine;
+import org.jline.console.SystemRegistry;
 import org.jline.reader.Candidate;
 import org.jline.reader.Completer;
 import org.jline.reader.LineReader;
@@ -21,6 +26,8 @@ import org.jline.reader.impl.completer.ArgumentCompleter;
 import org.jline.reader.impl.completer.NullCompleter;
 import org.jline.reader.impl.completer.SystemCompleter;
 import org.jline.utils.AttributedString;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import picocli.CommandLine;
 import picocli.CommandLine.Help;
@@ -37,7 +44,9 @@ import picocli.CommandLine.Model.OptionSpec;
  *
  * @since 4.1.2
  */
-public final class PicocliCommandRegistry implements CommandRegistry {
+public final class PricliCommandRegistry implements CommandRegistry, ConsoleEngine {
+	
+	private final static Logger LOG = LoggerFactory.getLogger(PricliCommandRegistry.class);
 
 	private class PicocliCompleter extends ArgumentCompleter implements Completer {
 
@@ -131,8 +140,11 @@ public final class PicocliCommandRegistry implements CommandRegistry {
 	private final CommandLine cmd;
 	private final Set<String> commands;
 	private final Map<String, String> aliasCommand = new HashMap<>();
+	private LineReader reader;
+	private SystemRegistry systemRegistry;
+	private Map<String, Object> variables = new HashMap<>();
 
-	public PicocliCommandRegistry(CommandLine cmd) {
+	public PricliCommandRegistry(CommandLine cmd) {
 		this.cmd = cmd;
 		var subcommands = cmd.getCommandSpec().subcommands().keySet();
 		commands = new HashSet<>(subcommands);
@@ -240,7 +252,7 @@ public final class PicocliCommandRegistry implements CommandRegistry {
 		if (picocliCommandsName != null) {
 			return picocliCommandsName;
 		}
-		return CommandRegistry.super.name();
+		return ConsoleEngine.super.name();
 	}
 
 	/**
@@ -281,5 +293,146 @@ public final class PicocliCommandRegistry implements CommandRegistry {
 			}
 		}
 		return out;
+	}
+
+	@Override
+	public void setLineReader(LineReader reader) {
+		this.reader = reader;
+	}
+
+	@Override
+	public void setSystemRegistry(SystemRegistry systemRegistry) {
+		this.systemRegistry = systemRegistry;
+	}
+
+	@Override
+	public Object[] expandParameters(String[] args) throws Exception {
+		return args;
+	}
+
+	@Override
+	public String expandCommandLine(String line) {
+		return line;
+	}
+
+	@Override
+	public String expandToList(List<String> params) {
+		return String.join(" ", params);
+	}
+
+	@Override
+	public Map<String, Boolean> scripts() {
+		return Collections.emptyMap();
+	}
+
+	@Override
+	public void setScriptExtension(String extension) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public boolean hasAlias(String name) {
+		return false;
+	}
+
+	@Override
+	public String getAlias(String name) {
+		return null;
+	}
+
+	@Override
+	public Map<String, List<String>> getPipes() {
+		return Collections.emptyMap();
+	}
+
+	@Override
+	public List<String> getNamedPipes() {
+		return Collections.emptyList();
+	}
+
+	@Override
+	public List<Completer> scriptCompleters() {
+		return Collections.emptyList();
+	}
+
+	@Override
+	public void persist(Path file, Object object) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public Object slurp(Path file) throws IOException {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public <T> T consoleOption(String option, T defval) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void setConsoleOption(String name, Object value) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public Object execute(String name, String rawLine, String[] args) throws Exception {
+		throw new IllegalArgumentException("No such command: " + name);
+	}
+
+	@Override
+	public Object execute(Path script, String rawLine, String[] args) throws Exception {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public ExecutionResult postProcess(String line, Object result, String output) {
+		return new ExecutionResult(0, result);
+	}
+
+	@Override
+	public ExecutionResult postProcess(Object result) {
+		return new ExecutionResult(0, result);
+	}
+
+	@Override
+	public void trace(Object object) {
+		LOG.trace("Command: {}", object);
+	}
+
+	@Override
+	public void println(Object object) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public void putVariable(String name, Object value) {
+		variables.put(name, value);
+	}
+
+	@Override
+	public Object getVariable(String name) {
+		return variables.get(name);
+	}
+
+	@Override
+	public boolean hasVariable(String name) {
+		return variables.containsKey(name);
+	}
+
+	@Override
+	public void purge() {
+	}
+
+	@Override
+	public boolean executeWidget(Object function) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public boolean isExecuting() {
+		return false;
 	}
 }

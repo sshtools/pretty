@@ -4,10 +4,27 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jline.terminal.Terminal;
 import org.jline.utils.AttributedStringBuilder;
 import org.jline.utils.AttributedStyle;
 
 public class Strings {
+
+    public static String link(Terminal terminal, String url, String text) {
+		if(terminal.getType().startsWith("xterm")) {
+			var astr = new AttributedStringBuilder();
+			astr.appendAnsi((char) 27 + "]8;;");
+			astr.append(url);
+			astr.appendAnsi((char) 27 + "\\");
+			astr.append(text);
+			astr.appendAnsi((char) 27 + "]8;;" + (char) 27 + "\\");
+
+			return astr.toAnsi(terminal);
+		}
+		else {
+			return text;
+		}
+	}
 	
 	public static Path parseFilePath(String path) {
 		if(path.startsWith("~\\") || path.startsWith("~/")) {

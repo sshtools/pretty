@@ -6,6 +6,7 @@ import java.text.MessageFormat;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
+import org.jline.console.CommandRegistry;
 import org.jline.utils.AttributedStringBuilder;
 import org.jline.utils.AttributedStyle;
 import org.jline.utils.Log;
@@ -19,6 +20,8 @@ import com.sshtools.pretty.Status.Width;
 import com.sshtools.pretty.Strings;
 import com.sshtools.pretty.TTY;
 import com.sshtools.pretty.TerminalProtocol;
+import com.sshtools.pretty.pricli.ssh.Ssh;
+import com.sshtools.pretty.pricli.ssh.SshCommands;
 import com.sshtools.terminal.emulation.TerminalOutputStream;
 import com.sshtools.terminal.emulation.TerminalViewport;
 import com.sshtools.terminal.emulation.events.ResizeListener;
@@ -37,10 +40,13 @@ public final class SshProtocol implements TerminalProtocol, ResizeListener, Elem
 	private Thread thread;
 	private final SessionChannelNG session;
 	private final SshInstance instance;
+	private CommandRegistry registry;
+	private Ssh command;
 	
-	public SshProtocol(SshInstance instance, SessionChannelNG session) {
+	public SshProtocol(Ssh command, SshInstance instance, SessionChannelNG session) {
 		this.session = session;
 		this.instance = instance;
+		this.command = command;
 	}
 
 	@Override
@@ -54,7 +60,6 @@ public final class SshProtocol implements TerminalProtocol, ResizeListener, Elem
 		
 		var terminal = tty.terminal();
 		var viewport = terminal.getViewport();
-		
 		
 		// Direct window resizes to pty
 		viewport.addResizeListener(this);
@@ -70,9 +75,14 @@ public final class SshProtocol implements TerminalProtocol, ResizeListener, Elem
 		});
 		
 		tty.status().add(this);
+		registry = tty.cli().registry(RESOURCES.getString("ssh"), new SshCommands(command, tty.cli().shell()));
 
+	}
+	
+	@Override
+	public void decode() throws Exception {
 		try {
-			session.getInputStream().transferTo(new TerminalOutputStream(viewport));
+			session.getInputStream().transferTo(new TerminalOutputStream(tty.terminal().getViewport()));
 		} catch (IOException e) {
 			throw new UncheckedIOException(e);
 		} finally {
@@ -83,7 +93,7 @@ public final class SshProtocol implements TerminalProtocol, ResizeListener, Elem
 			}
 		}
 	}
-	
+
 	@Override
 	public void detach() {
 		if(this.tty == null)
@@ -91,12 +101,12 @@ public final class SshProtocol implements TerminalProtocol, ResizeListener, Elem
 
 		try {
 			LOG.info("Detaching SSH protocol");
+			tty.cli().shell().removeCommandRegistry(registry);
 			tty.status().remove(this);
 			var terminal = tty.terminal();
 			var viewport = terminal.getViewport();
 			viewport.setInput(null);
 			viewport.removeResizeListener(this);
-			thread.interrupt();
 		}
 		finally {
 			tty = null;
@@ -114,6 +124,7 @@ public final class SshProtocol implements TerminalProtocol, ResizeListener, Elem
 		if(this.tty != null) {
 			detach();
 		}
+		thread.interrupt();
 		try {
 			session.close();
 		}

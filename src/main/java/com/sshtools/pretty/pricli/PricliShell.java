@@ -11,7 +11,6 @@ import java.util.ResourceBundle;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.jline.console.CommandRegistry;
-import org.jline.console.impl.SystemRegistryImpl;
 import org.jline.reader.EndOfFileException;
 import org.jline.reader.LineReader;
 import org.jline.reader.MaskingCallback;
@@ -24,9 +23,11 @@ import org.jline.utils.AttributedStringBuilder;
 import org.jline.utils.AttributedStyle;
 import org.jline.utils.Curses;
 import org.jline.utils.InfoCmp.Capability;
+import org.jline.widget.AutosuggestionWidgets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.sshtools.pretty.Actions.On;
 import com.sshtools.pretty.ConsoleProtocol;
 import com.sshtools.pretty.Constants;
 import com.sshtools.pretty.TTY;
@@ -44,7 +45,7 @@ public abstract class PricliShell implements Closeable {
 	private final PicocliCommandsFactory factory;
 	private final ExceptionHandler exceptionHandler;
 	private final Terminal jline;
-	private final SystemRegistryImpl systemRegistry;
+	private final PricliSystemRegistry systemRegistry;
 	private final List<CommandRegistry> commandRegistries = new ArrayList<>();
 	private final DefaultParser parser;
 	private final static Path cwd = Paths.get(System.getProperty("user.dir"));
@@ -69,10 +70,11 @@ public abstract class PricliShell implements Closeable {
 		exceptionHandler = new ExceptionHandler(jline, () -> tty.ttyContext().getContainer().getConfiguration().debug().getBoolean(Constants.VERBOSE_EXCEPTIONS_KEY));
 		
 		var cmd = newCommand(new PricliCommands(ttyContext, this, tty));
-		var picocliCommands = new PicocliCommandRegistry(cmd);
+		var picocliCommands = new PricliCommandRegistry(cmd);
 		picocliCommands.name(RESOURCES.getString("app"));
 
-		systemRegistry = new SystemRegistryImpl(parser, jline, PricliShell::getCwd, null);
+		systemRegistry = new PricliSystemRegistry(parser, jline, PricliShell::getCwd, null);
+		
 //		systemRegistry.addCompleter(new Completers.FileNameCompleter());
 		addCommandRegistry(picocliCommands);
 		registry(RESOURCES.getString("ui"), new UICommands(ttyContext, this, tty));
@@ -85,25 +87,20 @@ public abstract class PricliShell implements Closeable {
 	public void attach(LineReader reader) {
 		this.reader = reader;
 		
-		// TODO messes up margines eg. when ssh connection is started
-//		var widgets = new TailTipWidgets(reader, 
-//				systemRegistry::commandDescription, 5,
-//				TailTipWidgets.TipType.COMBINED);
-//		widgets.enable();
-//
-//		var keyMap = reader.getKeyMaps().get("main");
-//		keyMap.bind(new Reference("tailtip-toggle"), KeyMap.alt("s"));
+		new AutosuggestionWidgets(reader).enable();
 	}
 
 	public static Path getCwd() {
 		return cwd;
 	}
 
-	public Object execute(String cmdline) throws Exception {
+	public Object execute(On on, String cmdline) throws Exception {
+		systemRegistry.consoleEngine().putVariable(Constants.ACTION_ON_VAR, on);
 		return systemRegistry.execute(cmdline);
 	}
 	
 	public void readCommands() {
+		systemRegistry.consoleEngine().putVariable(Constants.ACTION_ON_VAR, On.CLI);
 		var lastWasCtrlD = false;
 		interactive = true;
 		try {
@@ -287,12 +284,12 @@ public abstract class PricliShell implements Closeable {
 		}
 	}
 
-	public SystemRegistryImpl systemRegistry() {
+	public PricliSystemRegistry systemRegistry() {
 		return systemRegistry;
 	}
 
-	public PicocliCommandRegistry registry(String name, Object command) {
-		var rgr = new PicocliCommandRegistry(newCommand(command));
+	public PricliCommandRegistry registry(String name, Object command) {
+		var rgr = new PricliCommandRegistry(newCommand(command));
 		rgr.name(name);
 		addCommandRegistry(rgr);
 		return rgr;

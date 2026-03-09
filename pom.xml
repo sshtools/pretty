@@ -16,9 +16,9 @@
 		
 		<languages>da,nl,fi,fr,de,it,no,pl,ru,sv,es,ja,he,pt</languages>
 		<native.maven.plugin.version>0.9.9</native.maven.plugin.version>
-		<picocli.version>4.7.5</picocli.version>
+		<picocli.version>4.7.8-SNAPSHOT</picocli.version>
 		<native.image.version>0.9.1</native.image.version>
-		<jline.version>3.26.0</jline.version>
+		<jline.version>3.30.7</jline.version>
 		<maverick.synergy.version>3.2.0-SNAPSHOT</maverick.synergy.version>
 		<jajafx.version>0.9.14</jajafx.version>
 
@@ -336,6 +336,11 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
+        <dependency>
+            <groupId>org.cryptomator</groupId>
+            <artifactId>jfuse</artifactId>
+            <version>0.7.3</version>
+        </dependency>
 		<dependency>
 			<groupId>com.sshtools</groupId>
 			<artifactId>jini-lib</artifactId>
@@ -664,6 +669,17 @@
 				<enabled>false</enabled>
 			</snapshots>
 			<releases />
+		</repository>
+        
+        <!-- For 4.7.8-SNAPSHOT of Picocli, still awaiting our merged PR to be released! -->
+		<repository>
+			<id>ext-snapshots-local</id>
+			<name>artifactory.jadaptive.com-ext-snapshots</name>
+			<url>https://artifactory.jadaptive.com/ext-snapshots-local</url>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+			<snapshots/>
 		</repository>
 	</repositories>
 	<profiles>

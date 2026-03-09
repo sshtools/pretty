@@ -20,7 +20,6 @@ public class HostKeyVerificationPopups extends KnownHostsFile {
 
 	final static ResourceBundle RESOURCES = ResourceBundle.getBundle(HostKeyVerificationPopups.class.getName());
 	
-	private AppContext app;
 	
 	public static  KnownHostsFile create(AppContext terminal) throws SshException, IOException {
 		var file = KnownHostsFile.defaultKnownHostsFile() ;
@@ -31,7 +30,6 @@ public class HostKeyVerificationPopups extends KnownHostsFile {
 
 	HostKeyVerificationPopups(AppContext app) throws SshException {
 		super();
-		this.app = app;
 
 		setHashHosts(true);
 		setUseCanonicalHostnames(true);

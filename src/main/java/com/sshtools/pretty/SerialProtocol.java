@@ -1,6 +1,8 @@
 package com.sshtools.pretty;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.util.Optional;
 
@@ -23,58 +25,68 @@ import purejavacomm.SerialPort;
 public class SerialProtocol implements TerminalProtocol, Status.Element {
 
 	static Logger LOG = LoggerFactory.getLogger(SerialProtocol.class);
-	
+
 	private TTY tty;
 	private Thread thread;
 	private final SerialPort port;
 	private final String name;
-
 	private boolean disconnecting;
-	
+	private TerminalViewport<?, ?, ?> viewport;
+	private final InputStream in;
+	private final OutputStream out;
+
 	public SerialProtocol(SerialPort port) {
 		this.port = port;
 		name = port.getName();
+		try {
+			in = port.getInputStream();
+			out = port.getOutputStream();
+		} catch (IOException e) {
+			throw new UncheckedIOException(e);
+		}
 	}
 
 	@Override
 	public void attach(TTY tty) {
-		if(this.tty != null)
+		if (this.tty != null)
 			throw new IllegalStateException("Already connected to serial console.");
-		
+
 		this.tty = tty;
-		
+
 		thread = Thread.currentThread();
 		disconnecting = false;
-		
+
 		var terminal = tty.terminal();
-		var viewport = terminal.getViewport();
+		viewport = terminal.getViewport();
+
+		viewport.setInput((data, off, len) -> {
+			try {
+				out.write(data, off, len);
+			} catch (Exception e) {
+				LOG.error("Failed to write to destination.", e);
+			}
+		});
+	}
+
+	@Override
+	public void decode() throws Exception {
 
 		try {
-			var in = port.getInputStream();
-			var out = port.getOutputStream();
-			
-			viewport.setInput((data, off, len) -> { 
-				try {
-					out.write(data, off, len);
-				}
-				catch(Exception e) {
-					LOG.error("Failed to write to destination.", e);
-				}
-			});
 			tty.status().add(this);
 			in.transferTo(new TerminalOutputStream(viewport));
 		} catch (IOException e) {
-			if(!disconnecting)
+			if (!disconnecting)
 				throw new UncheckedIOException(e);
 		} finally {
 			LOG.info("Out of serial loop.");
 			disconnecting = false;
 		}
+
 	}
-	
+
 	@Override
 	public void detach() {
-		if(this.tty == null)
+		if (this.tty == null)
 			throw new IllegalStateException("Not connected to serial port.");
 
 		try {
@@ -84,9 +96,7 @@ public class SerialProtocol implements TerminalProtocol, Status.Element {
 			var terminal = tty.terminal();
 			var viewport = terminal.getViewport();
 			viewport.setInput(null);
-			thread.interrupt();
-		}
-		finally {
+		} finally {
 			tty = null;
 		}
 	}
@@ -98,9 +108,10 @@ public class SerialProtocol implements TerminalProtocol, Status.Element {
 
 	@Override
 	public void close() {
-		if(this.tty != null) {
+		if (this.tty != null) {
 			detach();
 		}
+		thread.interrupt();
 		port.close();
 	}
 
@@ -127,9 +138,7 @@ public class SerialProtocol implements TerminalProtocol, Status.Element {
 	public void draw(TerminalViewport<JavaFXTerminalPanel, ?, ?> vp, int cols) throws IOException {
 		var bldr = new AttributedStringBuilder();
 		bldr.style(AttributedStyle.INVERSE);
-		bldr.append(Strings.trimPad( 
-			String.format("%-10s %7d %s", displayName(), baudRate(), mnemonics())
-		, cols));
+		bldr.append(Strings.trimPad(String.format("%-10s %7d %s", displayName(), baudRate(), mnemonics()), cols));
 		bldr.style(AttributedStyle.INVERSE_OFF);
 		vp.write(bldr.toAnsi().getBytes(vp.getCharacterSet()));
 	}
@@ -150,6 +159,6 @@ public class SerialProtocol implements TerminalProtocol, Status.Element {
 	}
 
 	@Override
-	public void cwd(String cwd) {		
+	public void cwd(String cwd) {
 	}
 }

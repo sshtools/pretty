@@ -132,26 +132,26 @@ public class Options implements Callable<Integer>, PricliCompleter {
 			
 			SectionDescriptor grp = null;
 			
-//			var sectionDescriptors = schm.sections();
-//			
-//			for(var sectionDescriptor : sectionDescriptors) {
-//				
-//				var dsb = new AttributedStringBuilder();
-////				dsb.style(new AttributedStyle().underline());
-////				dsb.style(new AttributedStyle().underlineOff());
-//				dsb.append('[');
-//				dsb.append(String.join(".", sectionDescriptor.path()));
-//				dsb.append("]");
-//				dsb.append("   ");
-//				dsb.append(sectionDescriptor.name());
-//				dsb.toAttributedString().println(trm);
-//				
-//				for(var key : sectionDescriptor.keys()) {
-//					printValue(cfg, trm, sectionDescriptor, key);
-//				}
-//				
-//				wtr.println();
-//			}
+			var sectionDescriptors = schm.section().sections();
+			
+			for(var sectionDescriptor : sectionDescriptors) {
+				
+				var dsb = new AttributedStringBuilder();
+//				dsb.style(new AttributedStyle().underline());
+//				dsb.style(new AttributedStyle().underlineOff());
+				dsb.append('[');
+				dsb.append(String.join(".", sectionDescriptor.path()));
+				dsb.append("]");
+				dsb.append("   ");
+				dsb.append(sectionDescriptor.name());
+				dsb.toAttributedString().println(trm);
+				
+				for(var key : sectionDescriptor.keys()) {
+					printValue(cfg, trm, sectionDescriptor, key);
+				}
+				
+				wtr.println();
+			}
 //			
 			
 			

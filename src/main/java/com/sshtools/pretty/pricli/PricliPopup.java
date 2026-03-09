@@ -165,6 +165,10 @@ public final class PricliPopup {
 		
 		shell.attach(reader);
 	}
+	
+	public JavaFXTerminalPanel terminal() {
+		return term;
+	}
 
 	public void close() {
 		handles.forEach(Handle::close);
@@ -181,7 +185,7 @@ public final class PricliPopup {
 		return jline;
 	}
 
-	public PicocliCommandRegistry registry(String name, Object command) {
+	public PricliCommandRegistry registry(String name, Object command) {
 		return shell.registry(name, command);
 	}
 

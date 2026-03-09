@@ -5,12 +5,14 @@ import java.util.Optional;
 
 public interface TerminalProtocol extends Closeable {
 	
-	void attach(TTY tty) throws Exception;
+	void attach(TTY tty);
 
 	void detach();
 	
 	@Override
 	void close();
+	
+	void decode() throws Exception;
 
 	String displayName();
 	

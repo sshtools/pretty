@@ -28,3 +28,4 @@ replay_pid*
 /.project
 /.install4j
 /scenicView.properties
+/logging.properties

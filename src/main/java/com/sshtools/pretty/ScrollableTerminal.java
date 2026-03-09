@@ -120,7 +120,7 @@ public class ScrollableTerminal extends BorderPane {
 						LOG.info("Accelerated keyrelease action {} activated by {}", action.id(),
 								action.accelerator().getDisplayText());
 						try {
-							shell.get().execute(action.fullCommand());
+							shell.get().execute(on, action.fullCommand());
 						}
 						catch(Throwable t) {
 							LOG.error("Failed to execute action " + action.label(), t);
@@ -133,7 +133,7 @@ public class ScrollableTerminal extends BorderPane {
 								action.accelerator().getDisplayText());
 						shell.get().tty().terminal().getViewport().getScheduler().submit(() -> {
 							try {
-								shell.get().execute(action.fullCommand());
+								shell.get().execute(on, action.fullCommand());
 							}
 							catch(Throwable t) {
 								LOG.error("Failed to execute action " + action.label(), t);
@@ -152,7 +152,7 @@ public class ScrollableTerminal extends BorderPane {
 								action.accelerator().getDisplayText());
 						shell.get().tty().terminal().getViewport().getScheduler().submit(() -> {
 							try {
-								shell.get().execute(action.fullCommand());
+								shell.get().execute(on, action.fullCommand());
 							}
 							catch(Throwable t) {
 								LOG.error("Failed to execute action " + action.label(), t);

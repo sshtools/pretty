@@ -88,20 +88,22 @@ import uk.co.bithatch.nativeimage.annotations.Resource;
 @Resource
 @Reflectable(all = true)
 public class TTY extends StackPane implements Closeable {
-	
+
 	public final static class Builder {
 		private TTYContext ttyContext;
 		private Optional<Consumer<TTY>> onClose = Optional.empty();
 		private Optional<TTYRequest> request = Optional.empty();
-		
-		public Builder(TTYContext ttyContext) {
+		private final String ttyName;
+
+		public Builder(String ttyName, TTYContext ttyContext) {
 			this.ttyContext = ttyContext;
+			this.ttyName = ttyName;
 		}
-		
+
 		public TTY build() {
 			return new TTY(this);
 		}
-		
+
 		public Builder onClose(Consumer<TTY> onClose) {
 			this.onClose = Optional.of(onClose);
 			return this;
@@ -111,12 +113,12 @@ public class TTY extends StackPane implements Closeable {
 			this.request = Optional.of(request);
 			return this;
 		}
-		
+
 		public Builder withShell(Shell shell) {
 			return withRequest(new TTYRequest.Builder().withShell(shell).build());
 		}
 	}
-	
+
 	private final static Map<String, Integer> counters = Collections.synchronizedMap(new HashMap<String, Integer>());
 
 	static Logger LOG = LoggerFactory.getLogger(TTY.class);
@@ -129,32 +131,28 @@ public class TTY extends StackPane implements Closeable {
 		try {
 			var sz = new Size(vp.getColumns(), vp.getRows());
 			LOG.info("Initial shell size to {} x {} # {}", sz.getColumns(), sz.getRows(), termType);
-			var jline = TerminalBuilder.builder().
-					type(termType).
-					size(sz).
-					streams(new TerminalInputStream(vp), 
-							new TerminalOutputStream(vp)
-					).
-					build();
-			
+			var jline = TerminalBuilder.builder().type(termType).size(sz)
+					.streams(new TerminalInputStream(vp), new TerminalOutputStream(vp)).build();
+
 			return jline;
 		} catch (IOException ioe) {
 			throw new UncheckedIOException(ioe);
 		}
 	}
+
 	private static int nextVirtualConsoleNumber(String shell) {
-		synchronized(counters) {
+		synchronized (counters) {
 			var i = counters.get(shell);
-			if(i == null) {
+			if (i == null) {
 				i = 0;
-			}
-			else {
+			} else {
 				i = i + 1;
 			}
 			counters.put(shell, i);
 			return i;
 		}
 	}
+
 	private final JavaFXTerminalPanel terminalPanel;
 
 	private final TTYContext ttyContext;
@@ -166,7 +164,8 @@ public class TTY extends StackPane implements Closeable {
 	private final ObjectProperty<Color> tabColor = new SimpleObjectProperty<>();
 	private final Optional<Consumer<TTY>> onClose;
 	private final Status status = new Status();
-	
+	private final String ttyName;
+
 	private PricliPopup pricli;
 	private TerminalTheme theme;
 	private ScrollableTerminal scrollPane;
@@ -178,14 +177,15 @@ public class TTY extends StackPane implements Closeable {
 	private URI copiedUri;
 	private DECEmulator<JavaFXTerminalPanel> statusEmulator;
 	private JavaFXURIFinder uriFinder;
-	
+
 	@SuppressWarnings("unused")
 	private TTY(Builder bldr) {
+		this.ttyName = bldr.ttyName;
 		this.ttyContext = bldr.ttyContext;
 		this.onClose = bldr.onClose;
 		this.cwd = Paths.get(System.getProperty("user.dir"));
 		theme = ttyContext.getContainer().getSelectedTheme();
-		
+
 		var cfg = ttyContext.getContainer().getConfiguration();
 
 		/* UI */
@@ -207,19 +207,16 @@ public class TTY extends StackPane implements Closeable {
 		var emulator = new DECEmulator<JavaFXTerminalPanel>(XTERM256Color.ID, sz[0], sz[1]);
 
 		/* Create and configure terminal */
-		terminalPanel = new JavaFXTerminalPanel.Builder().
-				withAudioSystem(new TTYAudioSystem(this)).
-				withUiToolkit(ttyContext.getContainer().getUiToolkit()).
-				withFontManager(ttyContext.getContainer().getFonts().getFontManager()).
-				withBuffer(emulator)
-				.build();
-		
+		terminalPanel = new JavaFXTerminalPanel.Builder().withAudioSystem(new TTYAudioSystem(this))
+				.withUiToolkit(ttyContext.getContainer().getUiToolkit())
+				.withFontManager(ttyContext.getContainer().getFonts().getFontManager()).withBuffer(emulator).build();
+
 		uriFinder = new JavaFXURIFinder(terminalPanel, new URIHandler() {
 
 			@Override
 			public boolean clicked(URI uri, int button) throws Exception {
 				System.out.println("URI clicked: " + uri + " with button " + button);
-				if(button == 1) {
+				if (button == 1) {
 					ttyContext.getContainer().getHostServices().showDocument(uri.toString());
 					return true;
 				}
@@ -232,12 +229,13 @@ public class TTY extends StackPane implements Closeable {
 				return false;
 			}
 		});
-		
+
 		terminalPanel.getViewport().addViewportListener(new ViewportListener() {
 			@Override
 			public void selectionChanged(Cell start, Cell end, Cell point, ViewportEvent event) {
-				if(terminalPanel.isSetClipboardOnSelect() && emulator.getSelectionLength() > 0 &&  event.isMajorChange()) {
-					Platform.runLater(() ->showOverlayTextInfo(overlayInfo, RESOURCES.getString("copied"))); 
+				if (terminalPanel.isSetClipboardOnSelect() && emulator.getSelectionLength() > 0
+						&& event.isMajorChange()) {
+					Platform.runLater(() -> showOverlayTextInfo(overlayInfo, RESOURCES.getString("copied")));
 				}
 			}
 		});
@@ -248,7 +246,7 @@ public class TTY extends StackPane implements Closeable {
 		overlayInfo.setVisible(false);
 		overlayInfo.managedProperty().bind(overlayInfo.visibleProperty());
 		overlayInfo.getStyleClass().add("overlay-info");
-		
+
 		/* Configure terminal's buffer */
 		emulator.addCWDChangeListener((vp, cwd) -> {
 			protocol().cwd(cwd);
@@ -266,92 +264,80 @@ public class TTY extends StackPane implements Closeable {
 					}
 				});
 			}
-			runLater(() -> showOverlayTextInfo(overlayInfo, String.format("%d x %d", terminalPanel.getViewport().getColumns(), terminalPanel.getViewport().getRows())));
+			runLater(() -> showOverlayTextInfo(overlayInfo, String.format("%d x %d",
+					terminalPanel.getViewport().getColumns(), terminalPanel.getViewport().getRows())));
 		});
 		emulator.addModeChangeListener(modes -> {
-			if(statusTerminal != null)
-				statusTerminal.getViewport().enqueue(() ->checkStatusDisplay());
+			if (statusTerminal != null)
+				statusTerminal.getViewport().enqueue(() -> checkStatusDisplay());
 		});
 
 		/* Scrolling */
-		scrollPane = new ScrollableTerminal(
-			ttyContext, 
-			terminalPanel, 
-			new ActionsContextMenu(On.CONTEXT, ttyContext.getContainer().getActions(), () -> cli().shell()) {
+		scrollPane = new ScrollableTerminal(ttyContext, terminalPanel,
+				new ActionsContextMenu(On.CONTEXT, ttyContext.getContainer().getActions(), () -> cli().shell()) {
 
-				@Override
-				protected void onRebuild() {
-					var openUri = TTY.this.copiedUri;
-					if(openUri != null) {
-						var mi = new MenuItem(RESOURCES.getString("copyUri"));
-						 mi.setOnAction(evt -> {
-							var content = new ClipboardContent();
-							content.putString(openUri.toString());
-							setClipboard(content);
-						});
-						 
+					@Override
+					protected void onRebuild() {
+						var openUri = TTY.this.copiedUri;
+						if (openUri != null) {
+							var mi = new MenuItem(RESOURCES.getString("copyUri"));
+							mi.setOnAction(evt -> {
+								var content = new ClipboardContent();
+								content.putString(openUri.toString());
+								setClipboard(content);
+							});
 
-						var ol = new MenuItem(RESOURCES.getString("openUri"));
-						ol.setOnAction(evt -> {
-							ttyContext.getContainer().getHostServices().showDocument(openUri.toString());
-						});
-						 
-						getItems().addAll(0, Arrays.asList(mi, ol, new SeparatorMenuItem()));
-						copiedUri = null;
+							var ol = new MenuItem(RESOURCES.getString("openUri"));
+							ol.setOnAction(evt -> {
+								ttyContext.getContainer().getHostServices().showDocument(openUri.toString());
+							});
+
+							getItems().addAll(0, Arrays.asList(mi, ol, new SeparatorMenuItem()));
+							copiedUri = null;
+						}
 					}
-				}
 
-				
-				
-			}, 
-			() -> cli().shell(),
-			On.TTY
-		);
+				}, () -> cli().shell(), On.TTY);
 
 		/* Build this stack */
 		getChildren().add(scrollPane);
 		getChildren().add(overlayInfo);
-		
-		userTitle.addListener((c,o,n) -> updateState());
-		tabColor.addListener((c,o,n) -> updateState());
-		
+
+		userTitle.addListener((c, o, n) -> updateState());
+		tabColor.addListener((c, o, n) -> updateState());
+
 		/* Status */
 		status.add(new Status.SizeAndCursor(this));
 		status.add(new Status.InsertReplaceMode(this));
-			
+
 		var statusHeight = cfg.status().getInt(Constants.HEIGHT_KEY);
-		statusEmulator = new DECEmulator<JavaFXTerminalPanel>(
-			"StatusLine",
-			terminalPanel.getViewport().getTerminalType(), 
-			new FixedSizeInMemoryBufferData(statusHeight),
-			sz[0], 
-			statusHeight
-		);
-			
-		statusTerminal = new JavaFXTerminalPanel.Builder().
-				withUiToolkit(ttyContext.getContainer().getUiToolkit()).
-				withFontManager(ttyContext.getContainer().getFonts().getFontManager()).
-				withBuffer(statusEmulator)
+		statusEmulator = new DECEmulator<JavaFXTerminalPanel>("StatusLine",
+				terminalPanel.getViewport().getTerminalType(), new FixedSizeInMemoryBufferData(statusHeight), sz[0],
+				statusHeight);
+
+		statusTerminal = new JavaFXTerminalPanel.Builder().withUiToolkit(ttyContext.getContainer().getUiToolkit())
+				.withFontManager(ttyContext.getContainer().getFonts().getFontManager()).withBuffer(statusEmulator)
 				.build();
 		statusTerminal.setResizeStrategy(ResizeStrategy.SCREEN);
 		statusTerminal.setEventsEnabled(false);
-		statusEmulator.addResizeListener((term,cols,rows,remote) -> checkStatusDisplay());
+		statusEmulator.addResizeListener((term, cols, rows, remote) -> checkStatusDisplay());
 		statusEmulator.getModes().setShowCursor(false);
-		
+
 		var statusControl = statusTerminal.getControl();
 		statusControl.setVisible(false);
 		statusControl.getStyleClass().add("status-display");
 		statusControl.managedProperty().bind(statusControl.visibleProperty());
 		terminalPanel.getViewport().setStatusLineDisplay(statusTerminal);
-		
-		/* Set the height again. TC sets the height based on terminal type, we overide
+
+		/*
+		 * Set the height again. TC sets the height based on terminal type, we overide
 		 * it and base it on configuration
 		 */
 		updateStatusSize();
 
 		/* Bind to configuration */
 		handles.addAll(Arrays.asList(
-				/* TODO some need binding */
+		/* TODO some need binding */
 //				cfg.bindEnum(ResizeStrategy.class, this::setResizeStrategy, terminalPanel::getResizeStrategy, "resize-strategy", Options.TERMINAL_SECTION),
 //				cfg.bindInteger(buf::setMaximumSize, buf::getMaximumSize, "buffer-size", Options.TERMINAL_SECTION),
 //				cfg.bindString(emulator::setTerminalType, emulator.getTerminalType()::getId, "type", Options.TERMINAL_SECTION),  
@@ -367,7 +353,7 @@ public class TTY extends StackPane implements Closeable {
 //				cfg.bindBoolean(emulator.getModes()::setCursorBlink, emulator.getModes()::isCursorBlink, "cursor-blink", Options.TERMINAL_SECTION),
 //				cfg.bindEnum(CursorStyle.class, terminalPanel::setCursorStyle, terminalPanel::getCursorStyle, "cursor-style", Options.TERMINAL_SECTION)
 		));
-		
+
 		scrollPane.setBottom(statusControl);
 //			statusTerminal.getControl().setVisible(true);
 //			statusTerminal.getControl().setManaged(true);
@@ -377,42 +363,55 @@ public class TTY extends StackPane implements Closeable {
 		updateState();
 
 		/* Bind to configuration */
-		handles.addAll(Arrays.asList(
-			cfg.bindEnum(ResizeStrategy.class, this::setResizeStrategy, terminalPanel::getResizeStrategy, Constants.RESIZE_STRATEGY_KEY, Constants.TERMINAL_SECTION),
-			cfg.bindInteger(s -> { 
-						emulator.setScrollbackSize(cfg.terminal().getBoolean(Constants.LIMIT_BUFFER_KEY) ? s : -1);
-						scrollPane.setScrollBar(cfg.terminal().getEnum(ScrollBarMode.class, Constants.SCROLL_BAR_KEY));
-					}, 
-					emulator::getScrollbackSize, 
-					Constants.BUFFER_SIZE_KEY, Constants.TERMINAL_SECTION),
-			cfg.bindBoolean(s -> emulator.setScrollbackSize(s ? cfg.terminal().getInt(Constants.BUFFER_SIZE_KEY): -1), () -> emulator.getScrollbackSize() > -1, Constants.LIMIT_BUFFER_KEY, Constants.TERMINAL_SECTION),
-			cfg.bindInteger(this::setBackgroundOpacity, this::getBackgroundOpacity, Constants.OPACITY_KEY, Constants.TERMINAL_SECTION),
-			cfg.bindString(emulator::setTerminalType, emulator.getTerminalType()::getId, Constants.TYPE_KEY, Constants.TERMINAL_SECTION),  
+		handles.addAll(Arrays.asList(cfg.bindEnum(ResizeStrategy.class, this::setResizeStrategy,
+				terminalPanel::getResizeStrategy, Constants.RESIZE_STRATEGY_KEY, Constants.TERMINAL_SECTION),
+				cfg.bindInteger(s -> {
+					emulator.setScrollbackSize(cfg.terminal().getBoolean(Constants.LIMIT_BUFFER_KEY) ? s : -1);
+					scrollPane.setScrollBar(cfg.terminal().getEnum(ScrollBarMode.class, Constants.SCROLL_BAR_KEY));
+				}, emulator::getScrollbackSize, Constants.BUFFER_SIZE_KEY, Constants.TERMINAL_SECTION),
+				cfg.bindBoolean(
+						s -> emulator.setScrollbackSize(s ? cfg.terminal().getInt(Constants.BUFFER_SIZE_KEY) : -1),
+						() -> emulator.getScrollbackSize() > -1, Constants.LIMIT_BUFFER_KEY,
+						Constants.TERMINAL_SECTION),
+				cfg.bindInteger(this::setBackgroundOpacity, this::getBackgroundOpacity, Constants.OPACITY_KEY,
+						Constants.TERMINAL_SECTION),
+				cfg.bindString(emulator::setTerminalType, emulator.getTerminalType()::getId, Constants.TYPE_KEY,
+						Constants.TERMINAL_SECTION),
 //			cfg.bindString((nsz) -> updateAppearance(), () -> String.format("%dx%d", emulator.getColumns(), emulator.getRows()), Constants.SCREEN_SIZE_KEY, Constants.TERMINAL_SECTION),
-			cfg.bindInteger(this::setFontSize, terminalPanel.getFontManager().getDefault().spec()::getSize, Constants.FONT_SIZE_KEY, Constants.TERMINAL_SECTION),
-			cfg.bindStrings(this::setFonts, ttyContext.getContainer().getFonts()::getFonts, Constants.FONTS_KEY, Constants.TERMINAL_SECTION),
-			cfg.bindStrings((s) -> updateFeatures(), this::getEnabledFeatures, Constants.ENABLED_FEATURES, Constants.TERMINAL_SECTION), 
-			cfg.bindStrings((s) -> updateFeatures(), this::getDisabledFeatures, Constants.DISABLED_FEATURES, Constants.TERMINAL_SECTION),
-			cfg.bindString(this::setThemeId, this::getThemeId, Constants.THEME_KEY, Constants.TERMINAL_SECTION),
-			cfg.bindBoolean((s) -> emulator.enqueue(() -> checkStatusDisplay()), this::isStatusDisplay, Constants.ENABLED_KEY, Constants.STATUS_SECTION),
-			cfg.bindBoolean(emulator::setEnableBlinking, emulator::isEnableBlinking, Constants.BLINKING_KEY, Constants.TERMINAL_SECTION),
-			cfg.bindBoolean(emulator::setReflow, emulator::isReflow, Constants.REFLOW_KEY, Constants.TERMINAL_SECTION),
-			cfg.bindBoolean(terminalPanel::setSetClipboardOnSelect, terminalPanel::isSetClipboardOnSelect, Constants.COPY_ON_SELECT, Constants.TERMINAL_SECTION),
-			cfg.bindBoolean(emulator.getModes()::setCursorBlink, emulator.getModes()::isCursorBlink, Constants.CURSOR_BLINK_KEY, Constants.TERMINAL_SECTION),
-			cfg.bindEnum(Mode.class, emulator::setScrollbackMode, emulator::getScrollbackMode, Constants.BUFFER_MODE_KEY, Constants.TERMINAL_SECTION),
-			cfg.bindEnum(CursorStyle.class, terminalPanel::setCursorStyle, terminalPanel::getCursorStyle, Constants.CURSOR_STYLE_KEY, Constants.TERMINAL_SECTION),
-			cfg.bindEnum(ScrollBarMode.class, scrollPane::setScrollBar, scrollPane::getScrollBar, Constants.SCROLL_BAR_KEY, Constants.TERMINAL_SECTION),
+				cfg.bindInteger(this::setFontSize, terminalPanel.getFontManager().getDefault().spec()::getSize,
+						Constants.FONT_SIZE_KEY, Constants.TERMINAL_SECTION),
+				cfg.bindStrings(this::setFonts, ttyContext.getContainer().getFonts()::getFonts, Constants.FONTS_KEY,
+						Constants.TERMINAL_SECTION),
+				cfg.bindStrings((s) -> updateFeatures(), this::getEnabledFeatures, Constants.ENABLED_FEATURES,
+						Constants.TERMINAL_SECTION),
+				cfg.bindStrings((s) -> updateFeatures(), this::getDisabledFeatures, Constants.DISABLED_FEATURES,
+						Constants.TERMINAL_SECTION),
+				cfg.bindString(this::setThemeId, this::getThemeId, Constants.THEME_KEY, Constants.TERMINAL_SECTION),
+				cfg.bindBoolean((s) -> emulator.enqueue(() -> checkStatusDisplay()), this::isStatusDisplay,
+						Constants.ENABLED_KEY, Constants.STATUS_SECTION),
+				cfg.bindBoolean(emulator::setEnableBlinking, emulator::isEnableBlinking, Constants.BLINKING_KEY,
+						Constants.TERMINAL_SECTION),
+				cfg.bindBoolean(emulator::setReflow, emulator::isReflow, Constants.REFLOW_KEY,
+						Constants.TERMINAL_SECTION),
+				cfg.bindBoolean(terminalPanel::setSetClipboardOnSelect, terminalPanel::isSetClipboardOnSelect,
+						Constants.COPY_ON_SELECT, Constants.TERMINAL_SECTION),
+				cfg.bindBoolean(emulator.getModes()::setCursorBlink, emulator.getModes()::isCursorBlink,
+						Constants.CURSOR_BLINK_KEY, Constants.TERMINAL_SECTION),
+				cfg.bindEnum(Mode.class, emulator::setScrollbackMode, emulator::getScrollbackMode,
+						Constants.BUFFER_MODE_KEY, Constants.TERMINAL_SECTION),
+				cfg.bindEnum(CursorStyle.class, terminalPanel::setCursorStyle, terminalPanel::getCursorStyle,
+						Constants.CURSOR_STYLE_KEY, Constants.TERMINAL_SECTION),
+				cfg.bindEnum(ScrollBarMode.class, scrollPane::setScrollBar, scrollPane::getScrollBar,
+						Constants.SCROLL_BAR_KEY, Constants.TERMINAL_SECTION),
 //			cfg.bindBoolean(scroller.getNativeComponent()::setVisible, scroller.getNativeComponent()::isVisible, Constants.SCROLL_BAR_KEY, Constants.TERMINAL_SECTION),
-			cfg.bindString((t) -> {
-				theme = ttyContext.getContainer().getThemes().resolve(cfg.terminal().get(Constants.THEME_KEY));
-				applyTheme();
-			}, null, Constants.DARK_MODE_KEY, Constants.UI_SECTION)
-		));
-		
+				cfg.bindString((t) -> {
+					theme = ttyContext.getContainer().getThemes().resolve(cfg.terminal().get(Constants.THEME_KEY));
+					applyTheme();
+				}, null, Constants.DARK_MODE_KEY, Constants.UI_SECTION)));
+
 		try {
 			startShell(bldr.request.map(rq -> rq.shell().orElseGet(this::shellForTty)).orElseGet(this::shellForTty));
-		}
-		catch(Exception e) {
+		} catch (Exception e) {
 			/* Not a known shell, so just treat as a custom command */
 			/* Used to prompt for some connection parameters */
 			LOG.error("Failed to start protocol.", e);
@@ -420,79 +419,77 @@ public class TTY extends StackPane implements Closeable {
 		}
 	}
 	
+	public String ttyName() {
+		return ttyName;
+	}
+
 	public void attached(TerminalProtocol consoleProtocol) {
 		runLater(this::updateState);
-		
+
 	}
-	
+
 	public Optional<String> canClose() {
 		var proto = protocol();
 		return proto == null ? Optional.empty() : proto.canClose();
 	}
 
 	public PricliPopup cli() {
-		if(pricli == null) {
+		if (pricli == null) {
 			pricli = new PricliPopup(this);
 			pricli.shell().cwd(cwd);
 		}
 		return pricli;
 	}
 
-	public int clipboardToHost(Clipboard clipboard) {
-		if(Platform.isFxApplicationThread()) {
+	public int clipboardToHost(TerminalViewport<?, ?, ?> viewport, Clipboard clipboard) {
+		if (Platform.isFxApplicationThread()) {
 			var text = String.valueOf(clipboard.getContent(DataFormat.PLAIN_TEXT));
-			terminalPanel.getViewport().enqueue(() -> terminalPanel.getViewport().output(text));
+			viewport.enqueue(() -> viewport.output(text));
 			showOverlayTextInfo(overlayInfo, RESOURCES.getString("pasted"));
 			return text.length();
-		}
-		else {
+		} else {
 			var res = new AtomicInteger();
 			var sem = new Semaphore(1);
 			try {
 				sem.acquire();
 				Platform.runLater(() -> {
-					res.set(clipboardToHost(clipboard));
+					res.set(clipboardToHost(viewport, clipboard));
 					sem.release();
 				});
 				sem.acquire();
 				return res.get();
-			}
-			catch(InterruptedException ie) {
+			} catch (InterruptedException ie) {
 				return 0;
 			}
 		}
 	}
-	
+
 	@Override
 	public void close() {
-		if(!closed) {
+		if (!closed) {
 			closed = true;
 			uriFinder.close();
 			try {
-				synchronized(protocols) {
-					while(!protocols.isEmpty()) {
+				synchronized (protocols) {
+					while (!protocols.isEmpty()) {
 						var p = protocols.peek();
 						try {
 							p.close();
-						}
-						finally {
-							if(!protocols.isEmpty())
+						} finally {
+							if (!protocols.isEmpty())
 								protocols.pop();
 						}
 					}
 				}
 				handles.forEach(Handle::close);
-			}
-			finally {
+			} finally {
 				try {
 					terminalPanel.close();
-				}
-				finally {
+				} finally {
 					try {
 						onClose.ifPresent(oc -> oc.accept(this));
-					}
-					finally {
-						if(statusEmulator != null) {
+					} finally {
+						if (statusEmulator != null) {
 							try {
 								statusEmulator.close();
 							} catch (IOException e) {
@@ -503,20 +500,20 @@ public class TTY extends StackPane implements Closeable {
 			}
 		}
 	}
-	
+
 	public void cwd(Path cwd) {
-		if(!Objects.equals(this.cwd, cwd)) {
+		if (!Objects.equals(this.cwd, cwd)) {
 			this.cwd = cwd;
-			if(pricli != null) {
+			if (pricli != null) {
 				pricli.shell().cwd(cwd);
 			}
 		}
 	}
-	
+
 	public void detached(TerminalProtocol consoleProtocol) {
-		runLater(this::updateState);		
+		runLater(this::updateState);
 	}
-	
+
 	public Map<String, String> environment() {
 		var env = new HashMap<String, String>();
 		env.put("TERM", terminalPanel.getViewport().getTerminalType().getId());
@@ -524,83 +521,95 @@ public class TTY extends StackPane implements Closeable {
 		var theme = ttyContext.getContainer().getSelectedTheme();
 		addEnvVarIfPresentInTheme(theme, TerminalTheme.LS_COLORS, env);
 		addEnvVarIfPresentInTheme(theme, TerminalTheme.LSCOLORS, env);
-		
+
 		env.putAll(terminalPanel.getViewport().getTerminalType().getEnvironment());
-		
-		ttyContext.getContainer().getConfiguration().document().sectionOr(Constants.ENVIRONMENT_SECTION).ifPresent(sec -> {
-			for(var en : sec.values().entrySet()) { 
-				env.put(en.getKey(), en.getValue()[0].length() == 0 ? "" : en.getValue()[0]); 
-			}	
-		});
-		
+
+		ttyContext.getContainer().getConfiguration().document().sectionOr(Constants.ENVIRONMENT_SECTION)
+				.ifPresent(sec -> {
+					for (var en : sec.values().entrySet()) {
+						env.put(en.getKey(), en.getValue()[0].length() == 0 ? "" : en.getValue()[0]);
+					}
+				});
+
 		return env;
 	}
-	
+
 	public void hidePricli() {
-		if(pricli != null && pricli.showing()) {
+		if (pricli != null && pricli.showing()) {
 			pricli.hide();
 		}
 	}
-	
+
 	public TerminalProtocol protocol() {
 		return protocols.isEmpty() ? null : protocols.peek();
 	}
 
 	public void protocol(TerminalProtocol protocol) {
-		if(protocol == null || this.protocols.contains(protocol))
+		if (protocol == null || this.protocols.contains(protocol))
 			throw new IllegalArgumentException();
 		
+		LOG.info("Running protocol {} in {}", protocol.displayName(), ttyName);
+
 		var last = this.protocols.isEmpty() ? null : this.protocols.peek();
-		if(last != null) {
+		if (last != null) {
 			try {
 				last.detach();
-			}
-			catch(Exception ioe) {
+			} catch (Exception ioe) {
 				LOG.warn("Failed to detect previous protocol. You may experience strange behaviour.", ioe);
 			}
 		}
-		
-		/* Take a copy of the line the cursor is currently at. We reprint this 
-		 * when we switch back to whatever protocol was active before this one.
+
+		/*
+		 * Take a copy of the line the cursor is currently at. We reprint this when we
+		 * switch back to whatever protocol was active before this one.
 		 */
 		var vp = terminalPanel.getViewport();
 		@SuppressWarnings("unused")
-		var bufferRow = vp.getPage().data().get(vp.displayRowToBufferRow(vp.getPage().cursorY())).clone(0, vp.getPage().data());
+		var bufferRow = vp.getPage().data().get(vp.displayRowToBufferRow(vp.getPage().cursorY())).clone(0,
+				vp.getPage().data());
 		@SuppressWarnings("unused")
 		var cursorX = vp.getPage().cursorX();
-		
+		var currentProtocol = protocol();
 		this.protocols.push(protocol);
 		runLater(this::updateState);
-		while(protocol != null) {
+		while (protocol != null) {
 			try {
+				LOG.info("Attaching protocol {} in {}", protocol.displayName(), ttyName);
 				protocol.attach(this);
-			}
-			catch(RuntimeException re) {
-				LOG.error("Protocol failed.", re);
+				LOG.info("Protocol {} attached in {}", protocol.displayName(), ttyName);
+				if (protocol.equals(currentProtocol)) {
+					return;
+				} else {
+					protocol.decode();
+				}
+			} catch (RuntimeException re) {
+				LOG.error("Protocol failed in {}.", ttyName, re);
 				throw re;
-			}
-			catch(Throwable re) {
-				LOG.error("Protocol failed.", re);
+			} catch (Throwable re) {
+				LOG.error("Protocol failed in {}.", ttyName, re);
 				throw new IllegalStateException(re);
-			}
-			finally {
+			} finally {
 				try {
-					synchronized(protocols) {
-						if(!this.protocols.isEmpty()) {
-							this.protocols.pop();
-						}
-						if(this.protocols.isEmpty()) {
-							if(!closed) {
-								close();
+					if (!protocol.equals(currentProtocol)) {
+						synchronized (protocols) {
+							if (!this.protocols.isEmpty()) {
+								LOG.info("Popping off protocol {} in {}", this.protocols.peek().displayName(), ttyName);
+								this.protocols.pop();
 							}
-							return;
+							if (this.protocols.isEmpty()) {
+								LOG.info("Protocol stack empty in {}, closing", ttyName);
+								if (!closed) {
+									close();
+								}
+								return;
+							}
 						}
-					}
-					try {
-						if(protocol.isAttached()) 
-							protocol.detach();
-					}
-					finally { 
+						try {
+							if (protocol.isAttached()) {
+								LOG.info("Detaching protocol {} in {}", protocol.displayName(), ttyName);
+								protocol.detach();
+							}
+						} finally {
 //							try {
 //								if(vp.getCursorX() > 0) {
 //									vp.cr();
@@ -616,15 +625,20 @@ public class TTY extends StackPane implements Closeable {
 //								throw new UncheckedIOException(e);
 //							} finally {
 							protocol = protocol();
+							if (protocol == null) {
+								LOG.info("No more protocols, exiting loop in {}.", ttyName);
+							} else {
+								LOG.info("Switching to protocol {} in {}", protocol.displayName(), ttyName);
+							}
 //							}
+						}
 					}
-				}
-				finally {
+				} finally {
 					runLater(this::updateState);
 				}
 			}
 		}
-		
+
 	}
 
 	public Stack<TerminalProtocol> protocols() {
@@ -634,20 +648,20 @@ public class TTY extends StackPane implements Closeable {
 	public void setClipboard(ClipboardContent content) {
 		FXUtil.maybeQueue(() -> {
 			Clipboard.getSystemClipboard().setContent(content);
-			showOverlayTextInfo(overlayInfo, RESOURCES.getString("copied")); 
+			showOverlayTextInfo(overlayInfo, RESOURCES.getString("copied"));
 		});
 	}
-	
+
 	public StringProperty shortTitle() {
 		return shortTitle;
 	}
-	
+
 	public void showPricli() {
-		if(pricli == null || !pricli.showing()) {
+		if (pricli == null || !pricli.showing()) {
 			cli().show();
 		}
 	}
-	
+
 	public Status status() {
 		return status;
 	}
@@ -665,10 +679,9 @@ public class TTY extends StackPane implements Closeable {
 	}
 
 	public void togglePricli() {
-		if(pricli == null || !pricli.showing()) {
+		if (pricli == null || !pricli.showing()) {
 			showPricli();
-		}
-		else 
+		} else
 			hidePricli();
 	}
 
@@ -685,19 +698,19 @@ public class TTY extends StackPane implements Closeable {
 			map.put(key, val);
 		}));
 	}
-	
+
 	private void applyColors() {
 		var ss = getStylesheets();
 		writeJavaFXCSS();
-		var tmpFile = getCustomJavaFXCSSFile(); /*TODO per tab / window ? */
+		var tmpFile = getCustomJavaFXCSSFile(); /* TODO per tab / window ? */
 		var uri = tmpFile.toUri().toString();
 		ss.remove(uri);
 		ss.add(0, uri);
 	}
-	
+
 	private void applyTheme() {
 		theme.apply(terminalPanel, getBackgroundOpacity());
-		if(statusTerminal != null)
+		if (statusTerminal != null)
 			theme.apply(statusTerminal, 100);
 		applyColors();
 	}
@@ -706,46 +719,45 @@ public class TTY extends StackPane implements Closeable {
 		var statusCfg = ttyContext.getContainer().getConfiguration().status();
 		var closed = statusTerminal.getViewport().getPage().data().isClosed();
 		var enable = !closed && statusCfg.getBoolean(Constants.ENABLED_KEY);
-		var type = enable ? ((DECModes)terminalPanel.getViewport().getModes()).getStatusLineType() : StatusLineType.NONE;
+		var type = enable ? ((DECModes) terminalPanel.getViewport().getModes()).getStatusLineType()
+				: StatusLineType.NONE;
 		var isType = getStatusLineType();
-		if(enable != statusTerminal.getControl().isVisible()) {
+		if (enable != statusTerminal.getControl().isVisible()) {
 			maybeQueue(() -> statusTerminal.getControl().setVisible(enable));
 		}
-		if(closed) {
+		if (closed) {
 			return;
 		}
-		
-		if(LOG.isDebugEnabled()) {
+
+		if (LOG.isDebugEnabled()) {
 			LOG.debug("Check status display. Type {}, Enable {}, Should Show {}", type, enable, isType);
 		}
-		
-		if(type != isType) {
-			if(type == StatusLineType.INDICATOR) {
-				if(!status.isAttached()) {
+
+		if (type != isType) {
+			if (type == StatusLineType.INDICATOR) {
+				if (!status.isAttached()) {
 					status.attach(statusTerminal.getViewport());
 				}
 				updateIndicatorStatus();
-			}
-			else {
-				if(status.isAttached()) {
+			} else {
+				if (status.isAttached()) {
 					status.detach();
 				}
-				if(isType == StatusLineType.INDICATOR || type == StatusLineType.NONE) {
-					statusTerminal.getViewport().clearScreen();	
+				if (isType == StatusLineType.INDICATOR || type == StatusLineType.NONE) {
+					statusTerminal.getViewport().clearScreen();
 				}
 			}
-		}
-		else {
-			if(type == StatusLineType.INDICATOR) {
+		} else {
+			if (type == StatusLineType.INDICATOR) {
 				updateIndicatorStatus();
 			}
 		}
 	}
-	
+
 	private int getBackgroundOpacity() {
-		return (int)((float)terminalPanel.getViewport().getColors().getBG().getAlphaRatio() * 100f);
+		return (int) ((float) terminalPanel.getViewport().getColors().getBG().getAlphaRatio() * 100f);
 	}
-	
+
 	private int[] getConfiguredSize() {
 		var prefs = ttyContext.getContainer().getConfiguration();
 		var ssz = prefs.terminal().get(Constants.SCREEN_SIZE_KEY);
@@ -759,19 +771,19 @@ public class TTY extends StackPane implements Closeable {
 			return new int[] { 80, 24 };
 		}
 	}
-	
+
 	private Path getCustomJavaFXCSSFile() {
 		// TODO per window file
 		return Paths.get(System.getProperty("java.io.tmpdir")).resolve(System.getProperty("user.name") + "-pretty")
 				.resolve("term.css");
 	}
-	
+
 	private String getCustomJavaFXCSSResource() {
 		var bui = new StringBuilder();
 		var colors = terminalPanel.getViewport().getColors();
 		var bgCol = colors.getBG();
-		var bgStr = ttyContext.getContainer().isDecorated() ? bgCol.toCSSRGB() :  bgCol.toCSSRGBA();
-		var bgOpaqueStr = ttyContext.getContainer().isDecorated() ? bgCol.toCSSRGB() :  bgCol.toCSSRGBA();
+		var bgStr = ttyContext.getContainer().isDecorated() ? bgCol.toCSSRGB() : bgCol.toCSSRGBA();
+		var bgOpaqueStr = ttyContext.getContainer().isDecorated() ? bgCol.toCSSRGB() : bgCol.toCSSRGBA();
 		var fgCol = colors.getFG();
 		var fgStr = fgCol.toHTMLColor();
 		var uiToolkit = terminalPanel.getUIToolkit();
@@ -799,16 +811,16 @@ public class TTY extends StackPane implements Closeable {
 	private String[] getDisabledFeatures() {
 		return terminalPanel.getViewport().enabled().stream().map(Feature::toString).toList().toArray(new String[0]);
 	}
-	
+
 	private String[] getEnabledFeatures() {
 		return terminalPanel.getViewport().enabled().stream().map(Feature::toString).toList().toArray(new String[0]);
 	}
-	
+
 	private Stage getStage() {
 		var w = getWindow();
-		return w instanceof Stage ? (Stage)w  : null;
+		return w instanceof Stage ? (Stage) w : null;
 	}
-	
+
 	private String getThemeId() {
 		return theme.id();
 	}
@@ -819,13 +831,11 @@ public class TTY extends StackPane implements Closeable {
 	}
 
 	private StatusLineType getStatusLineType() {
-		if(scrollPane.getBottom() == null || !scrollPane.getBottom().isVisible()) {
+		if (scrollPane.getBottom() == null || !scrollPane.getBottom().isVisible()) {
 			return StatusLineType.NONE;
-		}
-		else if(status.isAttached()) {
+		} else if (status.isAttached()) {
 			return StatusLineType.INDICATOR;
-		}
-		else {
+		} else {
 			return StatusLineType.HOST_WRITABLE;
 		}
 	}
@@ -838,13 +848,11 @@ public class TTY extends StackPane implements Closeable {
 		new Thread(() -> {
 			try {
 				protocol(proto);
-				LOG.info("Main loop exited normally.");	
-			}
-			catch(Throwable e) {
+				LOG.info("Main loop exited normally.");
+			} catch (Throwable e) {
 				LOG.error("Main loop error.", e);
-			}
-			finally {
-				LOG.info("Main loop exited.");				
+			} finally {
+				LOG.info("Main loop exited.");
 			}
 		}, "TTY-" + counter.getAndIncrement()).start();
 	}
@@ -858,16 +866,16 @@ public class TTY extends StackPane implements Closeable {
 		ttyContext.getContainer().getFonts().setFonts(fonts);
 		updateFont();
 	}
-	
+
 	private void setFontSize(int sz) {
 		updateFont();
 	}
-	
+
 	private void setResizeStrategy(ResizeStrategy resizeStrategy) {
 		terminalPanel.setResizeStrategy(resizeStrategy);
 		updateAppearance();
 	}
-	
+
 	private void setThemeId(String themeId) {
 		theme = ttyContext.getContainer().getThemes().resolve(themeId);
 		applyTheme();
@@ -875,49 +883,46 @@ public class TTY extends StackPane implements Closeable {
 
 	private Shell shellForTty() {
 		var id = ttyContext.getContainer().getConfiguration().terminal().get(Constants.SHELL_KEY);
-		if(id.equals("")) {
+		if (id.equals("")) {
 			return ttyContext.getContainer().getShells().getById(Shells.NATIVE).get();
-		}
-		else {
-			return ttyContext.getContainer().getShells().getById(id).orElseGet(() -> 
-				Shell.forCommand(id)
-			);
+		} else {
+			return ttyContext.getContainer().getShells().getById(id).orElseGet(() -> Shell.forCommand(id));
 		}
 	}
 
 	@SuppressWarnings("unused")
 	private void showOverlayTextInfo(Label node, String text) {
-		if(resizeFade != null) {
+		if (resizeFade != null) {
 			resizeFade.stop();
 		}
-		
+
 		node.setText(text);
-		
+
 		var fadeIn = new FadeTransition(Duration.millis(125));
-		if(node.isVisible()) {
+		if (node.isVisible()) {
 			fadeIn.setFromValue(node.getOpacity());
-		}
-		else {
+		} else {
 			fadeIn.setFromValue(0);
 			node.setVisible(true);
 		}
 		fadeIn.setToValue(0.9f);
 		fadeIn.setInterpolator(Interpolator.EASE_BOTH);
-		
+
 		var fadeOut = new FadeTransition(Duration.millis(500));
 		fadeOut.setFromValue(0.9f);
 		fadeOut.setToValue(0);
 		fadeOut.setInterpolator(Interpolator.EASE_BOTH);
 		fadeOut.setOnFinished(evt -> node.setVisible(false));
-		
+
 		resizeFade = new SequentialTransition(node, fadeIn, new PauseTransition(Duration.seconds(1)), fadeOut);
-		
+
 		resizeFade.play();
-		
-		
+
 	}
 
 	private void startShell(final Shell shell) {
+		LOG.info("Starting shell {} for TTY {}", shell.name(), ttyName);
+		
 		var bldr = new ConsoleProtocol.Builder();
 		var cfg = ttyContext.getContainer().getConfiguration();
 		var tsec = cfg.terminal();
@@ -926,34 +931,28 @@ public class TTY extends StackPane implements Closeable {
 		var legacyPty = tsec.getBoolean(Constants.LEGACY_PTY_KEY);
 		var windowsAnsiColor = tsec.getBoolean(Constants.WINDOWS_ANSI_COLOR_KEY);
 		var preservePty = tsec.getBoolean(Constants.PRESERVE_PTY_KEY);
-		
+
 		Shell fShell;
-		if(shell.commandName().equals(Shells.NATIVE)) {
-			fShell = ttyContext.getContainer().getShells().getDefault().orElseThrow(() -> new IllegalStateException("No default shell available."));
-		}
-		else {
+		if (shell.commandName().equals(Shells.NATIVE)) {
+			fShell = ttyContext.getContainer().getShells().getDefault()
+					.orElseThrow(() -> new IllegalStateException("No default shell available."));
+		} else {
 			fShell = shell;
 		}
-		if(fShell.type() == ShellType.BUILTIN) {
-			runProtocol(new PricliProtocol(shell.toFullCommandText(loginShell)));
-		}
-		else {
-			if(fShell.cygwin()) {
+		if (fShell.type() == ShellType.BUILTIN) {
+			runProtocol(new PricliProtocol(ttyContext, shell.toFullCommandText(loginShell)));
+		} else {
+			if (fShell.cygwin()) {
 				LOG.warn("Cygwin requested, but this is not yet working. Ignoring.");
 			}
-			
-			runProtocol(bldr.
-				withPath(ttyContext.getContainer().getDefaultWorkingDirectory()).
-				withCommandLine(fShell.fullCommand(loginShell)).
-				//withCygwin(fShell.cygwin()).
-				withConsole(console).
-				withDefaultName(() ->
-					fShell.name() + " " + nextVirtualConsoleNumber(fShell.id())
-				).
-				withUseWinConPty(!legacyPty).
-				withWindowsAnsiColorEnabled(windowsAnsiColor).
-				withUnixOpenTtyToPreserveOutputAfterTermination(preservePty).
-				build());
+
+			runProtocol(bldr.withPath(ttyContext.getContainer().getDefaultWorkingDirectory())
+					.withCommandLine(fShell.fullCommand(loginShell)).
+					// withCygwin(fShell.cygwin()).
+					withConsole(console)
+					.withDefaultName(() -> fShell.name() + " " + nextVirtualConsoleNumber(fShell.id()))
+					.withUseWinConPty(!legacyPty).withWindowsAnsiColorEnabled(windowsAnsiColor)
+					.withUnixOpenTtyToPreserveOutputAfterTermination(preservePty).build());
 		}
 	}
 
@@ -972,24 +971,26 @@ public class TTY extends StackPane implements Closeable {
 //			LOG.info("Sized to scene");
 		}
 	}
-	
+
 	private void updateFeatures() {
 		var vp = terminalPanel.getViewport();
 		var cfg = ttyContext.getContainer().getConfiguration();
-		
+
 		vp.resetFeatures();
-		vp.enable(Arrays.asList(
-				cfg.terminal().getAll(Constants.ENABLED_FEATURES)).
-				stream().map(fn->Feature.Registry.get().get(fn)).filter(Optional::isPresent).map(Optional::get).toList().toArray(new Feature[0]));
-		vp.disable(Arrays.asList(
-				cfg.terminal().getAll(Constants.DISABLED_FEATURES)).
-				stream().map(fn->Feature.Registry.get().get(fn)).filter(Optional::isPresent).map(Optional::get).toList().toArray(new Feature[0]));
+		vp.enable(Arrays.asList(cfg.terminal().getAll(Constants.ENABLED_FEATURES)).stream()
+				.map(fn -> Feature.Registry.get().get(fn)).filter(Optional::isPresent).map(Optional::get).toList()
+				.toArray(new Feature[0]));
+		vp.disable(Arrays.asList(cfg.terminal().getAll(Constants.DISABLED_FEATURES)).stream()
+				.map(fn -> Feature.Registry.get().get(fn)).filter(Optional::isPresent).map(Optional::get).toList()
+				.toArray(new Feature[0]));
 	}
-	
+
 	private void updateFont() {
-		var fnt = terminalPanel.getFontManager().getFonts(false).stream().findFirst().orElseThrow(()-> new IllegalStateException("No primary fonts selected."));
+		var fnt = terminalPanel.getFontManager().getFonts(false).stream().findFirst()
+				.orElseThrow(() -> new IllegalStateException("No primary fonts selected."));
 		try {
-			terminalPanel.setTerminalFont(new FontSpec(fnt.spec().getName(), ttyContext.getContainer().getConfiguration().terminal().getInt(Constants.FONT_SIZE_KEY)));
+			terminalPanel.setTerminalFont(new FontSpec(fnt.spec().getName(),
+					ttyContext.getContainer().getConfiguration().terminal().getInt(Constants.FONT_SIZE_KEY)));
 		} catch (Exception e) {
 			LOG.warn("Failed to set font.", e);
 		}
@@ -999,20 +1000,20 @@ public class TTY extends StackPane implements Closeable {
 	private void updateIndicatorStatus() {
 		status.redraw(false);
 	}
-	
+
 	private void updateStatusSize() {
-		statusTerminal.getViewport().setScreenSize(terminalPanel.getViewport().getColumns(), ttyContext.getContainer().getConfiguration().status().getInt(Constants.HEIGHT_KEY), false);
-		if(getStatusLineType() == StatusLineType.INDICATOR) {
+		statusTerminal.getViewport().setScreenSize(terminalPanel.getViewport().getColumns(),
+				ttyContext.getContainer().getConfiguration().status().getInt(Constants.HEIGHT_KEY), false);
+		if (getStatusLineType() == StatusLineType.INDICATOR) {
 			status.redraw(true);
 		}
 	}
-	
+
 	private void updateState() {
 		var proto = protocol();
-		if(userTitle.getValue().equals("")) {
+		if (userTitle.getValue().equals("")) {
 			shortTitle.setValue(proto == null ? RESOURCES.getString("appType") : proto.displayName());
-		}
-		else {
+		} else {
 			shortTitle.setValue(userTitle.getValue());
 		}
 		terminalPanel.getViewport().enqueue(() -> checkStatusDisplay());
@@ -1029,6 +1030,5 @@ public class TTY extends StackPane implements Closeable {
 			throw new RuntimeException("Could not create custom CSS resource.", e);
 		}
 	}
-
 
 }

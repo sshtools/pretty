@@ -6,7 +6,6 @@ import java.io.PrintStream;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Optional;
@@ -14,6 +13,7 @@ import java.util.concurrent.Callable;
 
 import com.sshtools.client.tasks.FileTransferProgress;
 import com.sshtools.common.util.FileUtils;
+import com.sshtools.pretty.Configuration;
 
 import me.tongfei.progressbar.ConsoleProgressBarConsumer;
 import me.tongfei.progressbar.InteractiveConsoleProgressBarConsumer;
@@ -94,7 +94,7 @@ public abstract class LocalFileCommand implements Callable<Integer> {
 
 		for (var path : paths) {
 
-			path = expandSpecialLocalPath(path);
+			path = Configuration.expandSpecialLocalPath(path);
 			path = path.normalize();
 
 			if (path.toString().equals("..")) {
@@ -179,13 +179,6 @@ public abstract class LocalFileCommand implements Callable<Integer> {
 				progress.stepTo(bytesSoFar);
 			}
 		};
-	}
-
-	static Path expandSpecialLocalPath(Path path) {
-		if (path.toString().equals("~") || path.toString().startsWith("~/") || path.toString().startsWith("~\\")) {
-			return Paths.get(System.getProperty("user.home") + path.toString().substring(1));
-		} else
-			return path;
 	}
 
 	protected ConsoleProgressBarConsumer createConsoleConsumer() {

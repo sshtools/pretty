@@ -1,3 +1,6 @@
+
+import com.sshtools.pretty.uri.DocumentURIProcessor;
+import com.sshtools.pretty.uri.URIProcessor;
 open module com.sshtools.pretty {
 	exports com.sshtools.pretty;
 	exports com.sshtools.pretty.pricli;
@@ -20,13 +23,16 @@ open module com.sshtools.pretty {
 	requires org.kordamp.ikonli.fontawesome5;
 	requires transitive org.jline.terminal;
 	requires transitive org.jline.reader;
-	requires picocli.shell.jline3; 
+	requires info.picocli.shell.jline3; 
 	requires info.picocli;
 	requires transitive org.jline.console;
 	requires transitive org.jline.builtins;
 	requires org.jline.style;
+	requires org.cryptomator.jfuse;
 //	requires com.sshtools.terminal.fonts;
 //	requires transitive org.jfxtras.styles.jmetro;
+
+
 	requires com.sshtools.twoslices;
 	requires com.sshtools.agent;
 	requires me.tongfei.progressbar;
@@ -35,5 +41,9 @@ open module com.sshtools.pretty {
 	requires java.scripting;
 	requires java.keyring;
 	requires com.gluonhq.emoji;
-	requires transitive com.sshtools.jajafx.updateable; 
+	requires transitive com.sshtools.jajafx.updateable;
+	
+	uses URIProcessor;
+	
+	provides URIProcessor with DocumentURIProcessor;
 }

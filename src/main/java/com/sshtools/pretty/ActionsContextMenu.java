@@ -53,7 +53,7 @@ public class ActionsContextMenu extends ContextMenu  {
 			item.setOnAction(e -> {
 				shell.get().tty().terminal().getViewport().getScheduler().submit(() -> {
 					try {
-						shell.get().execute(act.fullCommand());
+						shell.get().execute(on, act.fullCommand());
 					}
 					catch(Throwable t) {
 						LOG.error("Failed to execute action " + act.label(), t);

@@ -3,6 +3,7 @@ package com.sshtools.pretty;
 import static com.sshtools.jajafx.FXUtil.maybeQueue;
 
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.ResourceBundle;
@@ -297,4 +298,17 @@ public final class Configuration {
 		return path.length == 0 ? root : (root.containsSection(path) ? root.section(path) : root.create(path));
 	}
 
+
+	public static Path expandSpecialLocalPath(Path path) {
+		var pathStr = path.toString();
+		var expStr = expandSpecialLocalPath(pathStr);
+		return pathStr.equals(expStr) ? path : Paths.get(pathStr);
+	}
+
+	public static String expandSpecialLocalPath(String pathStr) {
+		if (pathStr.equals("~") || pathStr.startsWith("~/") || pathStr.startsWith("~\\")) {
+			return System.getProperty("user.home") + pathStr.substring(1);
+		} else
+			return pathStr;
+	}
 }

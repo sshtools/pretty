@@ -193,77 +193,82 @@ public class ConsoleProtocol implements TerminalProtocol, ResizeListener, Elemen
 
 		var terminal = tty.terminal();
 		var viewport = terminal.getViewport();
-		
-//		viewport.enqueue(() -> {
-			// Process
-			if (pty == null) {
-				var bldr = new PtyProcessBuilder();
-				bldr.setInitialRows(viewport.getRows());
-				bldr.setInitialColumns(viewport.getColumns());
 
-				// Shell
-				var cmds = new ArrayList<String>();
-				command.ifPresentOrElse(c -> {
-					cmds.add(c);
-					args.ifPresent(as -> {
-						cmds.addAll(Arrays.asList(as));
-					});
+		// Process
+		if (pty == null) {
+			var bldr = new PtyProcessBuilder();
+			bldr.setInitialRows(viewport.getRows());
+			bldr.setInitialColumns(viewport.getColumns());
 
-				}, () -> {
-					if (System.getProperty("os.name").toLowerCase().contains("windows")) {
-						cmds.addAll(Arrays.asList(new String[] { "cmd.exe"/* , "/c", "start" */ }));
-					} else {
-						var bash = "/bin/bash";
-						if (Files.exists(Paths.get(bash))) {
-							cmds.addAll(Arrays.asList(bash, "-l"));
-						} else
-							cmds.addAll(Arrays.asList("/bin/sh", "-l"));
-					}
+			// Shell
+			var cmds = new ArrayList<String>();
+			command.ifPresentOrElse(c -> {
+				cmds.add(c);
+				args.ifPresent(as -> {
+					cmds.addAll(Arrays.asList(as));
 				});
-				bldr.setCommand(cmds.toArray(new String[0]));
-				
-				// Dir
-				workingDirectory.ifPresent(dir -> bldr.setDirectory(dir.toString()));
 
-				// Environment
-				var env = new HashMap<>(this.env.orElseGet(System::getenv));
-				env.putAll(tty.environment());
-				bldr.setEnvironment(env);
-
-				// Other
-				bldr.setCygwin(cygwin);
-				bldr.setConsole(console);
-				bldr.setUnixOpenTtyToPreserveOutputAfterTermination(unixOpenTtyToPreserveOutputAfterTermination);
-				bldr.setUseWinConPty(useWinConPty);
-				bldr.setWindowsAnsiColorEnabled(windowsAnsiColorEnabled);
-
-				// Start Process
-				try {
-					pty = bldr.start();
-				} catch (IOException e) {
-					throw new UncheckedIOException(e);
+			}, () -> {
+				if (System.getProperty("os.name").toLowerCase().contains("windows")) {
+					cmds.addAll(Arrays.asList(new String[] { "cmd.exe"/* , "/c", "start" */ }));
+				} else {
+					var bash = "/bin/bash";
+					if (Files.exists(Paths.get(bash))) {
+						cmds.addAll(Arrays.asList(bash, "-l"));
+					} else
+						cmds.addAll(Arrays.asList("/bin/sh", "-l"));
 				}
-				
-				shellName = pty.getDisplayName().orElse(defaultName.map(Supplier::get).orElseGet(() -> processShellName(cmds.get(0))));
+			});
+			bldr.setCommand(cmds.toArray(new String[0]));
+
+			// Dir
+			workingDirectory.ifPresent(dir -> bldr.setDirectory(dir.toString()));
+
+			// Environment
+			var env = new HashMap<>(this.env.orElseGet(System::getenv));
+			env.putAll(tty.environment());
+			bldr.setEnvironment(env);
+
+			// Other
+			bldr.setCygwin(cygwin);
+			bldr.setConsole(console);
+			bldr.setUnixOpenTtyToPreserveOutputAfterTermination(unixOpenTtyToPreserveOutputAfterTermination);
+			bldr.setUseWinConPty(useWinConPty);
+			bldr.setWindowsAnsiColorEnabled(windowsAnsiColorEnabled);
+
+			// Start Process
+			try {
+				pty = bldr.start();
+			} catch (IOException e) {
+				throw new UncheckedIOException(e);
 			}
 
-			// Direct window resizes to pty
-			viewport.addResizeListener(this);
+			shellName = pty.getDisplayName()
+					.orElse(defaultName.map(Supplier::get).orElseGet(() -> processShellName(cmds.get(0))));
+		}
 
-			// Direct terminal input back to pty
-			viewport.setInput((data, offset, len) -> pty.getOutputStream().write(data, offset, len));
-//		});
+		// Direct window resizes to pty
+		viewport.addResizeListener(this);
 
+		// Direct terminal input back to pty
+		viewport.setInput((data, offset, len) -> {
+			pty.getOutputStream().write(data, offset, len);
+		});
 
 		tty.attached(this);
 		viewport.enqueue(() -> {
 			tty.status().add(this);
 		});
 
+	}
+
+	@Override
+	public void decode() throws Exception {
 		try {
+			var viewport = tty.terminal().getViewport();
 			if (Boolean.getBoolean("pretty.slowRead")) {
-				try(var in = pty.getInputStream()) {
-					try(var out = new TerminalOutputStream(viewport)) {
+				try (var in = pty.getInputStream()) {
+					try (var out = new TerminalOutputStream(viewport)) {
 						in.transferTo(out);
 					}
 				}
@@ -290,13 +295,13 @@ public class ConsoleProtocol implements TerminalProtocol, ResizeListener, Elemen
 		} catch (Exception e) {
 			LOG.error("Protocol failed.", e);
 			throw new IllegalStateException(e);
-		} 
+		}
 	}
 
 	@Override
 	public void bufferResized(TerminalViewport<?, ?, ?> terminal, int columns, int rows, boolean remote) {
 		if (!remote) {
-			synchronized(pty) {
+			synchronized (pty) {
 				pty.setWinSize(new WinSize(columns, rows));
 			}
 		}
@@ -317,6 +322,7 @@ public class ConsoleProtocol implements TerminalProtocol, ResizeListener, Elemen
 		if (this.tty != null) {
 			detach();
 		}
+		thread.interrupt();
 		pty.destroy();
 	}
 
@@ -333,7 +339,6 @@ public class ConsoleProtocol implements TerminalProtocol, ResizeListener, Elemen
 			shellName = null;
 			viewport.setInput(null);
 			viewport.removeResizeListener(this);
-			thread.interrupt();
 		} finally {
 			tty.detached(this);
 			tty = null;
@@ -349,7 +354,7 @@ public class ConsoleProtocol implements TerminalProtocol, ResizeListener, Elemen
 	public void draw(TerminalViewport<JavaFXTerminalPanel, ?, ?> vp, int cols) throws IOException {
 		var bldr = new AttributedStringBuilder();
 		bldr.style(AttributedStyle.INVERSE);
-		bldr.append(Strings.trimPad(shellName == null ? RESOURCES.getString("console") : shellName,  cols));
+		bldr.append(Strings.trimPad(shellName == null ? RESOURCES.getString("console") : shellName, cols));
 		bldr.style(AttributedStyle.INVERSE_OFF);
 		vp.write(bldr.toAnsi().getBytes(vp.getCharacterSet()));
 	}
@@ -367,25 +372,26 @@ public class ConsoleProtocol implements TerminalProtocol, ResizeListener, Elemen
 	@Override
 	public void cwd(String cwd) {
 		try {
-			if(cwd.matches("[^\\s]+@[^\\s]+\\s+.*")) {
-				/* TODO cygwin returns "user@HOST /path/to/cwd", can we / should we use this somehow? */
+			if (cwd.matches("[^\\s]+@[^\\s]+\\s+.*")) {
+				/*
+				 * TODO cygwin returns "user@HOST /path/to/cwd", can we / should we use this
+				 * somehow?
+				 */
 				tty.cwd(Paths.get(cwd.substring(cwd.indexOf(' ') + 1)));
-			}
-			else {
+			} else {
 				tty.cwd(Paths.get(cwd));
 			}
-		}
-		catch(Exception e) {
+		} catch (Exception e) {
 			LOG.warn("Invalid path for CWD change '{}' from host.", cwd);
 		}
 	}
 
 	private static String processShellName(String shellName) {
 		var idx = shellName.lastIndexOf('/');
-		if(idx == -1) {
+		if (idx == -1) {
 			idx = shellName.lastIndexOf('\\');
 		}
-		if(idx != -1) {
+		if (idx != -1) {
 			return shellName.substring(idx + 1);
 		}
 		return shellName;

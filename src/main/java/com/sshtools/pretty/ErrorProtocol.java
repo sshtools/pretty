@@ -40,19 +40,21 @@ public class ErrorProtocol implements TerminalProtocol, ResizeListener {
 		var vp = tty.terminal().getViewport();
 		
 		jline = TTY.ttyJLine(vp.getTerminalType().getId(), vp);
-		
-		var reader = LineReaderBuilder.builder().terminal(jline).build();
 		var wtr = jline.writer();
 		wtr.write(Strings.ansiExceptionString(true, exception, message).toAnsi(jline));
 		wtr.println();
 		wtr.println();
 		
 		tty.attached(this);
-		
-		var xstr = Styling.styled(RESOURCES.getString("returnToExit")).toAnsi(jline);
-		reader.readLine(xstr); 
 
 		vp.addResizeListener(this);
+	}
+
+	@Override
+	public void decode() throws Exception {
+		var reader = LineReaderBuilder.builder().terminal(jline).build();
+		var xstr = Styling.styled(RESOURCES.getString("returnToExit")).toAnsi(jline);
+		reader.readLine(xstr); 
 	}
 
 	@Override
@@ -63,7 +65,6 @@ public class ErrorProtocol implements TerminalProtocol, ResizeListener {
 			var viewport = terminal.getViewport();
 			viewport.removeResizeListener(this);
 			viewport.setInput(null);
-			thread.interrupt();
 		}
 		finally {
 			tty.detached(this);
@@ -76,6 +77,7 @@ public class ErrorProtocol implements TerminalProtocol, ResizeListener {
 		if(this.tty != null) {
 			detach();
 		}
+		thread.interrupt();
 	}
 
 	@Override

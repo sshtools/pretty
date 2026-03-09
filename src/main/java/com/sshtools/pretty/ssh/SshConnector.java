@@ -264,7 +264,7 @@ public class SshConnector {
 	public SshClient connect(boolean ignorePassword, boolean disableAgent, boolean ignoreIdentities, Path identityFile,
 			boolean verbose) throws IOException, SshException {
 
-		var sshContext = new SshClientContext(securityLevel.orElse(SecurityLevel.STRONG));
+		var sshContext = new SshClientContext(securityLevel.orElse(SecurityLevel.WEAK));
 //		var term = parent.cli().jline();
 
 		if (securityLevel.isPresent()) {
@@ -297,59 +297,12 @@ public class SshConnector {
 		var bldr = SshClientBuilder.create().withTarget(hostname, port).withUsername(username)
 				.withSshContext(sshContext);
 		var ssh = bldr.build();
-
-		if (!disableAgent) {
-			try {
-				try (var agent = SshAgentClient.connectOpenSSHAgent("Pretty", agentSocket.orElseGet(() -> {
-					try {
-						return SshAgentClient.getEnvironmentSocket();
-					} catch (AgentNotAvailableException e) {
-						throw new IllegalStateException(e);
-					}
-				}))) {
-					if (ssh.authenticate(new ExternalKeyAuthenticator(agent),
-							TimeUnit.SECONDS.toMillis(authenticationTimeout))) {
-						if (verbose)
-							onMessage.ifPresent(c -> c.accept("authenticatedByAgent", null));
-					}
-				} catch (IOException e) {
-					if (agentSocket.isPresent() && verbose) {
-						onError.ifPresent(c -> c.accept("failedToConnectToSshAgent", null));
-					}
-				} catch (AgentNotAvailableException e) {
-					// Purposely ignored
-				}
-			} catch (IllegalStateException e) {
-				if (verbose)
-					onError.ifPresent(c -> c.accept("noAgent", null));
-			}
-		}
-
-		if (!ignoreIdentities && !ssh.isAuthenticated()) {
-			if (!ssh.isConnected()) {
-				ssh = bldr.build();
-			}
-
-			var buf = new StringBuffer();
-			var authenticator = new IdentityFileAuthenticator((keyinfo) -> {
-				if (verbose)
-					onMessage.ifPresent(c -> c.accept("acceptableKey", new Object[] { keyinfo }));
-				var storageServiceName = keyinfo + "@" + hostname + (port == 22 ? "" : ":" + port);
-				var tmp = getCachedSecretOrPrompt(new Key("ssh", username, storageServiceName), RESOURCES.getString("passphrase"));
-				buf.setLength(0);
-				buf.append(storageServiceName);
-				return tmp;
-			});
-			if (!ssh.authenticate(authenticator, TimeUnit.SECONDS.toMillis(authenticationTimeout))) {
-				passwordStorage.ifPresent(ps -> ps.reset(new Key("ssh", username, buf.toString())));
-			}
-		}
-
-		if (!ssh.isAuthenticated() && Objects.nonNull(identityFile)) {
-
+		
+		if (Objects.nonNull(identityFile)) {
+			/* An explicit identity file is specified, so try authenticating with it. */
 			if (!Files.exists(identityFile)) {
 				if (verbose)
-					onError.ifPresent(c -> c.accept("identityFileDoesntExist", null));
+					onError.ifPresent(c -> c.accept(RESOURCES.getString("identityFileDoesntExist"), null));
 			} else {
 				var file = SshPrivateKeyFileFactory.parse(identityFile);
 				String passphrase = null;
@@ -372,6 +325,64 @@ public class SshConnector {
 				}
 			}
 		}
+		
+		if (!ssh.isAuthenticated()) {
+			if (!ssh.isConnected()) {
+				ssh = bldr.build();
+			}
+			
+			if(disableAgent && !ignoreIdentities) {
+				/* Agent is disabled, but identities are not ignored, so try authenticating with identities. */
+				var buf = new StringBuffer();
+				var authenticator = new IdentityFileAuthenticator((keyinfo) -> {
+					return getIdentityPrompt(verbose, buf, keyinfo);
+				});
+				if (!ssh.authenticate(authenticator, TimeUnit.SECONDS.toMillis(authenticationTimeout))) {
+					passwordStorage.ifPresent(ps -> ps.reset(new Key("ssh", username, buf.toString())));
+				}
+			}
+			else if(!disableAgent) {
+				try {
+					try (var agent = SshAgentClient.connectOpenSSHAgent("Pretty", agentSocket.orElseGet(this::getDefaultAgentSocket))) {
+						
+						if(ignoreIdentities) {
+							/* Only use agent */
+							if (ssh.authenticate(new ExternalKeyAuthenticator(agent),
+									TimeUnit.SECONDS.toMillis(authenticationTimeout))) {
+								if (verbose)
+									onMessage.ifPresent(c -> c.accept(RESOURCES.getString("authenticatedByAgent"), null));
+							}
+						} else {
+							/* Use agent first, then identities */
+							var buf = new StringBuffer();
+							var authenticator = new IdentityFileAuthenticatorWithAgentSupport((keyinfo) -> {
+								return getIdentityPrompt(verbose, buf, keyinfo);
+							}, agent);
+							if (ssh.authenticate(authenticator, TimeUnit.SECONDS.toMillis(authenticationTimeout))) {
+								if (verbose)
+									onMessage.ifPresent(c -> c.accept(RESOURCES.getString("authenticatedByAgent"), null));
+							}
+							else {
+								passwordStorage.ifPresent(ps -> ps.reset(new Key("ssh", username, buf.toString())));
+							}
+						}
+						
+					} catch (IOException e) {
+						if (agentSocket.isPresent() && verbose) {
+							onError.ifPresent(c -> c.accept(RESOURCES.getString("failedToConnectToSshAgent"), null));
+						}
+					} catch (AgentNotAvailableException e) {
+						// Purposely ignored
+					}
+					
+					
+				} catch (IllegalStateException e) {
+					if (verbose)
+						onError.ifPresent(c -> c.accept(RESOURCES.getString("noAgent"), null));
+				}
+			}
+		}
+
 
 		if (!ignorePassword) {
 			if (!ssh.isAuthenticated()) {
@@ -397,7 +408,7 @@ public class SshConnector {
 					}
 				} else {
 					if (verbose)
-						onError.ifPresent(c -> c.accept("passwordNotSupported", null));
+						onError.ifPresent(c -> c.accept(RESOURCES.getString("passwordNotSupported"), null));
 				}
 			}
 		}
@@ -411,6 +422,24 @@ public class SshConnector {
 		}
 
 		return ssh;
+	}
+
+	protected String getIdentityPrompt(boolean verbose, StringBuffer buf, String keyinfo) {
+		if (verbose)
+			onMessage.ifPresent(c -> c.accept(RESOURCES.getString("acceptableKey"), new Object[] { keyinfo }));
+		var storageServiceName = keyinfo + "@" + hostname + (port == 22 ? "" : ":" + port);
+		var tmp = getCachedSecretOrPrompt(new Key("ssh", username, storageServiceName), RESOURCES.getString("passphrase"));
+		buf.setLength(0);
+		buf.append(storageServiceName);
+		return tmp;
+	}
+
+	private String getDefaultAgentSocket() {
+		try {
+			return SshAgentClient.getEnvironmentSocket();
+		} catch (AgentNotAvailableException e) {
+			throw new IllegalStateException(e);
+		}
 	}
 
 	private String getCachedSecretOrPrompt(Key key, String prompt) {

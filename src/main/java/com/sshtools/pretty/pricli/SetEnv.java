@@ -11,7 +11,7 @@ import picocli.CommandLine.ParentCommand;
          usageHelpAutoWidth = true, 
          mixinStandardHelpOptions = true, 
          description = "Set an environment variable.")
-public class Set implements Callable<Integer> {
+public class SetEnv implements Callable<Integer> {
 	
 	@Parameters(index = "0", arity="1", paramLabel="KEY", description = "Key")
 	private String key;

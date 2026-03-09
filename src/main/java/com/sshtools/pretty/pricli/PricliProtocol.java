@@ -1,5 +1,6 @@
 package com.sshtools.pretty.pricli;
 
+import java.nio.file.Path;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
@@ -11,11 +12,14 @@ import org.jline.terminal.Terminal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.sshtools.pretty.Actions.On;
 import com.sshtools.pretty.Shells;
 import com.sshtools.pretty.TTY;
+import com.sshtools.pretty.TTYContext;
 import com.sshtools.pretty.TerminalProtocol;
 import com.sshtools.terminal.emulation.TerminalViewport;
 import com.sshtools.terminal.emulation.events.ResizeListener;
+import com.sshtools.terminal.vt.javafx.JavaFXTerminalPanel;
 
 public class PricliProtocol implements TerminalProtocol, ResizeListener {
 	
@@ -27,26 +31,35 @@ public class PricliProtocol implements TerminalProtocol, ResizeListener {
 	private Thread thread;
 	private Terminal jline;
 	private String cmd;
+	private JavaFXTerminalPanel terminal;
+	private final DefaultHistory history;
+	private final Path historyFile;
 	
-	public PricliProtocol(String cmd) {
+	public PricliProtocol(TTYContext ttyContext, String cmd) {
 		this.cmd = cmd;
+		
+		history = new DefaultHistory();
+		historyFile = ttyContext.getContainer().getConfiguration().dir().resolve(cmd == null ? "pricli.history" : cmd.split("\\s=")[0] + ".history");
 	}
 	
 	@Override
-	public void attach(TTY tty) throws Exception {
+	public void attach(TTY tty) {
 		if(this.tty != null)
 			throw new IllegalStateException("Already connected to native console.");
 		
 		this.tty = tty;
 		this.thread = Thread.currentThread();
 		
-		var terminal = tty.terminal();
+		terminal = tty.terminal();
 		var vp = terminal.getViewport();
-		var history = new DefaultHistory();
-		var historyFile = tty.ttyContext().getContainer().getConfiguration().dir().resolve(cmd == null ? "pricli.history" : cmd.split("\\s=")[0] + ".history");
 		
 		jline = TTY.ttyJLine(vp.getTerminalType().getId(), vp);
 		
+		vp.addResizeListener(this);
+	}
+
+	@Override
+	public void decode() throws Exception {
 		var cmd =this.cmd == null || this.cmd.equals(Shells.PRICLI) || this.cmd.equals("") ? null : this.cmd;
 		while(true) {
 			try(var shell = new PricliShell(terminal, jline, tty, tty.ttyContext()) {
@@ -69,7 +82,7 @@ public class PricliProtocol implements TerminalProtocol, ResizeListener {
 				}
 				else {
 					try {
-						var result = shell.execute(cmd);
+						var result = shell.execute(On.CLI, cmd);
 						LOG.info("Command result: {}", result);
 						if(result == null || ( result instanceof Integer iresult  && iresult != 0 ) ) {
 							reader.readLine(Styling.styled(RESOURCES.getString("returnToExit")).toAnsi(jline));
@@ -86,7 +99,6 @@ public class PricliProtocol implements TerminalProtocol, ResizeListener {
 			}
 		}
 		
-		vp.addResizeListener(this);
 	}
 
 	@Override
@@ -97,7 +109,6 @@ public class PricliProtocol implements TerminalProtocol, ResizeListener {
 			var viewport = terminal.getViewport();
 			viewport.removeResizeListener(this);
 			viewport.setInput(null);
-			thread.interrupt();
 		}
 		finally {
 			tty.detached(this);
@@ -110,6 +121,7 @@ public class PricliProtocol implements TerminalProtocol, ResizeListener {
 		if(this.tty != null) {
 			detach();
 		}
+		thread.interrupt();
 	}
 
 	@Override
