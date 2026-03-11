@@ -65,7 +65,7 @@
   </files>
   <launchers>
     <launcher name="pretty" id="52" menuName="Push SFTP GUI" addMacApplicationCategory="true" macApplicationCategory="public.app-category.utilities" useCustomMacosExecutableName="true" customMacosExecutableName="Pretty">
-      <executable name="pretty" iconSet="true" executableDir="." stderrFile="${installer:sys.userHome}/.pretty/pretty.log" redirectStdout="true" stdoutFile="${installer:sys.userHome}/.pretty/pretty.log" executableMode="gui" singleInstance="true" />
+      <executable name="pretty" iconSet="true" executableDir="." stderrFile="${installer:sys.localAppdataDir}/pretty/pretty.log" redirectStdout="true" stdoutFile="${installer:sys.localAppdataDir}/pretty/pretty.log" executableMode="gui" singleInstance="true" />
       <java mainClass="com.sshtools.pretty/com.sshtools.pretty.Pretty" mainMode="module" vmParameters="-Dinstall4j.installationDir=${launcher:sys.launcherDirectory}  --enable-native-access=com.sshtools.pty4j  --enable-native-access=javafx.media --enable-native-access=javafx.graphics --enable-native-access=com.install4j.runtime --enable-native-access=org.cryptomator.jfuse.linux.amd64">
         <modulePath>
           <directory location="lib" failOnError="false" />
@@ -150,20 +150,7 @@ Comment=Terminal emulator with built in SSH and Serial support </desktopFile>
           <property name="useCustomIcon" type="boolean" value="true" />
         </serializedBean>
         <startup>
-          <screen id="1" beanClass="com.install4j.runtime.beans.screens.StartupScreen" rollbackBarrierExitCode="0">
-            <actions>
-              <action id="22" beanClass="com.install4j.runtime.beans.actions.misc.RequestPrivilegesAction" actionElevationType="none" rollbackBarrierExitCode="0">
-                <serializedBean>
-                  <property name="failIfNotObtainedMac" type="boolean" value="false" />
-                  <property name="failIfNotObtainedWin" type="boolean" value="false" />
-                  <property name="linuxPrivilegeRequirement" type="enum" class="com.install4j.runtime.beans.actions.misc.PrivilegeRequirement" value="OBTAIN" />
-                  <property name="obtainIfAdminMac" type="boolean" value="true" />
-                  <property name="obtainIfNormalMac" type="boolean" value="true" />
-                  <property name="obtainIfNormalWin" type="boolean" value="true" />
-                </serializedBean>
-              </action>
-            </actions>
-          </screen>
+          <screen id="1" beanClass="com.install4j.runtime.beans.screens.StartupScreen" rollbackBarrierExitCode="0" />
         </startup>
         <screens>
           <screen id="2" beanClass="com.install4j.runtime.beans.screens.WelcomeScreen" styleId="7" rollbackBarrierExitCode="0">
@@ -291,7 +278,7 @@ return console.askOkCancel(message, true);
                 </serializedBean>
                 <condition>!context.getBooleanVariable("sys.programGroupDisabled")</condition>
               </action>
-              <action id="149" beanClass="com.sshtools.jaul.RegisterJaulAppAction" actionElevationType="elevated" rollbackBarrierExitCode="0">
+              <action id="149" beanClass="com.sshtools.jaul.RegisterJaulAppAction" rollbackBarrierExitCode="0">
                 <serializedBean>
                   <property name="appCategory" type="enum" class="com.sshtools.jaul.AppCategory" value="GUI" />
                 </serializedBean>

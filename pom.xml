@@ -958,8 +958,8 @@
 									<outputDirectory>
 										${project.build.directory}/dependencies/common</outputDirectory>
 									<stripVersion>true</stripVersion>
-									<excludeClassifiers>
-										linux,mac,win,linux-aarch64,jpms</excludeClassifiers>
+									<excludeClassifiers>linux,mac,win,linux-aarch64,jpms</excludeClassifiers>
+									<excludeArtifacts>jfuse-win,jfuse-mac,jfuse-linux-amd64,jfuse-linux-aarch64</excludeArtifacts>
 								</configuration>
 							</execution>
 							<execution>
@@ -1002,6 +1002,11 @@
 											<artifactId>javafx-media</artifactId>
 											<version>${javafx.version}</version>
 											<classifier>win</classifier>
+										</artifactItem>
+										<artifactItem>
+										    <groupId>org.cryptomator</groupId>
+										    <artifactId>jfuse-win</artifactId>
+										    <version>${jfuse.version}</version>
 										</artifactItem>
 									</artifactItems>
 								</configuration>
@@ -1047,6 +1052,11 @@
 											<version>${javafx.version}</version>
 											<classifier>mac</classifier>
 										</artifactItem>
+										<artifactItem>
+										    <groupId>org.cryptomator</groupId>
+										    <artifactId>jfuse-mac</artifactId>
+										    <version>${jfuse.version}</version>
+										</artifactItem>
 									</artifactItems>
 								</configuration>
 							</execution>
@@ -1090,6 +1100,11 @@
 											<artifactId>javafx-media</artifactId>
 											<version>${javafx.version}</version>
 											<classifier>mac-aarch64</classifier>
+										</artifactItem>
+										<artifactItem>
+										    <groupId>org.cryptomator</groupId>
+										    <artifactId>jfuse-win</artifactId>
+										    <version>${jfuse.version}</version>
 										</artifactItem>
 									</artifactItems>
 								</configuration>
@@ -1135,6 +1150,11 @@
 											<version>${javafx.version}</version>
 											<classifier>linux</classifier>
 										</artifactItem>
+										<artifactItem>
+										    <groupId>org.cryptomator</groupId>
+										    <artifactId>jfuse-linux-amd64</artifactId>
+										    <version>${jfuse.version}</version>
+										</artifactItem>
 									</artifactItems>
 								</configuration>
 							</execution>
@@ -1178,6 +1198,11 @@
 											<artifactId>javafx-media</artifactId>
 											<version>${javafx.linux.aarch64.version}</version>
 											<classifier>linux-aarch64</classifier>
+										</artifactItem>
+										<artifactItem>
+										    <groupId>org.cryptomator</groupId>
+										    <artifactId>jfuse-linux-aarch64</artifactId>
+										    <version>${jfuse.version}</version>
 										</artifactItem>
 									</artifactItems>
 								</configuration>
