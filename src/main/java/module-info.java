@@ -42,6 +42,7 @@ open module com.sshtools.pretty {
 	requires java.scripting;
 	requires java.keyring;
 	requires com.gluonhq.emoji;
+	requires com.gluonhq.emoji.offline;
 	requires transitive com.sshtools.jajafx.updateable;
 	requires com.sshtools.terminal.fonts;
 	
