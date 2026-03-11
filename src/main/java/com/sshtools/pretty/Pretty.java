@@ -84,7 +84,7 @@ public class Pretty extends UpdateableJajaApp<PrettyApp, PrettyAppWindow> {
 	public static void main(String[] args) {
 		var bldr = PrettyBuilder.create().withInceptionYear(2023).withApp(PrettyApp.class)
 				.withAppResources(Pretty.RESOURCES);
-		System.exit(new CommandLine(bldr.build()).execute(args));
+		System.exit(new CommandLine(bldr.build()).setCaseInsensitiveEnumValuesAllowed(true).execute(args));
 	}
 
 	Pretty(PrettyBuilder builder) {

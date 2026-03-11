@@ -23,6 +23,7 @@ import com.sshtools.client.PrivateKeyFileAuthenticator;
 import com.sshtools.client.SshClient;
 import com.sshtools.client.SshClient.SshClientBuilder;
 import com.sshtools.client.SshClientContext;
+import com.sshtools.common.forwarding.ForwardingPolicy;
 import com.sshtools.common.knownhosts.HostKeyVerification;
 import com.sshtools.common.knownhosts.KnownHostsFile;
 import com.sshtools.common.publickey.SshPrivateKeyFileFactory;
@@ -293,6 +294,10 @@ public class SshConnector {
 			sshContext.setPreferredPublicKey(publicKeyAlgortithm.get());
 		}
 		sshContext.setHostKeyVerification(hkv);
+		
+		sshContext.setPolicy(ForwardingPolicy.ForwardingPolicyBuilder.create().
+				allowAll().
+				build());
 
 		var bldr = SshClientBuilder.create().withTarget(hostname, port).withUsername(username)
 				.withSshContext(sshContext);

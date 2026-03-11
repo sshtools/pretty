@@ -146,6 +146,7 @@ public class PrettyApp extends UpdateableJajaFXApp<Pretty, PrettyAppWindow> impl
 	@Override
 	public void startupPerformed(String parameters) {
 		var cmdline = new CommandLine(new RemoteCommand(appContext));
+		cmdline.setCaseInsensitiveEnumValuesAllowed(true);
 		cmdline.execute(Strings.parseQuotedString(parameters).toArray(new String[0]));
 //		
 	}

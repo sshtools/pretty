@@ -1,10 +1,12 @@
 package com.sshtools.pretty;
 
+import java.util.List;
 import java.util.function.Supplier;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.sshtools.pretty.Actions.Action;
 import com.sshtools.pretty.Actions.ActionGroup;
 import com.sshtools.pretty.Actions.On;
 import com.sshtools.pretty.pricli.PricliShell;
@@ -36,7 +38,7 @@ public class ActionsContextMenu extends ContextMenu  {
 	private void rebuild() {
 		ActionGroup grp = null;
 		getItems().clear();
-		for(var act : actions.actions()) {
+		for(var act : actions()) {
 			
 			if(!act.on(on))  
 				continue;
@@ -64,6 +66,10 @@ public class ActionsContextMenu extends ContextMenu  {
 			getItems().add(item);
 		}
 		onRebuild();
+	}
+
+	protected List<Action> actions() {
+		return actions.actions();
 	}
 	
 	protected void onRebuild() {

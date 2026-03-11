@@ -1,5 +1,6 @@
 
 import com.sshtools.pretty.uri.DocumentURIProcessor;
+import com.sshtools.pretty.uri.MountURIProcessor;
 import com.sshtools.pretty.uri.URIProcessor;
 open module com.sshtools.pretty {
 	exports com.sshtools.pretty;
@@ -42,8 +43,9 @@ open module com.sshtools.pretty {
 	requires java.keyring;
 	requires com.gluonhq.emoji;
 	requires transitive com.sshtools.jajafx.updateable;
+	requires com.sshtools.terminal.fonts;
 	
 	uses URIProcessor;
 	
-	provides URIProcessor with DocumentURIProcessor;
+	provides URIProcessor with DocumentURIProcessor, MountURIProcessor;
 }

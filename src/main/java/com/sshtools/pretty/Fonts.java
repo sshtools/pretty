@@ -17,6 +17,7 @@ import com.sshtools.terminal.emulation.UIToolkit;
 import com.sshtools.terminal.emulation.fonts.FontManager;
 import com.sshtools.terminal.emulation.fonts.FontManager.ManagedFont;
 //import com.sshtools.terminal.fonts.TrueTypeFonts;
+import com.sshtools.terminal.fonts.Emoji;
 
 import javafx.scene.text.Font;
 
@@ -41,6 +42,7 @@ public class Fonts extends AbstractINISetSystem  {
 				build();
 		
 		new EmojiSupport(fontManager);
+		fontManager.addSoftFont("NotoSansEmoji", Emoji.emojiFont());
 		
 //		trueTypeFonts = new TrueTypeFonts<>(fontManager, uiToolkit);
 		

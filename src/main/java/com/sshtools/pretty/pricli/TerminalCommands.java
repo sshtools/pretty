@@ -12,7 +12,7 @@ import picocli.CommandLine.Command;
 
 @Command(name = "terminal", description = "Commands to manipulate or query the terminal", subcommands = {
 		SelectAll.class, Scroll.class, ClearTerminal.class, Reset.class, Copy.class, Paste.class, Themes.class,
-		Record.class, Stop.class, Tab.class })
+		Record.class, Stop.class, Tab.class, Open.class })
 public final class TerminalCommands extends AbstractRootCommand {
 	public enum TerminalViewportType {
 		TERMINAL, CLI

@@ -256,6 +256,7 @@ public abstract class PricliShell implements Closeable {
 
 		var cmd = new CommandLine(command, factory);
 		cmd.setTrimQuotes(true);
+		cmd.setCaseInsensitiveEnumValuesAllowed(true);
 		cmd.setExecutionExceptionHandler(exceptionHandler);
 		cmd.setOut(wtr);
 		cmd.setErr(wtr);

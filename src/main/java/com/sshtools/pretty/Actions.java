@@ -33,7 +33,16 @@ public class Actions extends AbstractINISetSystem {
 		COMMAND
 	}
 	
-	public static record Action(ActionGroup group, ActionType type, String id, String name, String description, String commandName, KeyCombination accelerator, On[] on, String... args) {
+	public static record Action(
+			ActionGroup group, 
+			ActionType type, 
+			String id, 
+			String name, 
+			String description, 
+			String commandName, 
+			KeyCombination accelerator, 
+			On[] on, 
+			String... args) {
 
 		public String label() {
 			return label(RESOURCES);

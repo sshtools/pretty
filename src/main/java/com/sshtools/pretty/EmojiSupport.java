@@ -1,5 +1,6 @@
 package com.sshtools.pretty;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,7 +23,9 @@ public class EmojiSupport implements SoftFont {
 	
 	private final static Logger LOG = LoggerFactory.getLogger(EmojiSupport.class);
 
-	private Image image;
+	private final  Image image;
+	private Optional<Emoji> lastEmoji = Optional.empty();
+	private int[] lastEmojiCodepoints = new int[0];
 
 	public EmojiSupport(FontManager<Font> fontManager) {
 		fontManager.addSoftFont("Emoji", this);
@@ -75,15 +78,24 @@ public class EmojiSupport implements SoftFont {
 	}
 
 	private Optional<Emoji> emoji(int... c) {
-		/* TODO the big one .. unicode sequences .. idk how tf thats going to work! */
+		if(Arrays.equals(c, lastEmojiCodepoints)) {
+			return lastEmoji;
+		}
+		
+		Optional<Emoji> res;
 		if(c.length == 1) {
-			var res = EmojiData.emojiFromCodepoints(Integer.toHexString(c[0]));
+			res = EmojiData.emojiFromCodepoints(Integer.toHexString(c[0]));
 			if(LOG.isTraceEnabled()) {
 				LOG.trace("Lookup of " + c[0] + " (" + (char)c[0] + ") = " + res.isPresent());
 			}
 			return res;
-		} else
-			return Optional.empty();
+		} else {
+			/* TODO the big one .. unicode sequences .. idk how tf thats going to work! */
+			res = Optional.empty();
+		}
+		lastEmojiCodepoints = c;
+		lastEmoji = res;
+		return res;
 	}
 
 	@Override

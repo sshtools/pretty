@@ -7,7 +7,6 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UncheckedIOException;
-import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -24,6 +23,7 @@ import java.util.Stack;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import org.jline.terminal.Size;
 import org.jline.terminal.Terminal;
@@ -33,18 +33,19 @@ import org.slf4j.LoggerFactory;
 
 import com.sshtools.jajafx.FXUtil;
 import com.sshtools.jini.Data.Handle;
+import com.sshtools.pretty.Actions.Action;
 import com.sshtools.pretty.Actions.On;
 import com.sshtools.pretty.Shells.Shell;
 import com.sshtools.pretty.Shells.ShellType;
 import com.sshtools.pretty.pricli.PricliPopup;
 import com.sshtools.pretty.pricli.PricliProtocol;
+import com.sshtools.pretty.uri.URIManager;
 import com.sshtools.terminal.emulation.CursorStyle;
 import com.sshtools.terminal.emulation.Feature;
 import com.sshtools.terminal.emulation.ResizeStrategy;
 import com.sshtools.terminal.emulation.TerminalInputStream;
 import com.sshtools.terminal.emulation.TerminalOutputStream;
 import com.sshtools.terminal.emulation.TerminalViewport;
-import com.sshtools.terminal.emulation.URIHandler;
 import com.sshtools.terminal.emulation.buffer.FixedSizeInMemoryBufferData;
 import com.sshtools.terminal.emulation.buffer.ScrollBackBufferData.Mode;
 import com.sshtools.terminal.emulation.emulator.DECEmulator;
@@ -70,8 +71,6 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Label;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DataFormat;
@@ -174,7 +173,6 @@ public class TTY extends StackPane implements Closeable {
 	private Transition resizeFade;
 	private Path cwd;
 	private Label overlayInfo;
-	private URI copiedUri;
 	private DECEmulator<JavaFXTerminalPanel> statusEmulator;
 	private JavaFXURIFinder uriFinder;
 
@@ -205,30 +203,16 @@ public class TTY extends StackPane implements Closeable {
 		/* Emulator */
 		var sz = getConfiguredSize();
 		var emulator = new DECEmulator<JavaFXTerminalPanel>(XTERM256Color.ID, sz[0], sz[1]);
+		
+		/* URI manager */
+		var uriManager = new URIManager(ttyContext);
 
 		/* Create and configure terminal */
 		terminalPanel = new JavaFXTerminalPanel.Builder().withAudioSystem(new TTYAudioSystem(this))
 				.withUiToolkit(ttyContext.getContainer().getUiToolkit())
 				.withFontManager(ttyContext.getContainer().getFonts().getFontManager()).withBuffer(emulator).build();
 
-		uriFinder = new JavaFXURIFinder(terminalPanel, new URIHandler() {
-
-			@Override
-			public boolean clicked(URI uri, int button) throws Exception {
-				System.out.println("URI clicked: " + uri + " with button " + button);
-				if (button == 1) {
-					ttyContext.getContainer().getHostServices().showDocument(uri.toString());
-					return true;
-				}
-				return false;
-			}
-
-			@Override
-			public boolean pressed(URI uri, int button) {
-				copiedUri = uri;
-				return false;
-			}
-		});
+		uriFinder = new JavaFXURIFinder(terminalPanel, uriManager);
 
 		terminalPanel.getViewport().addViewportListener(new ViewportListener() {
 			@Override
@@ -277,24 +261,11 @@ public class TTY extends StackPane implements Closeable {
 				new ActionsContextMenu(On.CONTEXT, ttyContext.getContainer().getActions(), () -> cli().shell()) {
 
 					@Override
-					protected void onRebuild() {
-						var openUri = TTY.this.copiedUri;
-						if (openUri != null) {
-							var mi = new MenuItem(RESOURCES.getString("copyUri"));
-							mi.setOnAction(evt -> {
-								var content = new ClipboardContent();
-								content.putString(openUri.toString());
-								setClipboard(content);
-							});
-
-							var ol = new MenuItem(RESOURCES.getString("openUri"));
-							ol.setOnAction(evt -> {
-								ttyContext.getContainer().getHostServices().showDocument(openUri.toString());
-							});
-
-							getItems().addAll(0, Arrays.asList(mi, ol, new SeparatorMenuItem()));
-							copiedUri = null;
-						}
+					protected List<Action> actions() {
+						return Stream.concat(
+							uriManager.actions().stream(),
+							super.actions().stream()
+						).toList();
 					}
 
 				}, () -> cli().shell(), On.TTY);
