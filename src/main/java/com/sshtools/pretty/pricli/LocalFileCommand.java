@@ -8,6 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 
@@ -18,6 +19,8 @@ import com.sshtools.pretty.Configuration;
 import me.tongfei.progressbar.ConsoleProgressBarConsumer;
 import me.tongfei.progressbar.InteractiveConsoleProgressBarConsumer;
 import me.tongfei.progressbar.ProgressBar;
+import me.tongfei.progressbar.ProgressBarBuilder;
+import me.tongfei.progressbar.ProgressBarStyle;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.ParentCommand;
 
@@ -78,14 +81,18 @@ public abstract class LocalFileCommand implements Callable<Integer> {
 			return l.get(0);
 	}
 
-	protected Path[] expandLocalArray(Path[] paths) throws IOException {
+	protected List<Path> expandLocalList(Path... paths) throws IOException {
 		var l = new ArrayList<Path>();
 		for (var path : paths) {
 			expandLocalAndDo((fp) -> {
 				l.add(fp);
 			}, true, path);
 		}
-		return l.toArray(new Path[0]);
+		return l;
+	}
+
+	protected Path[] expandLocalArray(Path... paths) throws IOException {
+		return expandLocalList(paths).toArray(new Path[0]);
 	}
 
 	protected void expandLocalAndDo(PathOp op, boolean recurse, Path... paths) throws IOException {
@@ -166,7 +173,10 @@ public abstract class LocalFileCommand implements Callable<Integer> {
 			@Override
 			public void started(long bytesTotal, String file) {
 				this.file = FileUtils.getFilename(file);
-				progress.setExtraMessage(MessageFormat.format(messagePattern, this.file));
+				progress.maxHint(bytesTotal);
+				if(messagePattern != null && !messagePattern.isEmpty()) {
+					progress.setExtraMessage(MessageFormat.format(messagePattern, this.file));
+				}
 			}
 
 			@Override
@@ -179,6 +189,16 @@ public abstract class LocalFileCommand implements Callable<Integer> {
 				progress.stepTo(bytesSoFar);
 			}
 		};
+	}
+
+	protected ProgressBarBuilder progressBarBuilder(String taskName, String unitName, long unitSize) {
+		return new ProgressBarBuilder().showSpeed().setTaskName(taskName)
+				.setConsumer(createConsoleConsumer()).setUnit(unitName, unitSize)
+				.setStyle(ProgressBarStyle.COLORFUL_UNICODE_BAR);
+	}
+
+	protected ProgressBarBuilder progressBarBuilder(String taskName) {
+		return progressBarBuilder(taskName, "MiB", 1048576);
 	}
 
 	protected ConsoleProgressBarConsumer createConsoleConsumer() {

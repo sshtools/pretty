@@ -64,12 +64,6 @@ public abstract class SftpCommand extends LocalFileCommand {
 		}
 	}
 
-	protected ProgressBarBuilder progressBarBuilder(String taskName) {
-		return new ProgressBarBuilder().showSpeed().setTaskName(taskName)
-				.setConsumer(createConsoleConsumer()).setUnit("MiB", 1048576)
-				.setStyle(ProgressBarStyle.COLORFUL_UNICODE_BAR);
-	}
-
 	protected String expandRemoteSingle(String path) throws SshException, SftpStatusException, IOException, PermissionDeniedException {
 		var l = new ArrayList<String>();
 		expandRemoteAndDo((fp) -> {

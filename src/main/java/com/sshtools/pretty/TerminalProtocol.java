@@ -21,5 +21,9 @@ public interface TerminalProtocol extends Closeable {
 	boolean isAttached();
 
 	void cwd(String cwd);
+	
+	default void send(byte[] data, int off, int len) {
+		throw new UnsupportedOperationException("This protocol does not support sending data.");
+	}
 
 }

@@ -1,4 +1,4 @@
-package com.sshtools.pretty.pricli;
+package com.sshtools.pretty.pricli.serial;
 
 import static javafx.application.Platform.runLater;
 
@@ -13,7 +13,10 @@ import org.jline.utils.AttributedStyle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.sshtools.pretty.SerialProtocol;
+import com.sshtools.pretty.Constants;
+import com.sshtools.pretty.pricli.ConnectionCommands;
+import com.sshtools.pretty.pricli.Styling;
+import com.sshtools.pretty.serial.SerialProtocol;
 
 import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Command;
@@ -21,6 +24,7 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 import picocli.CommandLine.ParentCommand;
 import purejavacomm.CommPortIdentifier;
+import purejavacomm.NoSuchPortException;
 import purejavacomm.SerialPort;
 import purejavacomm.UnsupportedCommOperationException;
 
@@ -229,6 +233,7 @@ public class Serial implements Callable<Integer> {
 							.println(parent.cli().jline()),
 					() -> Styling.styled(RESOURCES.getString("inactive")).println(parent.cli().jline()));
 		}
+		
 		return 0;
 	}
 
@@ -262,7 +267,7 @@ public class Serial implements Callable<Integer> {
 	}
 
 	@Command(name = "ports", aliases = {
-			"ps" }, usageHelpAutoWidth = true, description = "List available and in use ports.")
+			"ps", "ls", "list" }, usageHelpAutoWidth = true, description = "List available and in use ports.")
 	public final static class Ports implements Callable<Integer> {
 		
 		public final static class PortOptions {
@@ -349,12 +354,13 @@ public class Serial implements Callable<Integer> {
 		@Option(names = {"--dtr", "-d" }, paramLabel = "BOOLEAN",  description = "Set or unset DTR if supported.", negatable = true)
 		private Optional<Boolean> dtr;
 		
-		@Parameters(index = "0", arity = "0..1", paramLabel = "PORT", description = "The serial port to configure. Omit to use currently active port. Use 'ports' sub-command to list ports.")
-		private Optional<String> port;
-
+		@Option(names = {"-N", "--nosave" }, paramLabel = "BOOLEAN",  description = "Do not save any configuration permanently.")
+		private boolean noSave;
+		
 		@Override
 		public Integer call() throws Exception {
 			SerialPort portToConfigure;
+			var port = parent.port;
 			if(port.isPresent()) {
 				var portId = CommPortIdentifier.getPortIdentifier(port.get());
 				if(portId.isCurrentlyOwned()) {
@@ -387,37 +393,74 @@ public class Serial implements Callable<Integer> {
 		}
 		
 		protected void configurePort(SerialPort serialPort) throws UnsupportedCommOperationException {
-			if(baudRate.isPresent() || dataBits.isPresent() || stopBits.isPresent() || parity.isPresent()) {
-				serialPort.setSerialPortParams(
-						baudRate.orElseGet(serialPort::getBaudRate), 
-						dataBits.map(db -> db.toValue()).orElseGet(serialPort::getDataBits), 
-						stopBits.map(sb -> sb.toValue()).orElseGet(serialPort::getStopBits),
-						parity.map(sb -> sb.toValue()).orElseGet(serialPort::getParity) 
-				);
-			}
+			var config = parent.parent.tty().ttyContext().getContainer().getConfiguration().port(serialPort.getName());
+			
+			serialPort.setSerialPortParams(
+				baudRate.orElseGet(() -> config.getInt(Constants.BAUD_RATE_KEY)), 
+				dataBits.map(db -> db.toValue()).orElseGet(() -> config.getEnum(DataBits.class, Constants.DATA_BITS_KEY).toValue()), 
+				stopBits.map(sb -> sb.toValue()).orElseGet(() -> config.getEnum(StopBits.class, Constants.STOP_BITS_KEY).toValue()),
+				parity.map(sb -> sb.toValue()).orElseGet(() -> config.getEnum(Parity.class, Constants.PARITY_KEY).toValue()) 
+			);
 
 			var currentFlow = serialPort.getFlowControlMode();
 			var flow = currentFlow;
+			
 			if(flowIn.isPresent()) {
 				flow = ( flow & 0x03 ) | flowIn.get().toValue();
 			}
+			else {
+				flow = ( flow & 0x03 ) | config.getEnum(FlowControl.class, Constants.FLOW_IN_KEY).toValue();
+			}
+			
 			if(flowOut .isPresent()) {
 				flow = ( flow & 0x0C ) | ( flowOut.get().toValue() << 1 );
 			}
+			else {
+				flow = ( flow & 0x0C ) | ( config.getEnum(FlowControl.class, Constants.FLOW_OUT_KEY).toValue() << 1 );
+			}
+			
 			if(flow != currentFlow) {
 				serialPort.setFlowControlMode(flow);
 			}
+			
 			if(inBufferSize.isPresent()) {
 				serialPort.setInputBufferSize(inBufferSize.get());
 			}
+			else {
+				serialPort.setInputBufferSize(config.getInt(Constants.IN_BUFFER_SIZE_KEY));
+			}
+			
 			if(outBufferSize.isPresent()) {
 				serialPort.setOutputBufferSize(outBufferSize.get());
 			}
-			if(rts.isPresent()) {
-				serialPort.setRTS(rts.get());
+			else {
+				serialPort.setOutputBufferSize(config.getInt(Constants.OUT_BUFFER_SIZE_KEY));
 			}
+			
+			if (rts.isPresent()) {
+				serialPort.setRTS(rts.get());
+			} else {
+				serialPort.setRTS(config.getBoolean(Constants.DTR_KEY, serialPort.isRTS()));
+			}
+
 			if(dtr.isPresent()) {
-				serialPort.setRTS(dtr.get());
+				serialPort.setDTR(dtr.get());
+			}
+			else {
+				serialPort.setDTR(config.getBoolean(Constants.DTR_KEY, serialPort.isDTR()));
+			}
+			
+			if(!noSave) {
+				config.put(Constants.BAUD_RATE_KEY, serialPort.getBaudRate());
+				config.putEnum(Constants.DATA_BITS_KEY, DataBits.fromValue(serialPort.getDataBits()));
+				config.putEnum(Constants.STOP_BITS_KEY, StopBits.fromValue(serialPort.getStopBits()));
+				config.putEnum(Constants.PARITY_KEY, Parity.fromValue(serialPort.getParity()));
+				config.putEnum(Constants.FLOW_IN_KEY, FlowControl.fromValue(serialPort.getFlowControlMode())[0]);
+				config.putEnum(Constants.FLOW_OUT_KEY, FlowControl.fromValue(serialPort.getFlowControlMode())[1]);
+				config.put(Constants.IN_BUFFER_SIZE_KEY, serialPort.getInputBufferSize());
+				config.put(Constants.OUT_BUFFER_SIZE_KEY, serialPort.getOutputBufferSize());
+				config.put(Constants.RTS_KEY, serialPort.isRTS());
+				config.put(Constants.DTR_KEY, serialPort.isDTR());				
 			}
 		}
 
@@ -436,8 +479,8 @@ public class Serial implements Callable<Integer> {
 		@Option(names = {"-H", "--no-pop"}, paramLabel = "NUMBER", description="Do not automatically return to the terminal on successful connection.")
 		private boolean noPop;
 
-		@Parameters(index = "0", arity = "1", paramLabel = "PORT", description = "The serial port to connect. Use 'ports' sub-command to list ports.")
-		private String port;
+		@Parameters(index = "0", arity = "0..1", paramLabel = "PORT", description = "The serial port to connect. Use 'ports' sub-command to list ports. If not supplied, first port found is used.")
+		private Optional<String> port;
 
 		@Override
 		public Integer call() throws Exception {
@@ -455,7 +498,21 @@ public class Serial implements Callable<Integer> {
 			}
 			
 			try {
-				var portId = CommPortIdentifier.getPortIdentifier(port);
+				LOG.info("Connecting to {} with timeout {} seconds.", port, timeout.orElse(60));
+				var portId = port.map((p) -> {
+					try {
+						return CommPortIdentifier.getPortIdentifier(p);
+					} catch (NoSuchPortException e) {
+						throw new IllegalStateException(MessageFormat.format(RESOURCES.getString("noSuchPort"), p), e);
+					}
+				}).orElseGet(() -> {
+					var en = CommPortIdentifier.getPortIdentifiers();
+					if (en.hasMoreElements()) {
+						return (CommPortIdentifier) en.nextElement();
+					} else {
+						throw new IllegalStateException(RESOURCES.getString("noPorts"));
+					}
+				});
 				if(portId.isCurrentlyOwned()) {
 					throw new IllegalStateException(MessageFormat.format(RESOURCES.getString("inUse"), port, portId.getCurrentOwner()));
 				}
@@ -470,9 +527,14 @@ public class Serial implements Callable<Integer> {
 						runLater(parent.parent.cli()::close);
 					}
 	
-					new Thread(() -> {
+					if (parent.parent.cli().isInteractive()) {
+						new Thread(() -> {
+							parent.parent.tty().protocol(proto);
+						}, "Serial-" + counter.getAndIncrement()).start();
+					}
+					else {
 						parent.parent.tty().protocol(proto);
-					}, "Serial-" + counter.getAndIncrement()).start();
+					}
 				}
 				catch(Exception e) {
 					try {
@@ -496,7 +558,7 @@ public class Serial implements Callable<Integer> {
 	}
 
 	@Command(name = "disconnect", aliases = {
-			"d" }, usageHelpAutoWidth = true, description = "Disconnect from serial port.")
+			"d", "dc" }, usageHelpAutoWidth = true, description = "Disconnect from serial port.")
 	public final static class Disconnect implements Callable<Integer> {
 		
 		@ParentCommand

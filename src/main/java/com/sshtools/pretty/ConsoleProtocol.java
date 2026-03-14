@@ -188,6 +188,8 @@ public class ConsoleProtocol implements TerminalProtocol, ResizeListener, Elemen
 			throw new IllegalStateException("Already connected to native console.");
 
 		this.tty = tty;
+		
+		LOG.info("Attaching console protocol");
 
 		thread = Thread.currentThread();
 
@@ -251,9 +253,7 @@ public class ConsoleProtocol implements TerminalProtocol, ResizeListener, Elemen
 		viewport.addResizeListener(this);
 
 		// Direct terminal input back to pty
-		viewport.setInput((data, offset, len) -> {
-			pty.getOutputStream().write(data, offset, len);
-		});
+		viewport.setInput(this::send);
 
 		tty.attached(this);
 		viewport.enqueue(() -> {
@@ -295,6 +295,15 @@ public class ConsoleProtocol implements TerminalProtocol, ResizeListener, Elemen
 		} catch (Exception e) {
 			LOG.error("Protocol failed.", e);
 			throw new IllegalStateException(e);
+		}
+	}
+
+	@Override
+	public void send(byte[] data, int offset, int len) {
+		try {
+			pty.getOutputStream().write(data, offset, len);
+		} catch (IOException e) {
+			throw new UncheckedIOException(e);
 		}
 	}
 

@@ -1,7 +1,10 @@
 package com.sshtools.pretty.pricli;
 
+import java.io.InterruptedIOException;
+import java.io.UncheckedIOException;
 import java.net.UnknownHostException;
 import java.text.MessageFormat;
+import java.util.ResourceBundle;
 import java.util.function.Supplier;
 
 import org.jline.reader.EndOfFileException;
@@ -17,8 +20,13 @@ import picocli.CommandLine;
 import picocli.CommandLine.IExecutionExceptionHandler;
 import picocli.CommandLine.ParseResult;
 
+/**
+ * Captures exceptions thrown by command handlers and prints them to the
+ * terminal in a user-friendly way.
+ */
 public class ExceptionHandler implements IExecutionExceptionHandler {
 	static Logger LOG = LoggerFactory.getLogger(TTY.class);
+	final static ResourceBundle RESOURCES = ResourceBundle.getBundle(ExceptionHandler.class.getName());
 	
 	private final Terminal terminal;
 	private final Supplier<Boolean> verboseExceptions;
@@ -33,15 +41,24 @@ public class ExceptionHandler implements IExecutionExceptionHandler {
 			throws Exception {
 		LOG.error("User target exception.", ex);
 		var msg = ex.getMessage() == null ? "An unknown error occured." : ex.getMessage();
-		if(ex instanceof EndOfFileException) {
-			msg = MessageFormat.format("Session ended unexpectedly.", ex.getMessage());
+		if (ex instanceof IllegalStateException ise && ise.getCause() != null
+				&& ise.getCause() instanceof Exception exe) {
+			ex = exe;
+		} else if (ex instanceof UncheckedIOException ise && ise.getCause() != null) {
+			ex = ise.getCause();
 		}
-		else if(ex instanceof UnknownHostException) {
-			msg = MessageFormat.format("Could not resolve hostname {0}: Name or service not known.", ex.getMessage());
+
+		if (ex instanceof EndOfFileException) {
+			msg = MessageFormat.format(RESOURCES.getString("endOfFileException"),
+					ex.getMessage() == null ? "" : ex.getMessage());
+		} else if (ex instanceof UnknownHostException) {
+			msg = MessageFormat.format(RESOURCES.getString("unknownHostException"),
+					ex.getMessage() == null ? "" : ex.getMessage());
+		} else if (ex instanceof UserInterruptException || ex instanceof InterruptedIOException) {
+			msg = MessageFormat.format(RESOURCES.getString("userInterruptException"),
+					ex.getMessage() == null ? "" : ex.getMessage());
 		}
-		else if(ex instanceof UserInterruptException) {
-			msg = MessageFormat.format("User interrupted the action.", ex.getMessage());
-		}
+
 		printExceptionAndMessage(ex, msg);
 		return 1;
 	}

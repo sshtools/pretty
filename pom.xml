@@ -345,17 +345,17 @@
 		<dependency>
 			<groupId>com.sshtools</groupId>
 			<artifactId>jini-lib</artifactId>
-			<version>0.6.8</version> 
+			<version>0.6.9</version> 
 		</dependency>
 		<dependency>
 			<groupId>com.sshtools</groupId>
 			<artifactId>jini-schema</artifactId>
-			<version>0.6.8</version> 
+			<version>0.6.9</version> 
 		</dependency>
 		<dependency>
 			<groupId>com.sshtools</groupId>
 			<artifactId>jini-config</artifactId>
-			<version>0.6.8</version> 
+			<version>0.6.9</version> 
 		</dependency>
 		<dependency>
 			<groupId>org.jline</groupId>
@@ -425,6 +425,18 @@
 		<dependency>
 			<groupId>com.sshtools</groupId>
 			<artifactId>terminal-fonts</artifactId>
+			<version>4.0.0-SNAPSHOT</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-api</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		 
+		<dependency>
+			<groupId>com.sshtools</groupId>
+			<artifactId>terminal-xyzmodem</artifactId>
 			<version>4.0.0-SNAPSHOT</version>
 			<exclusions>
 				<exclusion>

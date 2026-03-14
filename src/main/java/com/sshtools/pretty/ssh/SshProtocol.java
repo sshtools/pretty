@@ -65,20 +65,23 @@ public final class SshProtocol implements TerminalProtocol, ResizeListener, Elem
 		viewport.addResizeListener(this);
 		
 		// Direct terminal input back to pty
-		viewport.setInput((data, off, len) -> { 
-			try {
-				session.sendData(data, off, len);
-			}
-			catch(Exception e) {
-				LOG.error("Failed to write to destination.", e);
-			}
-		});
+		viewport.setInput(this::send);
 		
 		tty.status().add(this);
 		registry = tty.cli().registry(RESOURCES.getString("ssh"), new SshCommands(command, tty.cli().shell()));
 
 	}
 	
+	@Override
+	public void send(byte[] data, int off, int len) {
+		try {
+			session.sendData(data, off, len);
+		}
+		catch(Exception e) {
+			LOG.error("Failed to write to destination.", e);
+		}
+	}
+
 	@Override
 	public void decode() throws Exception {
 		try {

@@ -49,6 +49,16 @@ public final class Configuration {
 
 	}
 
+	public Section port(String name) {
+		return Arrays.asList(ini.allSections()).stream()
+				.filter(s -> s.key().equals(Constants.SERIAL_PORT_SECTION) && s.get(Constants.DEVICE_KEY, name).equals(name))
+				.findFirst().orElseGet(() -> {
+					var sec = ini.create(Constants.SERIAL_PORT_SECTION);
+					sec.put(Constants.DEVICE_KEY, name);
+					return sec;
+				});
+	}
+
 	public Section transfers() {
 		return ini.obtainSection(Constants.TRANSFERS_SECTION);
 	}

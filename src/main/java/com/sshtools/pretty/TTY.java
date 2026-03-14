@@ -21,6 +21,7 @@ import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.Stack;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -381,7 +382,9 @@ public class TTY extends StackPane implements Closeable {
 				}, null, Constants.DARK_MODE_KEY, Constants.UI_SECTION)));
 
 		try {
-			startShell(bldr.request.map(rq -> rq.shell().orElseGet(this::shellForTty)).orElseGet(this::shellForTty));
+			var shell = bldr.request.map(rq -> rq.shell().orElseGet(this::shellForTty)).orElseGet(this::shellForTty);
+			var scripts = bldr.request.map(rq -> rq.script()).orElseGet(Collections::emptyList);
+			startShell(shell, scripts);
 		} catch (Exception e) {
 			/* Not a known shell, so just treat as a custom command */
 			/* Used to prompt for some connection parameters */
@@ -511,6 +514,17 @@ public class TTY extends StackPane implements Closeable {
 		}
 	}
 
+	public TerminalProtocol parentProtocol(TerminalProtocol protocol) {
+		synchronized (protocols) {
+			var idx = protocols.indexOf(protocol);
+			if (idx < 0 || idx == 0) {
+				return null;
+			} else {
+				return protocols.get(idx - 1);
+			}
+		}
+	}
+
 	public TerminalProtocol protocol() {
 		return protocols.isEmpty() ? null : protocols.peek();
 	}
@@ -541,6 +555,7 @@ public class TTY extends StackPane implements Closeable {
 		@SuppressWarnings("unused")
 		var cursorX = vp.getPage().cursorX();
 		var currentProtocol = protocol();
+		var reattach = new AtomicBoolean(false);
 		this.protocols.push(protocol);
 		runLater(this::updateState);
 		while (protocol != null) {
@@ -553,12 +568,15 @@ public class TTY extends StackPane implements Closeable {
 				} else {
 					protocol.decode();
 				}
-			} catch (RuntimeException re) {
-				LOG.error("Protocol failed in {}.", ttyName, re);
-				throw re;
 			} catch (Throwable re) {
 				LOG.error("Protocol failed in {}.", ttyName, re);
-				throw new IllegalStateException(re);
+				reattach.set(true);
+				if(re instanceof RuntimeException) {
+					throw (RuntimeException) re;
+				}
+				else {
+					throw new IllegalStateException(re);
+				}
 			} finally {
 				try {
 					if (!protocol.equals(currentProtocol)) {
@@ -605,6 +623,15 @@ public class TTY extends StackPane implements Closeable {
 						}
 					}
 				} finally {
+					if(reattach.get() && currentProtocol != null) {
+						try {
+							LOG.info("Re-attaching previous protocol {} in {}", currentProtocol.displayName(), ttyName);
+							currentProtocol.attach(this);
+							LOG.info("Previous protocol {} re-attached in {}", currentProtocol.displayName(), ttyName);
+						} catch (Exception e) {
+							LOG.warn("Failed to re-attach previous protocol after error. You may experience strange behaviour.", e);
+						}
+					}
 					runLater(this::updateState);
 				}
 			}
@@ -891,7 +918,7 @@ public class TTY extends StackPane implements Closeable {
 
 	}
 
-	private void startShell(final Shell shell) {
+	private void startShell(final Shell shell, List<String> script) {
 		LOG.info("Starting shell {} for TTY {}", shell.name(), ttyName);
 		
 		var bldr = new ConsoleProtocol.Builder();
@@ -911,7 +938,10 @@ public class TTY extends StackPane implements Closeable {
 			fShell = shell;
 		}
 		if (fShell.type() == ShellType.BUILTIN) {
-			runProtocol(new PricliProtocol(ttyContext, shell.toFullCommandText(loginShell)));
+			runProtocol(new PricliProtocol(ttyContext, 
+					script.isEmpty() ?
+							shell.toFullCommandText(loginShell)
+							: String.join(" ", script)));
 		} else {
 			if (fShell.cygwin()) {
 				LOG.warn("Cygwin requested, but this is not yet working. Ignoring.");

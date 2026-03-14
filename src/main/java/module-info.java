@@ -14,6 +14,7 @@ open module com.sshtools.pretty {
 	requires com.sshtools.pty4j;
 //	requires pty4j;
 	requires transitive com.sshtools.terminal.vt.javafx;
+	requires transitive com.sshtools.terminal.xyzmodem;
 	requires transitive java.prefs;
 	requires transitive com.sshtools.jini.config; 
 	requires com.sshtools.jaul;
@@ -36,7 +37,7 @@ open module com.sshtools.pretty {
 
 	requires com.sshtools.twoslices;
 	requires com.sshtools.agent;
-	requires me.tongfei.progressbar;
+	requires transitive me.tongfei.progressbar;
 	requires jsyn;
 	requires org.scenicview.scenicview;
 	requires java.scripting;

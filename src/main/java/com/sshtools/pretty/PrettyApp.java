@@ -5,6 +5,7 @@ import static com.sshtools.jajafx.FXUtil.maybeQueue;
 
 import java.net.URL;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -28,6 +29,8 @@ import com.sshtools.jajafx.updateable.UpdateableJajaFXApp;
 import com.sshtools.jajafx.updateable.UpdateableJajaFXAppWindow;
 import com.sshtools.jaul.UpdateService;
 import com.sshtools.jini.config.Monitor;
+import com.sshtools.pretty.Shells.Shell;
+import com.sshtools.pretty.Shells.ShellType;
 import com.sshtools.terminal.emulation.UIToolkit;
 import com.sshtools.terminal.vt.javafx.JavaFXUIToolkit;
 
@@ -99,6 +102,15 @@ public class PrettyApp extends UpdateableJajaFXApp<Pretty, PrettyAppWindow> impl
 	@Override
 	public void start(final Stage primaryStage) {
 		primaryStage.initStyle(StageStyle.DECORATED);
+		var commands = ((Pretty)Pretty.getInstance()).getCommands();
+		if(commands.size() > 0) {
+			appContext.getShells().getById(Shells.PRICLI).ifPresent(shell -> {
+				openingRequest.set(Optional.of(new TTYRequest.Builder().
+						withShell(shell).
+						withScript(commands).
+						build()));
+			});
+		}
 		super.start(primaryStage);
 	}
 

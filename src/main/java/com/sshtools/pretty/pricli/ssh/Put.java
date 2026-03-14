@@ -48,11 +48,11 @@ public class Put extends SftpCommand implements Callable<Integer> {
 		}
 		
 		var target = destination.orElse(sftp.pwd());
-			expandLocalAndDo((path) -> {
-				try (var pb = progressBarBuilder(target).build()) {
-					sftp.put(path.toString(), target, fileTransferProgress(pb, Styling.styled(RESOURCES.getString("uploading")).toAnsi(term)));
-				}
-			}, true, files);
+		expandLocalAndDo((path) -> {
+			try (var pb = progressBarBuilder(target).build()) {
+				sftp.put(path.toString(), target, fileTransferProgress(pb, Styling.styled(RESOURCES.getString("uploading")).toAnsi(term)));
+			}
+		}, true, files);
 		
 		return 0;
 	}

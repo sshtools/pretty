@@ -2,6 +2,7 @@ package com.sshtools.pretty.pricli;
 
 import com.sshtools.pretty.TTY;
 import com.sshtools.pretty.TTYContext;
+import com.sshtools.pretty.pricli.serial.Serial;
 import com.sshtools.pretty.pricli.ssh.Ssh;
 
 import picocli.CommandLine.Command;

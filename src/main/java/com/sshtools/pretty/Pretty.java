@@ -2,6 +2,8 @@ package com.sshtools.pretty;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
@@ -19,6 +21,7 @@ import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.IVersionProvider;
 import picocli.CommandLine.Option;
+import picocli.CommandLine.Parameters;
 import uk.co.bithatch.nativeimage.annotations.Bundle;
 
 @Command(name = "pretty", mixinStandardHelpOptions = true, description = "A Terminal Emulator", versionProvider = Pretty.Version.class)
@@ -55,6 +58,9 @@ public class Pretty extends UpdateableJajaApp<PrettyApp, PrettyAppWindow> {
 
 	@Option(names = { "-c", "--cwd" }, description = "Working directory for local shells.")
 	private Optional<Path> workingDirectory;
+
+	@Parameters(arity = "0..*", description = "Commands to execute on startup, e.g. 'ssh user@host' or 'service connect ttyUSB'.")
+	private List<String> commands = new ArrayList<>();
 
 	public final static class PrettyBuilder extends UpdateableJajaAppBuilder<Pretty, PrettyBuilder, PrettyApp> {
 
@@ -146,6 +152,10 @@ public class Pretty extends UpdateableJajaApp<PrettyApp, PrettyAppWindow> {
 	@Override
 	protected void initCall() throws Exception {
 		logLevel.ifPresent(l -> System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", l.name()));
+	}
+
+	public List<String> getCommands() {
+		return commands;
 	}
 
 }
