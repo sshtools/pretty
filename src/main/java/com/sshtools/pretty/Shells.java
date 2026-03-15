@@ -90,7 +90,7 @@ public class Shells extends AbstractINISetSystem {
 	public Shells(AppContext app, Monitor monitor) {
 		super(app, "shells.d");
 		
-		addOrUpdateShell(new Shell(ShellType.BUILTIN, "serial", "serial", (Path)null, null, "Pretty Serial Support", null, false, new String[0]));
+		addOrUpdateShell(new Shell(ShellType.BUILTIN, "serial", "serial", (Path)null, null, "Pretty Serial Support", null, false, "connect"));
 		addOrUpdateShell(new Shell(ShellType.BUILTIN, "ssh", "ssh", (Path)null, null, "Maverick Synergy SSH", null, false, "--prompt"));
 		addOrUpdateShell(new Shell(ShellType.BUILTIN, PRICLI, PRICLI, (Path)null, null, "Built-in shell", null, false));
 		addOrUpdateShell(new Shell(ShellType.BUILTIN, NATIVE, NATIVE, (Path)null, null, "Default native shell", null, false));

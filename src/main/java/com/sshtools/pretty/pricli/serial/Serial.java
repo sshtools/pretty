@@ -8,6 +8,8 @@ import java.util.ResourceBundle;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.jline.reader.LineReader;
+import org.jline.reader.LineReaderBuilder;
 import org.jline.utils.AttributedStringBuilder;
 import org.jline.utils.AttributedStyle;
 import org.slf4j.Logger;
@@ -508,7 +510,43 @@ public class Serial implements Callable<Integer> {
 				}).orElseGet(() -> {
 					var en = CommPortIdentifier.getPortIdentifiers();
 					if (en.hasMoreElements()) {
-						return (CommPortIdentifier) en.nextElement();
+						
+						var firstPort = (CommPortIdentifier) en.nextElement();
+						var history = parent.parent.tty().ttyContext().history("serial-ports");
+						var parentReader = parent.parent.cli().reader();
+						var serialPortReader = LineReaderBuilder.builder()
+								.history(history.history())
+								.terminal(parentReader.getTerminal())
+								.variable(LineReader.HISTORY_FILE, history.path())
+								.variable(LineReader.HISTORY_SIZE, history.maxSize())
+								.build();
+
+						while(true) {
+							var dest = serialPortReader.readLine(
+									Styling.styled(RESOURCES.getString("port")).toAnsi(parent.parent.cli().jline()),
+									Styling.styled(MessageFormat.format(RESOURCES.getString("port.right"), firstPort.getName()))
+											.toAnsi(parent.parent.cli().jline()),
+									(Character) null, null);
+							if(dest.equals("")) {
+								return firstPort;
+							}
+							else {
+								try {
+									var selectedPort = CommPortIdentifier.getPortIdentifier(dest);
+									if(selectedPort.getPortType() == CommPortIdentifier.PORT_SERIAL) {
+										return selectedPort;
+									}
+									else {
+										parent.parent.cli().printError(MessageFormat.format(RESOURCES.getString("notSerial"), dest));
+									}
+								}
+								catch(NoSuchPortException e) {
+									parent.parent.cli().printError(MessageFormat.format(RESOURCES.getString("noSuchPort"), dest));
+								}
+							}
+							
+							return firstPort;
+						}
 					} else {
 						throw new IllegalStateException(RESOURCES.getString("noPorts"));
 					}

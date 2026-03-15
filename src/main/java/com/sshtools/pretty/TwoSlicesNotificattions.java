@@ -16,7 +16,7 @@ public class TwoSlicesNotificattions implements TerminalNotifications {
 			 type(ToastType.INFO).
 			 title(body.isEmpty() || title == null ? "Pretty" : title);
 		
-		action.ifPresent(a -> bldr.action("Default", () -> a.run()));
+		action.ifPresent(a -> bldr.action("Default", a::run));
 		body.ifPresentOrElse(bldr::content, () -> bldr.content(title));
 		bldr.toast();
 	}

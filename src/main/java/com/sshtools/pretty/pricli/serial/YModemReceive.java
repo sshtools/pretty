@@ -8,8 +8,6 @@ import java.text.MessageFormat;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
-import com.sshtools.pretty.Constants;
-import com.sshtools.pretty.Strings;
 import com.sshtools.pretty.serial.XYZModemProtocol;
 import com.sshtools.terminal.xyzmodem.YModem;
 
@@ -73,11 +71,16 @@ public class YModemReceive extends AbstractModemSendOrReceive {
 
 			@Override
 			public void decode() throws Exception {
+
+				var p = expandLocalSingle(path);
+				
 				if(batchMode) {
-					protocol.receiveFilesInDirectory(path);
+					protocol.receiveFilesInDirectory(p, multiXYZTransferProgress());
 				}
 				else {
-					protocol.receive(path);
+					try (var pb = progressBarBuilder(p.getFileName().toString(), "KiB", 1024).build()) {
+						protocol.receive(path, xyzTransferListener(pb));
+					}
 				}
 			}
 

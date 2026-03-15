@@ -50,9 +50,7 @@ public class YModemSend extends AbstractModemSendOrReceive {
 			public void decode() throws Exception {
 				var all = expandLocalList(paths.toArray(new Path[0]));
 				if(batch) {
-					try (var pb = progressBarBuilder(MessageFormat.format(RESOURCES.getString("multiple"), paths.size()), "KiB", 1024).build()) {
-						protocol.batchSend(xyzTransferListener(pb), all.toArray(new Path[0]));
-					}
+					protocol.batchSend(multiXYZTransferProgress(), all.toArray(new Path[0]));
 				}
 				else {
 					var path = all.get(0);

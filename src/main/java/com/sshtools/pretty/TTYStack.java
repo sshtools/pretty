@@ -3,7 +3,9 @@ package com.sshtools.pretty;
 import static com.sshtools.jajafx.FXUtil.maybeQueue;
 import static javafx.application.Platform.runLater;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
@@ -47,8 +49,7 @@ public final class TTYStack extends StackPane implements TTYContext, ListChangeL
 	private final ObservableList<Action> actions;
 	private final SplitTabPane tabs;
 	private Handle hndl;
-	private final HistoryConfig usernameHistory;
-	private final HistoryConfig hostnameHistory;
+	private Map<String, HistoryConfig> histories = new HashMap<>();
 
 	TTYStack(AppContext appContext, Stage stage) {
 
@@ -65,9 +66,6 @@ public final class TTYStack extends StackPane implements TTYContext, ListChangeL
 				}
 			}
 		});
-		
-		usernameHistory = new HistoryConfig(getContainer().getConfiguration().dir().resolve("usernames.history"), 100, new DefaultHistory());
-		hostnameHistory = new HistoryConfig(getContainer().getConfiguration().dir().resolve("hostname.history"), 100, new DefaultHistory());
 		
 		actions = appContext.getActions().actions();
 		actions.addListener(this);
@@ -90,13 +88,12 @@ public final class TTYStack extends StackPane implements TTYContext, ListChangeL
 	}
 
 	@Override
-	public HistoryConfig usernameHistory() {
-		return usernameHistory;
-	}
-
-	@Override
-	public HistoryConfig hostnameHistory() {
-		return hostnameHistory;
+	public HistoryConfig history(String name) {
+		synchronized (histories) {
+			return histories.computeIfAbsent(name, n -> {
+				return new HistoryConfig(getContainer().getConfiguration().dir().resolve(n + ".history"), 100, new DefaultHistory());
+			});
+		}
 	}
 
 	@Override

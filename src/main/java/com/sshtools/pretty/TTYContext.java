@@ -14,9 +14,7 @@ public interface TTYContext extends Closeable {
 	
 	public record HistoryConfig(Path path, int maxSize,  History history) {}
 	
-	HistoryConfig usernameHistory();
-	
-	HistoryConfig hostnameHistory();
+	HistoryConfig history(String name);
 	
 	Node content();
 

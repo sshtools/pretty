@@ -77,7 +77,7 @@ public class Ssh extends AbstractSshCommand {
 			if (prompt) {
 				var defVal = "localhost";
 
-				var hostnameHistory = parent.tty().ttyContext().hostnameHistory();
+				var hostnameHistory = parent.tty().ttyContext().history("hostname");
 				var parentReader = parent.cli().reader();
 				var hostnameReader = LineReaderBuilder.builder()
 						.history(hostnameHistory.history())
@@ -110,7 +110,7 @@ public class Ssh extends AbstractSshCommand {
 					}
 
 					var defusr = System.getProperty("user.name");
-					var usernameHistory = parent.tty().ttyContext().usernameHistory();
+					var usernameHistory = parent.tty().ttyContext().history("usernames");
 					var usernameReader = LineReaderBuilder.builder()
 							.history(usernameHistory.history())
 							.terminal(parentReader.getTerminal())
