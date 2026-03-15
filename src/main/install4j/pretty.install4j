@@ -281,6 +281,7 @@ return console.askOkCancel(message, true);
               <action id="149" beanClass="com.sshtools.jaul.RegisterJaulAppAction" rollbackBarrierExitCode="0">
                 <serializedBean>
                   <property name="appCategory" type="enum" class="com.sshtools.jaul.AppCategory" value="GUI" />
+                  <property name="forceUser" type="boolean" value="true" />
                 </serializedBean>
               </action>
             </actions>
