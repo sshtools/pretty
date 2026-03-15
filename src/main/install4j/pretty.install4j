@@ -91,6 +91,33 @@ Comment=Terminal emulator with built in SSH and Serial support </desktopFile>
         <file path="../resources/com/sshtools/pretty/icon-256.png" />
       </iconImageFiles>
     </launcher>
+    <launcher name="prettyc" id="151" excludeFromMenu="true" addMacApplicationCategory="true" macApplicationCategory="public.app-category.utilities" useCustomMacosExecutableName="true" customMacosExecutableName="Pretty_debug">
+      <executable name="prettydbg" executableDir="." redirectStderr="false" stderrFile="${installer:sys.localAppdataDir}/pretty/pretty.log" stdoutFile="${installer:sys.localAppdataDir}/pretty/pretty.log" executableMode="gui" />
+      <java mainClass="com.sshtools.pretty/com.sshtools.pretty.Pretty" mainMode="module" vmParameters="-Dinstall4j.installationDir=${launcher:sys.launcherDirectory}  --enable-native-access=com.sshtools.pty4j  --enable-native-access=javafx.media --enable-native-access=javafx.graphics --enable-native-access=com.install4j.runtime --enable-native-access=org.cryptomator.jfuse.linux.amd64  --enable-native-access=org.cryptomator.jfuse.linux.aarch64 --enable-native-access=org.cryptomator.jfuse.linux.win  --enable-native-access=org.cryptomator.jfuse.linux.mac --enable-native-access=com.sun.jna">
+        <modulePath>
+          <directory location="lib" failOnError="false" />
+          <directory location="mac" failOnError="false" />
+          <directory location="win" failOnError="false" />
+          <directory location="linux" failOnError="false" />
+          <directory location="linux-aarch64" failOnError="false" />
+          <directory location="mac-aarch64" failOnError="false" />
+        </modulePath>
+      </java>
+      <desktopFile>Keywords=shell;prompt;command;commandline;cmd;
+Categories=System;TerminalEmulator;
+Comment=Terminal emulator with built in SSH and Serial support </desktopFile>
+      <iconImageFiles>
+        <file path="../resources/com/sshtools/pretty/icon-16.png" />
+        <file path="../resources/com/sshtools/pretty/icon-24.png" />
+        <file path="../resources/com/sshtools/pretty/icon-32.png" />
+        <file path="../resources/com/sshtools/pretty/icon-48.png" />
+        <file path="../resources/com/sshtools/pretty/icon-64.png" />
+        <file path="../resources/com/sshtools/pretty/icon-96.png" />
+        <file path="../resources/com/sshtools/pretty/icon-128.png" />
+        <file path="../resources/com/sshtools/pretty/icon-256.png" />
+        <file path="../resources/com/sshtools/pretty/icon.png" />
+      </iconImageFiles>
+    </launcher>
   </launchers>
   <installerGui autoUpdateDescriptorUrl="${compiler:install4j.updatesBase}/${compiler:install4j.phase}/updates.xml" useAutoUpdateBaseUrl="true" autoUpdateBaseUrl="${compiler:install4j.updatesBase}/${compiler:sys.version}/">
     <customCode>
