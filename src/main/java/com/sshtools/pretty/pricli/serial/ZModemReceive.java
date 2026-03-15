@@ -46,6 +46,9 @@ public class ZModemReceive extends AbstractModemSendOrReceive {
 	@ArgGroup(exclusive = true, heading = "TCP options:%n", order = 1)
 	private TCPGroup tcp;
 	
+	@Option(names = {"-f", "--file-browser"}, description = "Use file browser to select directory or single path. When not supplied, and when no path is specified, will default to the current default Downloads directory from configuration.")
+	private boolean fileBrowser;
+	
 	
 	public ZModemReceive() {
 		super(RESOURCES);
@@ -53,7 +56,14 @@ public class ZModemReceive extends AbstractModemSendOrReceive {
 
 	@Override
 	public Integer call() throws Exception {
-		var path = this.path.orElseGet(this::saveDirectory);
+		var path = this.path.orElseGet(() -> {
+			if(fileBrowser) {
+				return saveDirectory();
+			}
+			else {
+				return defaultDownloadsDirectory();
+			}
+		});
 		if(!Files.isDirectory(path)) {
 			throw new IllegalStateException(RESOURCES.getString("mustBeDirectory"));
 		}

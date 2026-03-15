@@ -514,14 +514,14 @@ public class Serial implements Callable<Integer> {
 					}
 				});
 				if(portId.isCurrentlyOwned()) {
-					throw new IllegalStateException(MessageFormat.format(RESOURCES.getString("inUse"), port, portId.getCurrentOwner()));
+					throw new IllegalStateException(MessageFormat.format(RESOURCES.getString("inUse"), portId.getName(), portId.getCurrentOwner()));
 				}
 				var serialPort = (SerialPort)portId.open(DEFAULT_SERIAL_OWNER_NAME, timeout.map(t -> t.intValue() * 1000).orElse(60000));
 				try {
 					configurePort(serialPort);
 					var proto = new SerialProtocol(serialPort);
 					parent.active = Optional.of(proto);
-					parent.parent.cli().result(Styling.styled(MessageFormat.format(RESOURCES.getString("connected"), port, proto.port().getBaudRate())).toAttributedString());
+					parent.parent.cli().result(Styling.styled(MessageFormat.format(RESOURCES.getString("connected"), portId.getName(), proto.port().getBaudRate())).toAttributedString());
 	
 					if(!noPop) {
 						runLater(parent.parent.cli()::close);

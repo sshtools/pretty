@@ -181,4 +181,8 @@ public abstract class AbstractModemSendOrReceive  extends LocalFileCommand {
 			}
 		};
 	}
+
+	protected Path defaultDownloadsDirectory() {
+		return Strings.parseFilePath(parent.tty().ttyContext().getContainer().getConfiguration().transfers().get(Constants.DOWNLOADS_KEY));
+	}
 }
