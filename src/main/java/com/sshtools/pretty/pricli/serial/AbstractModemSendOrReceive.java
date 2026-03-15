@@ -148,7 +148,10 @@ public abstract class AbstractModemSendOrReceive  extends LocalFileCommand {
 
 			@Override
 			public void done(Exception error) {
-				pb.close();
+				delegate.done(error);
+				if(pb != null) {
+					pb.close();
+				}
 			}
 		};
 	}
