@@ -670,7 +670,6 @@
 			<artifactId>jaul</artifactId>
 			<version>0.9.25</version>
 		</dependency>
-
 	</dependencies>
 	<repositories>
 		

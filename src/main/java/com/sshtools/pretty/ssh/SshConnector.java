@@ -394,6 +394,15 @@ public class SshConnector {
 				if (ssh.getAuthenticationMethods().contains("password")
 						|| ssh.getAuthenticationMethods().contains("keyboard-interactive")) {
 
+					/*
+					 * TODO this .. and the others like it do not really work properly. There is a
+					 * timing issue. The connection may be on its way to being disconnected, but not
+					 * yet disconnected. There must be a better way to handle this, but for now,
+					 * just try to rebuild the connection if it looks like it's not connected
+					 * anymore, up to 3 times. This is to handle the case where the server
+					 * disconnects immediately after a failed authentication attempt, which is
+					 * common. 
+					 */
 					if (!ssh.isConnected()) {
 						ssh = bldr.build();
 					}
