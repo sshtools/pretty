@@ -31,8 +31,9 @@ import com.sshtools.pretty.Fonts.FontsChangeListener;
 import com.sshtools.pretty.Shells.Shell;
 import com.sshtools.pretty.pricli.Styling;
 import com.sshtools.terminal.emulation.ResizeStrategy;
-import com.sshtools.terminal.emulation.emulator.DECEmulator;
-import com.sshtools.terminal.emulation.emulator.XTERM256Color;
+import com.sshtools.terminal.emulation.TerminalTypes;
+import com.sshtools.terminal.emulation.emulator.dec.DECEmulator;
+import com.sshtools.terminal.emulation.emulator.dec.XTERM256Color;
 import com.sshtools.terminal.emulation.fonts.FontSpec;
 import com.sshtools.terminal.vt.javafx.JavaFXTerminalPanel;
 
@@ -105,6 +106,8 @@ public class Options extends StackPane implements Closeable {
 	@FXML
 	private ComboBox<String> screenSize;
 	@FXML
+	private ComboBox<String> terminalType;
+	@FXML
 	private RadioButton store;
 	@FXML
 	private RadioButton session;
@@ -167,9 +170,13 @@ public class Options extends StackPane implements Closeable {
 		} catch (IOException e) {
 			throw new UncheckedIOException(e);
 		}
-		
 
 		FXUtil.addIfNotAdded(getStylesheets(), Options.class.getResource("Options.css").toExternalForm());
+		
+		/* Terminal types */
+		
+		terminalType.getItems().addAll(TerminalTypes.getInstance().getTypesNames());
+		handles.add(cfg.bindStringObject(terminalType.valueProperty(), Constants.TYPE_KEY, Constants.TERMINAL_SECTION));		
 		
 		/* Update phases */
 		phase.getItems().addAll(app.getUpdateService().getPhases());
@@ -326,7 +333,7 @@ public class Options extends StackPane implements Closeable {
 				fontName.getSelectionModel().select(fnt.spec()); 
 		}, () -> fontName.getSelectionModel().getSelectedItem().getName(), Constants.FONTS_KEY, Constants.TERMINAL_SECTION));
 		fontSize.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(6, 256, 6));
-		handles.add(cfg.bind(fontSize.getValueFactory().valueProperty(), Constants.FONT_SIZE_KEY, Constants.TERMINAL_SECTION));
+		handles.add(cfg.bindIntegerObject(fontSize.getValueFactory().valueProperty(), Constants.FONT_SIZE_KEY, Constants.TERMINAL_SECTION));
 
 		/* Sizing */
 		resizeStrategy.getItems().addAll(ResizeStrategy.values());
@@ -383,7 +390,7 @@ public class Options extends StackPane implements Closeable {
 		bufferSize.disableProperty().bind(Bindings.not(limitBuffer.selectedProperty()));
 		
 		bufferSize.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, Integer.MAX_VALUE, 0, 1000));
-		handles.add(cfg.bind(bufferSize.getValueFactory().valueProperty(), Constants.BUFFER_SIZE_KEY, Constants.TERMINAL_SECTION));
+		handles.add(cfg.bindIntegerObject(bufferSize.getValueFactory().valueProperty(), Constants.BUFFER_SIZE_KEY, Constants.TERMINAL_SECTION));
 
 		/* Shell */
 		handles.add(cfg.bind(loginShell.selectedProperty(), Constants.LOGIN_SHELL_KEY, Constants.TERMINAL_SECTION));		

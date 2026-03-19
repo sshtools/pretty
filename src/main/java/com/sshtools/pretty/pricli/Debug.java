@@ -8,8 +8,8 @@ import org.jline.utils.AttributedStyle;
 
 import com.sshtools.terminal.emulation.DefaultViewport;
 import com.sshtools.terminal.emulation.buffer.LineData;
-import com.sshtools.terminal.emulation.emulator.DECEmulator;
-import com.sshtools.terminal.emulation.emulator.DECPage;
+import com.sshtools.terminal.emulation.emulator.dec.DECEmulator;
+import com.sshtools.terminal.emulation.emulator.dec.DECPage;
 
 import javafx.application.Platform;
 import picocli.CommandLine.Command;

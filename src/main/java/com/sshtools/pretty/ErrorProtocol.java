@@ -10,7 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.sshtools.pretty.pricli.Styling;
-import com.sshtools.terminal.emulation.TerminalViewport;
+import com.sshtools.terminal.emulation.Emulator;
 import com.sshtools.terminal.emulation.events.ResizeListener;
 
 public class ErrorProtocol implements TerminalProtocol, ResizeListener {
@@ -96,7 +96,7 @@ public class ErrorProtocol implements TerminalProtocol, ResizeListener {
 	}
 
 	@Override
-	public void bufferResized(TerminalViewport<?, ?, ?> terminal, int columns, int rows, boolean remote) {
+	public void bufferResized(Emulator<?, ?, ?> terminal, int columns, int rows, boolean remote) {
 		jline.setSize(new Size(columns, rows));
 	}
 

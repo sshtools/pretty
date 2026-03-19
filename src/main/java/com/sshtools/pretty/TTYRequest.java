@@ -12,6 +12,7 @@ public final class TTYRequest {
 	public final static class Builder {
 		private Optional<Shell> shell = Optional.empty();
 		private Optional<String> name = Optional.empty();
+		private Optional<String> termType = Optional.empty();
 		private List<String> script = new ArrayList<>();
 		
 		public Builder withName(String name) {
@@ -25,6 +26,11 @@ public final class TTYRequest {
 
 		public Builder withShell(Shell shell) {
 			this.shell = Optional.of(shell);
+			return this;
+		}
+
+		public Builder withTermType(String termType) {
+			this.termType = Optional.of(termType);
 			return this;
 		}
 
@@ -42,11 +48,13 @@ public final class TTYRequest {
 	private final Optional<Shell> shell;
 	private final String name;
 	private final List<String> script;
+	private final Optional<String> termType;
 
 	private TTYRequest(Builder builder) {
 		this.shell = builder.shell;
 		this.name = builder.name.orElseGet(() -> shell.map(Shell::name).orElse("TTY"));
 		this.script = Collections.unmodifiableList(new ArrayList<>(builder.script));
+		this.termType = builder.termType;
 	}
 	
 	public List<String> script() {
@@ -55,6 +63,10 @@ public final class TTYRequest {
 	
 	public String name() {
 		return name;
+	}
+	
+	public Optional<String> termType() {
+		return termType;
 	}
 	
 	public Optional<Shell> shell() {

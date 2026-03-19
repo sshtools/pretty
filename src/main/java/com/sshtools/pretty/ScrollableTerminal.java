@@ -11,8 +11,7 @@ import org.slf4j.LoggerFactory;
 import com.sshtools.pretty.Actions.Action;
 import com.sshtools.pretty.Actions.On;
 import com.sshtools.pretty.pricli.PricliShell;
-import com.sshtools.terminal.emulation.emulator.DECEmulator;
-import com.sshtools.terminal.emulation.emulator.DECModes.MouseReport;
+import com.sshtools.terminal.emulation.Emulator;
 import com.sshtools.terminal.emulation.events.ViewportEvent;
 import com.sshtools.terminal.emulation.events.ViewportListener;
 import com.sshtools.terminal.vt.javafx.JavaFXScrollBar;
@@ -37,14 +36,13 @@ public class ScrollableTerminal extends BorderPane {
 	private final StackPane termArea;
 	private final JavaFXScrollBar scroller;
 	private final Map<Object, Action> consumed = new HashMap<>();
-	private DECEmulator<JavaFXTerminalPanel> emulator;
+	private Emulator<JavaFXTerminalPanel, ?, ?> emulator;
 	private boolean inScrollBar;
 	private Transition fading;
 
-	@SuppressWarnings("unchecked")
 	public ScrollableTerminal(TTYContext ttyContext, JavaFXTerminalPanel terminalPanel, ContextMenu contextMenu, Supplier<PricliShell> shell, On on) {
 		
-		emulator = (DECEmulator<JavaFXTerminalPanel>)terminalPanel.getViewport();
+		emulator = terminalPanel.getViewport();
 		emulator.addViewportListener(new ViewportListener() {
 			@Override
 			public void windowBaseChanged(int windowBase, ViewportEvent event) {
@@ -58,7 +56,7 @@ public class ScrollableTerminal extends BorderPane {
 
 		getStyleClass().add("vdu");
 		setOnMousePressed((evt) -> {
-			var mouseMode = emulator.getModes().getMouseReport() != MouseReport.OFF; 
+			var mouseMode = emulator.getModes().isMouseReportingEnabled(); 
 			if ((!mouseMode || (mouseMode && evt.isAltDown())) && evt.isPopupTrigger()) {
 				contextMenu.show(term, evt.getScreenX(), evt.getScreenY());
 				evt.consume();
@@ -68,7 +66,7 @@ public class ScrollableTerminal extends BorderPane {
 			
 		});
 		setOnMouseReleased((evt) -> {
-			var mouseMode = emulator.getModes().getMouseReport() != MouseReport.OFF; 
+			var mouseMode = emulator.getModes().isMouseReportingEnabled(); 
 			if (!mouseMode && evt.isPopupTrigger()) {
 				contextMenu.show(term, evt.getScreenX(), evt.getScreenY());
 				evt.consume();

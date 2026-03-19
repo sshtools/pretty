@@ -21,7 +21,7 @@ import com.sshtools.pretty.TTY;
 import com.sshtools.pretty.TTYContext;
 import com.sshtools.terminal.emulation.ResizeStrategy;
 import com.sshtools.terminal.emulation.buffer.ScrollBackBufferData.Mode;
-import com.sshtools.terminal.emulation.emulator.DECEmulator;
+import com.sshtools.terminal.emulation.emulator.dec.DECEmulator;
 import com.sshtools.terminal.vt.javafx.JavaFXTerminalPanel;
 
 import javafx.animation.Animation;

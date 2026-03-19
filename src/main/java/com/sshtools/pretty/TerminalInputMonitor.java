@@ -8,17 +8,17 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 import com.sshtools.terminal.emulation.TerminalInput;
-import com.sshtools.terminal.emulation.TerminalViewport;
+import com.sshtools.terminal.emulation.Emulator;
 
 public class TerminalInputMonitor implements Closeable, TerminalInput {
 
 	public final static class Builder {
 		
-		private final TerminalViewport<?, ?, ?> viewport;
+		private final Emulator<?, ?, ?> viewport;
 		private final Map<Byte, Consumer<Byte>> handlers = new HashMap<>();
 		private Thread mainThread = Thread.currentThread();
 
-		public Builder(TerminalViewport<?, ?, ?> viewport) {
+		public Builder(Emulator<?, ?, ?> viewport) {
 			this.viewport = viewport;
 		}
 		
@@ -41,7 +41,7 @@ public class TerminalInputMonitor implements Closeable, TerminalInput {
 		}
 	}
 
-	private final TerminalViewport<?, ?, ?> viewport;
+	private final Emulator<?, ?, ?> viewport;
 	private final TerminalInput was;
 	private final Map<Byte, Consumer<Byte>> handlers;
 	

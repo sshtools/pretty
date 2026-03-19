@@ -31,7 +31,7 @@ import com.sshtools.pretty.Status.Element;
 import com.sshtools.pretty.Status.Unit;
 import com.sshtools.pretty.Status.Width;
 import com.sshtools.terminal.emulation.TerminalOutputStream;
-import com.sshtools.terminal.emulation.TerminalViewport;
+import com.sshtools.terminal.emulation.Emulator;
 import com.sshtools.terminal.emulation.events.ResizeListener;
 import com.sshtools.terminal.vt.javafx.JavaFXTerminalPanel;
 
@@ -308,7 +308,7 @@ public class ConsoleProtocol implements TerminalProtocol, ResizeListener, Elemen
 	}
 
 	@Override
-	public void bufferResized(TerminalViewport<?, ?, ?> terminal, int columns, int rows, boolean remote) {
+	public void bufferResized(Emulator<?, ?, ?> terminal, int columns, int rows, boolean remote) {
 		if (!remote) {
 			synchronized (pty) {
 				pty.setWinSize(new WinSize(columns, rows));
@@ -360,7 +360,7 @@ public class ConsoleProtocol implements TerminalProtocol, ResizeListener, Elemen
 	}
 
 	@Override
-	public void draw(TerminalViewport<JavaFXTerminalPanel, ?, ?> vp, int cols) throws IOException {
+	public void draw(Emulator<JavaFXTerminalPanel, ?, ?> vp, int cols) throws IOException {
 		var bldr = new AttributedStringBuilder();
 		bldr.style(AttributedStyle.INVERSE);
 		bldr.append(Strings.trimPad(shellName == null ? RESOURCES.getString("console") : shellName, cols));

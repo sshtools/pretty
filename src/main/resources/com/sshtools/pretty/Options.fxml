@@ -122,6 +122,16 @@
                                           <Hyperlink onAction="#dropInFonts" text="%dropInFonts" />
 													</children>
 												</HBox>
+                                    <HBox alignment="CENTER_LEFT" layoutX="10.0" layoutY="10.0" styleClass="spaced">
+                                       <children>
+                                          <Label prefWidth="120.0" text="%terminalType" />
+                                          <ComboBox fx:id="terminalType" prefWidth="240.0">
+                                             <tooltip>
+                                                <Tooltip text="%terminalType.tooltip" />
+                                             </tooltip>
+                                          </ComboBox>
+                                       </children>
+                                    </HBox>
 											</children>
 											<styleClass>
 												<String fx:value="lpad" />

@@ -27,9 +27,8 @@ import com.sshtools.pretty.TTY;
 import com.sshtools.pretty.TerminalInputMonitor;
 import com.sshtools.pretty.TerminalProtocol;
 import com.sshtools.terminal.emulation.TerminalInput;
-import com.sshtools.terminal.emulation.TerminalViewport;
-import com.sshtools.terminal.emulation.emulator.DECEmulator;
-import com.sshtools.terminal.emulation.emulator.DECEmulator.ByteFilter;
+import com.sshtools.terminal.emulation.Emulator;
+import com.sshtools.terminal.emulation.Emulator.ByteFilter;
 import com.sshtools.terminal.vt.javafx.JavaFXTerminalPanel;
 
 public abstract class XYZModemProtocol<PROTO> implements TerminalProtocol, Status.Element, ByteFilter {
@@ -40,7 +39,7 @@ public abstract class XYZModemProtocol<PROTO> implements TerminalProtocol, Statu
 
 	private TTY tty;
 	private Thread thread;
-	private TerminalViewport<?, ?, ?> viewport;
+	private Emulator<?, ?, ?> viewport;
 	private PipedOutputStream pipeOut;
 	private TerminalProtocol parentProtocol;
 	private TerminalInputMonitor monitor;
@@ -162,7 +161,7 @@ public abstract class XYZModemProtocol<PROTO> implements TerminalProtocol, Statu
 			/* The encapsulating protocol will still be decoding (waiting for bytes from
 			 * the remote to send to the emulator), but not attached to any keyboard input. 
 			 */
-			((DECEmulator<?>)viewport).addFilter(this);
+			viewport.addFilter(this);
 		}
 		else {
 			/* TCP mode. The XMODEM protocol will be talking directly to the socket. But
@@ -251,7 +250,7 @@ public abstract class XYZModemProtocol<PROTO> implements TerminalProtocol, Statu
 			tty.status().remove(this);
 			var terminal = tty.terminal();
 			var viewport = terminal.getViewport();
-			((DECEmulator<?>)viewport).removeFilter(this);
+			viewport.removeFilter(this);
 			if(monitor == null) {
 				viewport.setInput(wasInput);
 			}
@@ -315,7 +314,7 @@ public abstract class XYZModemProtocol<PROTO> implements TerminalProtocol, Statu
 	}
 
 	@Override
-	public void draw(TerminalViewport<JavaFXTerminalPanel, ?, ?> vp, int cols) throws IOException {
+	public void draw(Emulator<JavaFXTerminalPanel, ?, ?> vp, int cols) throws IOException {
 		var bldr = new AttributedStringBuilder();
 		bldr.style(AttributedStyle.INVERSE);
 		bldr.append(Strings.trimPad(String.format("%-6ss", displayName()), cols));

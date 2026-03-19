@@ -17,7 +17,7 @@ import com.sshtools.pretty.Shells;
 import com.sshtools.pretty.TTY;
 import com.sshtools.pretty.TTYContext;
 import com.sshtools.pretty.TerminalProtocol;
-import com.sshtools.terminal.emulation.TerminalViewport;
+import com.sshtools.terminal.emulation.Emulator;
 import com.sshtools.terminal.emulation.events.ResizeListener;
 import com.sshtools.terminal.vt.javafx.JavaFXTerminalPanel;
 
@@ -140,7 +140,7 @@ public class PricliProtocol implements TerminalProtocol, ResizeListener {
 	}
 
 	@Override
-	public void bufferResized(TerminalViewport<?, ?, ?> terminal, int columns, int rows, boolean remote) {
+	public void bufferResized(Emulator<?, ?, ?> terminal, int columns, int rows, boolean remote) {
 		jline.setSize(new Size(columns, rows));
 	}
 

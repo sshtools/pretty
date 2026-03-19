@@ -95,7 +95,7 @@ public final class Configuration {
 		return iniSet.appPathForScope(Scope.USER);
 	}
 
-	public Handle bind(ObjectProperty<Integer> observable, String key, String... path) {
+	public Handle bindIntegerObject(ObjectProperty<Integer> observable, String key, String... path) {
 		var sec = resolve(ini, path);
 		var vuhndl = sec.onValueUpdate(ve -> {
 			maybeQueue(() -> {
@@ -154,6 +154,26 @@ public final class Configuration {
 			vuhndl.close();
 		};
 	}
+
+	public Handle bindStringObject(ObjectProperty<String> observable, String key, String... path) {
+		var sec = resolve(ini, path);
+		var vuhndl = sec.onValueUpdate(ve -> {
+			maybeQueue(() -> {
+				if (ve.key().equals(key))
+					observable.set(sec.get(key));
+			});
+		});
+		observable.setValue(sec.get(key));
+		ChangeListener<String> l = (c, o, n) -> {
+			sec.put(key, n);
+		};
+		observable.addListener(l);
+		return () -> {
+			observable.removeListener(l);
+			vuhndl.close();
+		};
+	}
+
 
 	public Handle bind(StringProperty observable, String key, String... path) {
 		var sec = resolve(ini, path);

@@ -6,13 +6,13 @@ import com.sshtools.pretty.Actions.On;
 import com.sshtools.pretty.Constants;
 import com.sshtools.pretty.TTY;
 import com.sshtools.pretty.TTYContext;
-import com.sshtools.terminal.emulation.TerminalViewport;
+import com.sshtools.terminal.emulation.Emulator;
 
 import picocli.CommandLine.Command;
 
 @Command(name = "terminal", description = "Commands to manipulate or query the terminal", subcommands = {
 		SelectAll.class, Scroll.class, ClearTerminal.class, Reset.class, Copy.class, Paste.class, Themes.class,
-		Record.class, Stop.class, Tab.class, Open.class })
+		Record.class, Stop.class, Tab.class, Open.class, Tektronix.class })
 public final class TerminalCommands extends AbstractRootCommand {
 	public enum TerminalViewportType {
 		TERMINAL, CLI
@@ -22,7 +22,7 @@ public final class TerminalCommands extends AbstractRootCommand {
 		super(ttyContext, screen, tty);
 	}
 
-	public TerminalViewport<?, ?, ?> getTarget(Optional<TerminalViewportType> source) {
+	public Emulator<?, ?, ?> getTarget(Optional<TerminalViewportType> source) {
 
 		if (source.isEmpty()) {
 			var on = (On) cli().systemRegistry().consoleEngine().getVariable(Constants.ACTION_ON_VAR);

@@ -22,7 +22,7 @@ import com.sshtools.pretty.pricli.serial.Serial.FlowControl;
 import com.sshtools.pretty.pricli.serial.Serial.Parity;
 import com.sshtools.pretty.pricli.serial.Serial.StopBits;
 import com.sshtools.terminal.emulation.TerminalOutputStream;
-import com.sshtools.terminal.emulation.TerminalViewport;
+import com.sshtools.terminal.emulation.Emulator;
 import com.sshtools.terminal.vt.javafx.JavaFXTerminalPanel;
 
 import purejavacomm.SerialPort;
@@ -37,7 +37,7 @@ public class SerialProtocol implements TerminalProtocol, Status.Element {
 	private final SerialPort port;
 	private final String name;
 	private boolean disconnecting;
-	private TerminalViewport<?, ?, ?> viewport;
+	private Emulator<?, ?, ?> viewport;
 	private final InputStream in;
 	private final OutputStream out;
 
@@ -148,7 +148,7 @@ public class SerialProtocol implements TerminalProtocol, Status.Element {
 	}
 
 	@Override
-	public void draw(TerminalViewport<JavaFXTerminalPanel, ?, ?> vp, int cols) throws IOException {
+	public void draw(Emulator<JavaFXTerminalPanel, ?, ?> vp, int cols) throws IOException {
 		var bldr = new AttributedStringBuilder();
 		bldr.style(AttributedStyle.INVERSE);
 		bldr.append(Strings.trimPad(String.format("%-10s %7d %s", displayName(), baudRate(), mnemonics()), cols));

@@ -16,7 +16,7 @@ import org.jline.utils.AttributedStyle;
 
 import com.sshtools.terminal.emulation.Modes;
 import com.sshtools.terminal.emulation.SGRState;
-import com.sshtools.terminal.emulation.TerminalViewport;
+import com.sshtools.terminal.emulation.Emulator;
 import com.sshtools.terminal.emulation.Viewport;
 import com.sshtools.terminal.emulation.buffer.BufferData;
 import com.sshtools.terminal.emulation.buffer.BufferData.ConfigurationChange;
@@ -43,21 +43,21 @@ public class Status {
 			
 		}
 		
-		default void attached(TerminalViewport<JavaFXTerminalPanel, ?, ?> vp) {
+		default void attached(Emulator<JavaFXTerminalPanel, ?, ?> vp) {
 		}
 		
-		void draw(TerminalViewport<JavaFXTerminalPanel, ?, ?> vp, int cols) throws IOException;
+		void draw(Emulator<JavaFXTerminalPanel, ?, ?> vp, int cols) throws IOException;
 
 		default void removed(Status status) {
 		}
 		
-		default void detached(TerminalViewport<JavaFXTerminalPanel, ?, ?> vp) {
+		default void detached(Emulator<JavaFXTerminalPanel, ?, ?> vp) {
 		}
 	}
 	
 	public final static class InsertReplaceMode implements Element, ViewportListener {
 		
-		private final TerminalViewport<JavaFXTerminalPanel, ?, ?> terminal;
+		private final Emulator<JavaFXTerminalPanel, ?, ?> terminal;
 		private Status status;
 
 		public InsertReplaceMode(TTY tty) {
@@ -65,12 +65,12 @@ public class Status {
 		}
 
 		@Override
-		public void attached(TerminalViewport<JavaFXTerminalPanel, ?, ?> vp) {
+		public void attached(Emulator<JavaFXTerminalPanel, ?, ?> vp) {
 			vp.addViewportListener(this);
 		}
 
 		@Override
-		public void detached(TerminalViewport<JavaFXTerminalPanel, ?, ?> vp) {
+		public void detached(Emulator<JavaFXTerminalPanel, ?, ?> vp) {
 			vp.removeViewportListener(this);
 		}
 
@@ -90,7 +90,7 @@ public class Status {
 		}
 
 		@Override
-		public void draw(TerminalViewport<JavaFXTerminalPanel, ?, ?> vp, int cols) throws IOException {
+		public void draw(Emulator<JavaFXTerminalPanel, ?, ?> vp, int cols) throws IOException {
 			var bldr = new AttributedStringBuilder();
 			bldr.style(AttributedStyle.INVERSE);
 			bldr.append(Strings.trimPad(terminal.getModes().isInsertMode() ? "Ins" : "Rep", cols));
@@ -110,12 +110,12 @@ public class Status {
 		}
 
 		@Override
-		public void attached(TerminalViewport<JavaFXTerminalPanel, ?, ?> vp) {
+		public void attached(Emulator<JavaFXTerminalPanel, ?, ?> vp) {
 			terminal.addViewportListener(this);
 		}
 
 		@Override
-		public void detached(TerminalViewport<JavaFXTerminalPanel, ?, ?> vp) {
+		public void detached(Emulator<JavaFXTerminalPanel, ?, ?> vp) {
 			terminal.removeViewportListener(this);
 		}
 
@@ -150,7 +150,7 @@ public class Status {
 		}
 
 		@Override
-		public void draw(TerminalViewport<JavaFXTerminalPanel, ?, ?> vp, int cols) throws IOException {
+		public void draw(Emulator<JavaFXTerminalPanel, ?, ?> vp, int cols) throws IOException {
 			var bldr = new AttributedStringBuilder();
 			bldr.style(AttributedStyle.INVERSE);
 			bldr.append(Strings.trimPad( 
@@ -163,7 +163,7 @@ public class Status {
 	}
 	
 	private List<Element> elements = new CopyOnWriteArrayList<>();
-	private TerminalViewport<JavaFXTerminalPanel, ?, ?> vp;
+	private Emulator<JavaFXTerminalPanel, ?, ?> vp;
 	private Map<Element, Bounds> layout = Collections.emptyMap();
 	private int lastLayoutCols;
 	private ScheduledFuture<?> anim;
@@ -195,7 +195,7 @@ public class Status {
 		}
 	}
 	
-	public void attach(TerminalViewport<JavaFXTerminalPanel, ?, ?> vp) {
+	public void attach(Emulator<JavaFXTerminalPanel, ?, ?> vp) {
 		if(this.vp != null) {
 			throw new IllegalStateException("Already attached to a viewport");
 		}

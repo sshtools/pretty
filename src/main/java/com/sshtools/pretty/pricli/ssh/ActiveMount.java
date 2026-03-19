@@ -26,7 +26,7 @@ import com.sshtools.pretty.Status.Element;
 import com.sshtools.pretty.Status.Unit;
 import com.sshtools.pretty.Status.Width;
 import com.sshtools.pretty.ssh.SFTPFileSystem;
-import com.sshtools.terminal.emulation.TerminalViewport;
+import com.sshtools.terminal.emulation.Emulator;
 import com.sshtools.terminal.vt.javafx.JavaFXTerminalPanel;
 
 record ActiveMount(String name, TTY tty, SFTPFileSystem fs, SshClient sshClient, Fuse fuse, Thread shutdownHook, Path mountPoint) implements EventListener, Element {
@@ -69,7 +69,7 @@ record ActiveMount(String name, TTY tty, SFTPFileSystem fs, SshClient sshClient,
 	}
 
 	@Override
-	public void draw(TerminalViewport<JavaFXTerminalPanel, ?, ?> vp, int cols) throws IOException {
+	public void draw(Emulator<JavaFXTerminalPanel, ?, ?> vp, int cols) throws IOException {
 		var bldr = new AttributedStringBuilder();
 		bldr.style(AttributedStyle.INVERSE);
 		var url = mounts.size() == 1 
