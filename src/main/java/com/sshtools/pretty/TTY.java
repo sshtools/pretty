@@ -20,7 +20,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.Stack;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
@@ -43,12 +42,13 @@ import com.sshtools.pretty.pricli.PricliProtocol;
 import com.sshtools.pretty.uri.URIManager;
 import com.sshtools.terminal.emulation.CursorStyle;
 import com.sshtools.terminal.emulation.Dim;
+import com.sshtools.terminal.emulation.Emulator;
 import com.sshtools.terminal.emulation.Feature;
+import com.sshtools.terminal.emulation.GraphicsMode;
 import com.sshtools.terminal.emulation.ResizeStrategy;
 import com.sshtools.terminal.emulation.TerminalInputStream;
 import com.sshtools.terminal.emulation.TerminalOutputStream;
 import com.sshtools.terminal.emulation.TerminalTypes;
-import com.sshtools.terminal.emulation.Emulator;
 import com.sshtools.terminal.emulation.buffer.FixedSizeInMemoryBufferData;
 import com.sshtools.terminal.emulation.buffer.ScrollBackBufferData.Mode;
 import com.sshtools.terminal.emulation.emulator.dec.DECEmulator;
@@ -383,6 +383,8 @@ public class TTY extends StackPane implements Closeable {
 						Constants.CURSOR_BLINK_KEY, Constants.TERMINAL_SECTION),
 				cfg.bindEnum(CursorStyle.class, terminalPanel::setCursorStyle, terminalPanel::getCursorStyle,
 						Constants.CURSOR_STYLE_KEY, Constants.TERMINAL_SECTION),
+				cfg.bindEnum(GraphicsMode.class, terminalPanel::setGraphicsMode, terminalPanel::getGraphicsMode,
+						Constants.GRAPHICS_MODE_KEY, Constants.TERMINAL_SECTION),
 				cfg.bindEnum(ScrollBarMode.class, scrollPane::setScrollBar, scrollPane::getScrollBar,
 						Constants.SCROLL_BAR_KEY, Constants.TERMINAL_SECTION),
 //			cfg.bindBoolean(scroller.getNativeComponent()::setVisible, scroller.getNativeComponent()::isVisible, Constants.SCROLL_BAR_KEY, Constants.TERMINAL_SECTION),
@@ -439,26 +441,12 @@ public class TTY extends StackPane implements Closeable {
 	}
 
 	public int clipboardToHost(Emulator<?, ?, ?> viewport, Clipboard clipboard) {
-		if (Platform.isFxApplicationThread()) {
+		return ttyContext.getContainer().getUiToolkit().callOnToolkitThreadAndBlock(() -> {
 			var text = String.valueOf(clipboard.getContent(DataFormat.PLAIN_TEXT));
 			viewport.enqueue(() -> viewport.output(text));
 			showOverlayTextInfo(overlayInfo, RESOURCES.getString("pasted"));
 			return text.length();
-		} else {
-			var res = new AtomicInteger();
-			var sem = new Semaphore(1);
-			try {
-				sem.acquire();
-				Platform.runLater(() -> {
-					res.set(clipboardToHost(viewport, clipboard));
-					sem.release();
-				});
-				sem.acquire();
-				return res.get();
-			} catch (InterruptedException ie) {
-				return 0;
-			}
-		}
+		});
 	}
 
 	@Override

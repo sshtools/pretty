@@ -3,7 +3,9 @@ package com.sshtools.pretty.pricli;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 
+import com.sshtools.terminal.emulation.Dim;
 import com.sshtools.terminal.emulation.GraphicsMode;
+import com.sshtools.terminal.emulation.decoder.tektronix.TekState;
 
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Parameters;
@@ -35,7 +37,7 @@ public class Tektronix implements Callable<Integer> {
 		var terminal = parent.tty().terminal();
 		switch (operation) {
 		case SHOW -> {
-			terminal.startGraphicsCanvas();
+			terminal.startGraphicsCanvas(new Dim(TekState.TEK_WIDTH, TekState.TEK_HEIGHT));
 			terminal.setGraphicsMode(mode.orElse(GraphicsMode.WINDOW));
 		}
 		case HIDE -> terminal.endGraphicsCanvas();

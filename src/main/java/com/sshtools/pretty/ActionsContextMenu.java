@@ -53,14 +53,14 @@ public class ActionsContextMenu extends ContextMenu  {
 				item.setAccelerator(act.accelerator());
 			
 			item.setOnAction(e -> {
-				shell.get().tty().terminal().getViewport().getScheduler().submit(() -> {
+				new Thread(() -> {
 					try {
 						shell.get().execute(on, act.fullCommand());
 					}
 					catch(Throwable t) {
 						LOG.error("Failed to execute action " + act.label(), t);
 					}	
-				});
+				},"Execute-" + act.commandName()).start();
 			});
 			
 			getItems().add(item);
