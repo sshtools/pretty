@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import com.sshtools.jini.INI.Section;
 import com.sshtools.terminal.emulation.Colors;
+import com.sshtools.terminal.emulation.Colors.PaletteType;
 import com.sshtools.terminal.emulation.Colors.Size;
 import com.sshtools.terminal.emulation.VDUColor;
 import com.sshtools.terminal.vt.javafx.JavaFXTerminalPanel;
@@ -74,9 +75,9 @@ public class TerminalTheme {
 			colors.setMouseBG(selectionBackground());
 			colors.setMouseFG(selectionForeground());
 			terminalPanel.setCursorColors(cursorForeground(), cursorBackground());
-			vp.getColors().setPalette(Size.PAL16, pal16().orElseGet(() -> Colors.PAL16_DEFAULT.getColors()));
+			vp.getColors().setPalette(PaletteType.ANSI, Size.PAL16, pal16().orElseGet(() -> Colors.PAL16_DEFAULT.getColors()));
 			var cols = vp.getColors();
-			cols.setPalette(Size.PAL256, pal256().orElseGet(() -> Colors.PAL256_DEFAULT.getColors()));
+			cols.setPalette(PaletteType.ANSI, Size.PAL256, pal256().orElseGet(() -> Colors.PAL256_DEFAULT.getColors()));
 			terminalPanel.getControl().setEffect(effect());
 			vp.redisplay();
 		});
