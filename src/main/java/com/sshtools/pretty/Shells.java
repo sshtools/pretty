@@ -238,7 +238,7 @@ public class Shells extends AbstractINISetSystem {
 				return defShl;
 		}
 		else if(Platform.isMac()) {
-			var defShl = getById(WINDOWS_DEFAULT);
+			var defShl = getById(MAC_OS_DEFAULT);
 			if(defShl.isPresent())
 				return defShl;
 		}

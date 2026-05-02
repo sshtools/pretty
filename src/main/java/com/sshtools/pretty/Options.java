@@ -159,7 +159,16 @@ public class Options extends StackPane implements Closeable {
 	public Options(AppContext app) {
 		this.app = app;
 		
-		prefs = app.getAppPreferences();
+		Preferences prefs;
+		try {
+			prefs = app.getAppPreferences();
+		}
+		catch(Exception e) {
+			LOG.warn("Could not get registered app preferences. Anything stored there (update options) will not work.");
+			prefs = Preferences.userNodeForPackage(Options.class);
+		}
+		this.prefs = prefs;
+		
 		var cfg = app.getConfiguration();
 		
 		var loader = new FXMLLoader(getClass().getResource("Options.fxml"));
