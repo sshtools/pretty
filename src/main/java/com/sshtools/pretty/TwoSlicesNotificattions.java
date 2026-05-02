@@ -3,7 +3,7 @@ package com.sshtools.pretty;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
-import com.sshtools.terminal.emulation.TerminalNotifications;
+import com.sshtools.terminal.api.TerminalNotifications;
 import com.sshtools.twoslices.ToastBuilder;
 import com.sshtools.twoslices.ToastType;
 

@@ -76,7 +76,7 @@ public class Telnet implements Callable<Integer> {
 				description = "The port to connect to on the remote host (default 23).")
 		private Optional<Integer> port;
 
-		@Option(names = { "-t", "--terminal-type" }, paramLabel = "TYPE",
+		@Option(names = { "-t", "--emulator-type" }, paramLabel = "TYPE",
 				description = "Terminal type to negotiate (default xterm-256color).")
 		private Optional<String> terminalType;
 
@@ -85,7 +85,7 @@ public class Telnet implements Callable<Integer> {
 		private Optional<Integer> timeout;
 
 		@Option(names = { "-H", "--no-pop" }, paramLabel = "NUMBER",
-				description = "Do not automatically return to the terminal on successful connection.")
+				description = "Do not automatically return to the emulator on successful connection.")
 		private boolean noPop;
 
 		@Option(names = { "--prompt" },
@@ -166,7 +166,7 @@ public class Telnet implements Callable<Integer> {
 			var builder = TelnetClient.builder(hostname)
 					.withPort(selectedPort)
 					.withWindowSize(vdu.getColumns(), vdu.getRows())
-					.withTerminalType(terminalType.orElse(vdu.getTerminalType().getId()));
+					.withTerminalType(terminalType.orElse(vdu.getTerminalType().getTermVariable()));
 			timeout.ifPresent(t -> builder.withConnectTimeout(t * 1000));
 
 			var client = builder.build();
@@ -181,7 +181,7 @@ public class Telnet implements Callable<Integer> {
 				var proto = new TelnetProtocol(client);
 				parent.active = Optional.of(proto);
 
-				/* Write a message on the terminal viewport */
+				/* Write a message on the emulator viewport */
 				vdu.newline();
 				vdu.cr();
 				vdu.writeString(Styling

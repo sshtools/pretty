@@ -21,7 +21,7 @@ public class NewTab implements Callable<Integer> {
 	@ParentCommand
 	private UICommands parent;
 	
-	@Option(names = { "-t", "--type" }, description = "Set the terminal type for the new tab.")
+	@Option(names = { "-t", "--type" }, description = "Set the emulator type for the new tab.")
 	private Optional<String> type;
 
 	@Override

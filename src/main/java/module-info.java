@@ -15,6 +15,17 @@ open module com.sshtools.pretty {
 //	requires pty4j;
 	requires transitive com.sshtools.terminal.vt.javafx;
 	requires transitive com.sshtools.terminal.xyzmodem;
+	requires transitive com.sshtools.terminal.vt52; 
+	requires transitive com.sshtools.terminal.vt100;
+	requires transitive com.sshtools.terminal.vt200;
+	requires transitive com.sshtools.terminal.vt300;
+	requires transitive com.sshtools.terminal.vt400;
+	requires transitive com.sshtools.terminal.vt500;
+	requires transitive com.sshtools.terminal.xterm;
+	requires transitive com.sshtools.terminal.kitty;
+	requires transitive com.sshtools.terminal.iterm2;
+	requires transitive com.sshtools.terminal.regis;
+	
 	requires transitive java.prefs;
 	requires transitive com.sshtools.jini.config; 
 	requires com.sshtools.jaul;
@@ -38,7 +49,6 @@ open module com.sshtools.pretty {
 	requires com.sshtools.twoslices;
 	requires com.sshtools.agent;
 	requires transitive me.tongfei.progressbar;
-	requires jsyn;
 	requires org.scenicview.scenicview;
 	requires java.scripting;
 	requires java.keyring;
@@ -46,6 +56,8 @@ open module com.sshtools.pretty {
 	requires com.gluonhq.emoji.offline;
 	requires transitive com.sshtools.jajafx.updateable;
 	requires com.sshtools.terminal.fonts;
+	requires com.sshtools.terminal.audio;
+	requires com.sshtools.terminal.tektronix;
 	
 	uses URIProcessor;
 	

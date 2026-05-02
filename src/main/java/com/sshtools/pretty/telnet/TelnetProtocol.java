@@ -18,13 +18,13 @@ import com.sshtools.pretty.Strings;
 import com.sshtools.pretty.TTY;
 import com.sshtools.pretty.TerminalProtocol;
 import com.sshtools.terminal.emulation.TerminalOutputStream;
-import com.sshtools.terminal.emulation.Emulator;
-import com.sshtools.terminal.emulation.events.ResizeListener;
+import com.sshtools.terminal.api.Emulator;
+import com.sshtools.terminal.api.events.ResizeListener;
 import com.sshtools.terminal.vt.javafx.JavaFXTerminalPanel;
 
 /**
  * A {@link TerminalProtocol} implementation for telnet connections, bridging
- * a {@link TelnetClient} to the Pretty terminal emulator. This follows the
+ * a {@link TelnetClient} to the Pretty emulator context. This follows the
  * same patterns as {@code SshProtocol} and {@code SerialProtocol}.
  */
 public final class TelnetProtocol implements TerminalProtocol, ResizeListener, Element {
@@ -44,7 +44,7 @@ public final class TelnetProtocol implements TerminalProtocol, ResizeListener, E
 	@Override
 	public void attach(TTY tty) {
 		if (this.tty != null)
-			throw new IllegalStateException("Already attached to a terminal.");
+			throw new IllegalStateException("Already attached to a emulator.");
 
 		this.tty = tty;
 		thread = Thread.currentThread();
@@ -56,7 +56,7 @@ public final class TelnetProtocol implements TerminalProtocol, ResizeListener, E
 		// Direct window resizes to the telnet NAWS sub-negotiation
 		viewport.addResizeListener(this);
 
-		// Direct terminal input back to telnet
+		// Direct emulator input back to telnet
 		viewport.setInput(this::send);
 
 		tty.status().add(this);
@@ -87,7 +87,7 @@ public final class TelnetProtocol implements TerminalProtocol, ResizeListener, E
 	@Override
 	public void detach() {
 		if (this.tty == null)
-			throw new IllegalStateException("Not attached to a terminal.");
+			throw new IllegalStateException("Not attached to a emulator.");
 
 		try {
 			LOG.info("Detaching telnet protocol from {}:{}", client.hostname(), client.port());

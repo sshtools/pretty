@@ -13,7 +13,7 @@ import picocli.CommandLine.ParentCommand;
          footer = "%nAliases: rst, r",
          usageHelpAutoWidth = true, 
          mixinStandardHelpOptions = true, 
-         description = "Reset the terminal (hard or soft).")
+         description = "Reset the emulator (hard or soft).")
 public class Reset implements Callable<Integer> {
 	@Option(names = { "-h", "--hard" }, description = "Perform hard reset")
 	private boolean hard;

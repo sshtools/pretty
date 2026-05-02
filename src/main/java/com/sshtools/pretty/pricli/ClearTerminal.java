@@ -5,12 +5,12 @@ import java.util.concurrent.Callable;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.ParentCommand;
 
-@Command(name = "clear-terminal", 
+@Command(name = "clear-emulator", 
          aliases = { "cls", "ct" },
          footer = "%nAliases: cls, ct",
          usageHelpAutoWidth = true, 
          mixinStandardHelpOptions = true, 
-         description = "Clear the terminal screen.")
+         description = "Clear the emulator screen.")
 public class ClearTerminal implements Callable<Integer> {
 	
 	@ParentCommand

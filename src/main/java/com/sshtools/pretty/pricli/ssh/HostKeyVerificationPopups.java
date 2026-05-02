@@ -85,7 +85,7 @@ public class HostKeyVerificationPopups extends KnownHostsFile {
 		
 //		do {
 //			var fp = actualHostKey.getFingerprint();
-//			var answer = terminal.prompt(RESOURCES.getString("mismatchedHost.content"), host, actualHostKey.getJCEPublicKey().getAlgorithm(), fp,
+//			var answer = emulator.prompt(RESOURCES.getString("mismatchedHost.content"), host, actualHostKey.getJCEPublicKey().getAlgorithm(), fp,
 //					others);
 //			if(answer.equalsIgnoreCase(RESOURCES.getString("prompt.no"))) {
 //				return false;
@@ -93,7 +93,7 @@ public class HostKeyVerificationPopups extends KnownHostsFile {
 //			else if(answer.equalsIgnoreCase(RESOURCES.getString("prompt.yes")) || answer.equals(fp)) {
 //				return true;
 //			}
-//			answer = terminal.prompt(RESOURCES.getString("mismatchedHost.repeat"));
+//			answer = emulator.prompt(RESOURCES.getString("mismatchedHost.repeat"));
 //			
 //		} while(true);
 		
@@ -103,7 +103,7 @@ public class HostKeyVerificationPopups extends KnownHostsFile {
 	private Optional<Boolean> unknownHost(String host, SshPublicKey key) throws SshException, UnknownHostException {
 
 //		var fp = key.getFingerprint();
-//		var answer = terminal.prompt(RESOURCES.getString("unknownHost.content"), host, key.getJCEPublicKey().getAlgorithm(), fp);
+//		var answer = emulator.prompt(RESOURCES.getString("unknownHost.content"), host, key.getJCEPublicKey().getAlgorithm(), fp);
 //		
 //		do {
 //			if(answer.equalsIgnoreCase(RESOURCES.getString("prompt.always")) || answer.equals(fp)) {
@@ -116,7 +116,7 @@ public class HostKeyVerificationPopups extends KnownHostsFile {
 //				return Optional.of(false);
 //			}
 //
-//			answer = terminal.prompt(RESOURCES.getString("unknownHost.repeat"));
+//			answer = emulator.prompt(RESOURCES.getString("unknownHost.repeat"));
 //			
 //		} while(true);
 		return Optional.of(false);

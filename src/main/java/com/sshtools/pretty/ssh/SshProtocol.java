@@ -23,8 +23,8 @@ import com.sshtools.pretty.TerminalProtocol;
 import com.sshtools.pretty.pricli.ssh.Ssh;
 import com.sshtools.pretty.pricli.ssh.SshCommands;
 import com.sshtools.terminal.emulation.TerminalOutputStream;
-import com.sshtools.terminal.emulation.Emulator;
-import com.sshtools.terminal.emulation.events.ResizeListener;
+import com.sshtools.terminal.api.Emulator;
+import com.sshtools.terminal.api.events.ResizeListener;
 import com.sshtools.terminal.vt.javafx.JavaFXTerminalPanel;
 
 import uk.co.bithatch.nativeimage.annotations.Bundle;
@@ -64,7 +64,7 @@ public final class SshProtocol implements TerminalProtocol, ResizeListener, Elem
 		// Direct window resizes to pty
 		viewport.addResizeListener(this);
 		
-		// Direct terminal input back to pty
+		// Direct emulator input back to pty
 		viewport.setInput(this::send);
 		
 		tty.status().add(this);

@@ -17,8 +17,8 @@ import com.sshtools.pretty.Shells;
 import com.sshtools.pretty.TTY;
 import com.sshtools.pretty.TTYContext;
 import com.sshtools.pretty.TerminalProtocol;
-import com.sshtools.terminal.emulation.Emulator;
-import com.sshtools.terminal.emulation.events.ResizeListener;
+import com.sshtools.terminal.api.Emulator;
+import com.sshtools.terminal.api.events.ResizeListener;
 import com.sshtools.terminal.vt.javafx.JavaFXTerminalPanel;
 
 public class PricliProtocol implements TerminalProtocol, ResizeListener {
@@ -53,7 +53,7 @@ public class PricliProtocol implements TerminalProtocol, ResizeListener {
 		terminal = tty.terminal();
 		var vp = terminal.getViewport();
 		
-		jline = TTY.ttyJLine(vp.getTerminalType().getId(), vp);
+		jline = TTY.ttyJLine(vp.getTerminalType().getTermVariable(), vp);
 		
 		vp.addResizeListener(this);
 	}

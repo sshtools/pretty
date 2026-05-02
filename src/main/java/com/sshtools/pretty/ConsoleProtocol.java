@@ -31,8 +31,8 @@ import com.sshtools.pretty.Status.Element;
 import com.sshtools.pretty.Status.Unit;
 import com.sshtools.pretty.Status.Width;
 import com.sshtools.terminal.emulation.TerminalOutputStream;
-import com.sshtools.terminal.emulation.Emulator;
-import com.sshtools.terminal.emulation.events.ResizeListener;
+import com.sshtools.terminal.api.Emulator;
+import com.sshtools.terminal.api.events.ResizeListener;
 import com.sshtools.terminal.vt.javafx.JavaFXTerminalPanel;
 
 public class ConsoleProtocol implements TerminalProtocol, ResizeListener, Element {
@@ -252,7 +252,7 @@ public class ConsoleProtocol implements TerminalProtocol, ResizeListener, Elemen
 		// Direct window resizes to pty
 		viewport.addResizeListener(this);
 
-		// Direct terminal input back to pty
+		// Direct emulator input back to pty
 		viewport.setInput(this::send);
 
 		tty.attached(this);

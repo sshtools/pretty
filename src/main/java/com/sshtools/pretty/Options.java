@@ -30,12 +30,13 @@ import com.sshtools.jini.Data.Handle;
 import com.sshtools.pretty.Fonts.FontsChangeListener;
 import com.sshtools.pretty.Shells.Shell;
 import com.sshtools.pretty.pricli.Styling;
-import com.sshtools.terminal.emulation.ResizeStrategy;
-import com.sshtools.terminal.emulation.TerminalTypes;
-import com.sshtools.terminal.emulation.emulator.dec.DECEmulator;
-import com.sshtools.terminal.emulation.emulator.dec.XTERM256Color;
-import com.sshtools.terminal.emulation.fonts.FontSpec;
+import com.sshtools.terminal.api.AudioSystem;
+import com.sshtools.terminal.api.FontSpec;
+import com.sshtools.terminal.api.ResizeStrategy;
+import com.sshtools.terminal.api.TerminalTypes;
+import com.sshtools.terminal.dec.DECEmulator;
 import com.sshtools.terminal.vt.javafx.JavaFXTerminalPanel;
+import com.sshtools.terminal.xterm.XTERM256Color;
 
 import javafx.beans.binding.Bindings;
 import javafx.collections.transformation.FilteredList;
@@ -237,10 +238,11 @@ public class Options extends StackPane implements Closeable {
 			cfg.ui().putEnum(Constants.PASSWORD_MODE_KEY, (PasswordMode)n.getUserData());
 		});
 		
-		/* Themes and Preview terminal */
+		/* Themes and Preview emulator */
 		var emulator = new DECEmulator<JavaFXTerminalPanel>(XTERM256Color.ID, 33, 14);
 		var panel = new JavaFXTerminalPanel.Builder().
 				withUiToolkit(app.getUiToolkit()).
+				withAudioSystem(AudioSystem.Defaults.NULL).
 				withFontManager(app.getFonts().getFontManager()).
 				withBuffer(emulator)
 				.build();

@@ -19,9 +19,9 @@ import com.sshtools.pretty.Constants;
 import com.sshtools.pretty.ScrollableTerminal;
 import com.sshtools.pretty.TTY;
 import com.sshtools.pretty.TTYContext;
-import com.sshtools.terminal.emulation.ResizeStrategy;
+import com.sshtools.terminal.api.ResizeStrategy;
+import com.sshtools.terminal.dec.DECEmulator;
 import com.sshtools.terminal.emulation.buffer.ScrollBackBufferData.Mode;
-import com.sshtools.terminal.emulation.emulator.dec.DECEmulator;
 import com.sshtools.terminal.vt.javafx.JavaFXTerminalPanel;
 
 import javafx.animation.Animation;
@@ -74,6 +74,7 @@ public final class PricliPopup {
 		var buf = new DECEmulator<JavaFXTerminalPanel>(SCREEN_TERM_TYPE);
 
 		term = new JavaFXTerminalPanel.Builder().
+				withAudioSystem(tty.terminal().getAudio()).
 				withUiToolkit(ttyContext.getContainer().getUiToolkit()).
 				withFontManager(ttyContext.getContainer().getFonts().getFontManager()).
 				withBuffer(buf).

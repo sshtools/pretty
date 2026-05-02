@@ -22,7 +22,7 @@ import picocli.CommandLine.ParseResult;
 
 /**
  * Captures exceptions thrown by command handlers and prints them to the
- * terminal in a user-friendly way.
+ * emulator in a user-friendly way.
  */
 public class ExceptionHandler implements IExecutionExceptionHandler {
 	static Logger LOG = LoggerFactory.getLogger(TTY.class);

@@ -25,7 +25,7 @@ public final class Console implements Callable<Integer> {
 	private ConnectionCommands parent;
 
 	@Option(names = { "-H",
-			"--no-pop" }, paramLabel = "NUMBER", description = "Do not automatically return to the terminal on successful connection.")
+			"--no-pop" }, paramLabel = "NUMBER", description = "Do not automatically return to the emulator on successful connection.")
 	private boolean noPop;
 
 	@Parameters(index = "0", arity = "0..1", paramLabel = "SHELL", description = "The command to run as the shell.")

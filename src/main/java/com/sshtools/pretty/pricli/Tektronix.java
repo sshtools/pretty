@@ -3,9 +3,9 @@ package com.sshtools.pretty.pricli;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 
-import com.sshtools.terminal.emulation.Dim;
-import com.sshtools.terminal.emulation.GraphicsMode;
-import com.sshtools.terminal.emulation.decoder.tektronix.TekState;
+import com.sshtools.terminal.api.Dim;
+import com.sshtools.terminal.api.GraphicsMode;
+import com.sshtools.terminal.tektronix.TekState;
 
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Parameters;

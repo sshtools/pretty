@@ -1,6 +1,6 @@
 package com.sshtools.pretty;
 
-import static com.sshtools.terminal.emulation.VDUColor.fromString;
+import static com.sshtools.terminal.api.RGBColor.fromString;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -12,10 +12,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.sshtools.jini.INI.Section;
-import com.sshtools.terminal.emulation.Colors;
-import com.sshtools.terminal.emulation.Colors.PaletteType;
-import com.sshtools.terminal.emulation.Colors.Size;
-import com.sshtools.terminal.emulation.VDUColor;
+import com.sshtools.terminal.api.Colors;
+import com.sshtools.terminal.api.RGBColor;
+import com.sshtools.terminal.api.Colors.PaletteType;
+import com.sshtools.terminal.api.Colors.Size;
 import com.sshtools.terminal.vt.javafx.JavaFXTerminalPanel;
 
 import javafx.scene.effect.Bloom;
@@ -328,19 +328,19 @@ public class TerminalTheme {
 		return ini().sectionOr(META).map(sec -> sec.get(DESCRIPTION, id())).orElse(id());
 	}
 
-	public VDUColor background() {
+	public RGBColor background() {
 		var tprops = ini();
-		return tprops.getOr(BACKGROUND_COLOR).map(VDUColor::fromString).orElseGet(() -> VDUColor.BLACK);
+		return tprops.getOr(BACKGROUND_COLOR).map(RGBColor::fromString).orElseGet(() -> RGBColor.BLACK);
 	}
 
-	public VDUColor cursorBackground() {
+	public RGBColor cursorBackground() {
 		var tprops = ini();
-		return tprops.getOr(CURSOR_BACKGROUND).map(VDUColor::fromString).orElseGet(this::foreground);
+		return tprops.getOr(CURSOR_BACKGROUND).map(RGBColor::fromString).orElseGet(this::foreground);
 	}
 
-	public VDUColor cursorForeground() {
+	public RGBColor cursorForeground() {
 		var tprops = ini();
-		return tprops.getOr(CURSOR_FOREGROUND).map(VDUColor::fromString).orElseGet(this::background);
+		return tprops.getOr(CURSOR_FOREGROUND).map(RGBColor::fromString).orElseGet(this::background);
 	}
 
 	@Override
@@ -361,9 +361,9 @@ public class TerminalTheme {
 		return true;
 	}
 
-	public VDUColor foreground() {
+	public RGBColor foreground() {
 		var tprops = ini();
-		return tprops.getOr(FOREGROUND_COLOR).map(VDUColor::fromString).orElseGet(() -> VDUColor.BLACK);
+		return tprops.getOr(FOREGROUND_COLOR).map(RGBColor::fromString).orElseGet(() -> RGBColor.BLACK);
 	}
 
 	public String id() {
@@ -387,12 +387,12 @@ public class TerminalTheme {
 		return properties;
 	}
 
-	public Optional<VDUColor[]> pal16() {
+	public Optional<RGBColor[]> pal16() {
 		var tprops = ini();
 		var secOr = tprops.sectionOr("palette");
 		if (secOr.isPresent()) {
 			var sec = secOr.get();
-			var allColors = new VDUColor[16];
+			var allColors = new RGBColor[16];
 			var sz = sec.keys().size();
 			if (sec.contains("*")) {
 				generate(sec, allColors, Colors.PAL16_DEFAULT.getColors());
@@ -426,10 +426,10 @@ public class TerminalTheme {
 
 	}
 
-	public Optional<VDUColor[]> pal256() {
+	public Optional<RGBColor[]> pal256() {
 		var tprops = ini();
 		var secOr = tprops.sectionOr("palette-256");
-		var newCols = new VDUColor[256];
+		var newCols = new RGBColor[256];
 		if (secOr.isPresent()) {
 			var sec = secOr.get();
 			if (sec.contains("*")) {
@@ -465,14 +465,14 @@ public class TerminalTheme {
 
 	}
 
-	public VDUColor selectionBackground() {
+	public RGBColor selectionBackground() {
 		var tprops = ini();
-		return tprops.getOr(SELECTION_BACKGROUND).map(VDUColor::fromString).orElseGet(this::foreground);
+		return tprops.getOr(SELECTION_BACKGROUND).map(RGBColor::fromString).orElseGet(this::foreground);
 	}
 
-	public VDUColor selectionForeground() {
+	public RGBColor selectionForeground() {
 		var tprops = ini();
-		return tprops.getOr(SELECTION_FOREGROUND).map(VDUColor::fromString).orElseGet(this::background);
+		return tprops.getOr(SELECTION_FOREGROUND).map(RGBColor::fromString).orElseGet(this::background);
 	}
 
 	@Override
@@ -480,7 +480,7 @@ public class TerminalTheme {
 		return name();
 	}
 
-	protected void generate(Section sec, VDUColor[] allColors, VDUColor[] defaultCols) {
+	protected void generate(Section sec, RGBColor[] allColors, RGBColor[] defaultCols) {
 		var val = sec.get("*");
 		var spec = new ArrayList<>(Arrays.asList(val.split("\\s+")));
 		var firstVal = spec.remove(0);
@@ -489,16 +489,16 @@ public class TerminalTheme {
 			var step = 251f / 8f;
 			for (int i = 0; i < 8; i++) {
 				var v = Math.round(i * step);
-				allColors[i] = VDUColor.fromHSL(col[0], col[1], v / 255f);
+				allColors[i] = RGBColor.fromHSL(col[0], col[1], v / 255f);
 			}
 			for (int i = 0; i < 8; i++) {
 				var v = 4 + Math.round(i * step);
-				allColors[i + 8] = VDUColor.fromHSL(col[0], col[1], v / 255f);
+				allColors[i + 8] = RGBColor.fromHSL(col[0], col[1], v / 255f);
 			}
 			step = 239f / 255f;
 			for (int i = 16; i < allColors.length; i++) {
 				var v = Math.round((i - 16) * step);
-				allColors[i] = VDUColor.fromHSL(col[0], col[1], v / 255f);
+				allColors[i] = RGBColor.fromHSL(col[0], col[1], v / 255f);
 			}
 		} else {
 			/* All same */

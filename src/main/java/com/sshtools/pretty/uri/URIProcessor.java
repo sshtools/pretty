@@ -17,7 +17,7 @@ public interface URIProcessor {
 	 * Initialize the processor with the given context. This method will be called
 	 * once when the processor is registered.
 	 * 
-	 * @param context context that can be used to interact with the terminal and
+	 * @param context context that can be used to interact with the emulator and
 	 *                application environment
 	 */
 	void init(TTYContext context);

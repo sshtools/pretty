@@ -5,11 +5,8 @@
   }, {
     "pattern":"\\QMETA-INF/maven/com.sshtools/pretty/pom.properties\\E"
   }, {
-    "pattern":"\\QMETA-INF/services/com.sshtools.terminal.emulation.TerminalType\\E"
-  }, {
-    "pattern":"\\QMETA-INF/services/com.sshtools.terminal.emulation.decoder.Decoder\\E"
-  }, {
-    "pattern":"\\QMETA-INF/services/java.lang.System$LoggerFinder\\E"
+    "pattern":"\\QMETA-INF/services/com.sshtools.terminal.api.TerminalType }, {
+    "pattern":"\\QMETA-INF/services/com.sshtools.terminal.api.Decoder  "pattern":"\\QMETA-INF/services/java.lang.System$LoggerFinder\\E"
   }, {
     "pattern":"\\QMETA-INF/services/java.time.zone.ZoneRulesProvider\\E"
   }, {

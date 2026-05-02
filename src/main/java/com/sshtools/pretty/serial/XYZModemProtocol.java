@@ -25,9 +25,9 @@ import com.sshtools.pretty.Status.Width;
 import com.sshtools.pretty.Strings;
 import com.sshtools.pretty.TTY;
 import com.sshtools.pretty.TerminalProtocol;
-import com.sshtools.terminal.emulation.TerminalInput;
-import com.sshtools.terminal.emulation.Emulator;
-import com.sshtools.terminal.emulation.Emulator.ByteFilter;
+import com.sshtools.terminal.api.Emulator;
+import com.sshtools.terminal.api.TerminalInput;
+import com.sshtools.terminal.api.Emulator.ByteFilter;
 import com.sshtools.terminal.emulation.util.TerminalInputMonitor;
 import com.sshtools.terminal.vt.javafx.JavaFXTerminalPanel;
 
@@ -159,7 +159,7 @@ public abstract class XYZModemProtocol<PROTO> implements TerminalProtocol, Statu
 			}));
 			
 			/* The encapsulating protocol will still be decoding (waiting for bytes from
-			 * the remote to send to the emulator), but not attached to any keyboard input. 
+			 * the remote to send to the context), but not attached to any keyboard input. 
 			 */
 			viewport.addFilter(this);
 		}

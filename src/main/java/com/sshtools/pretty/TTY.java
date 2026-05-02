@@ -3,6 +3,7 @@ package com.sshtools.pretty;
 import static com.sshtools.jajafx.FXUtil.maybeQueue;
 import static javafx.application.Platform.runLater;
 
+import java.io.BufferedOutputStream;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -40,25 +41,25 @@ import com.sshtools.pretty.Shells.ShellType;
 import com.sshtools.pretty.pricli.PricliPopup;
 import com.sshtools.pretty.pricli.PricliProtocol;
 import com.sshtools.pretty.uri.URIManager;
-import com.sshtools.terminal.emulation.CursorStyle;
-import com.sshtools.terminal.emulation.Dim;
-import com.sshtools.terminal.emulation.Emulator;
-import com.sshtools.terminal.emulation.Feature;
-import com.sshtools.terminal.emulation.GraphicsMode;
-import com.sshtools.terminal.emulation.ResizeStrategy;
+import com.sshtools.terminal.api.Cell;
+import com.sshtools.terminal.api.CursorStyle;
+import com.sshtools.terminal.api.Dim;
+import com.sshtools.terminal.api.Emulator;
+import com.sshtools.terminal.api.Feature;
+import com.sshtools.terminal.api.FontSpec;
+import com.sshtools.terminal.api.GraphicsMode;
+import com.sshtools.terminal.api.ResizeStrategy;
+import com.sshtools.terminal.api.TerminalTypes;
+import com.sshtools.terminal.api.events.ViewportEvent;
+import com.sshtools.terminal.api.events.ViewportListener;
+import com.sshtools.terminal.dec.DECEmulator;
+import com.sshtools.terminal.dec.DECModes;
+import com.sshtools.terminal.dec.DECTerminalType;
+import com.sshtools.terminal.dec.DECModes.StatusLineType;
 import com.sshtools.terminal.emulation.TerminalInputStream;
 import com.sshtools.terminal.emulation.TerminalOutputStream;
-import com.sshtools.terminal.emulation.TerminalTypes;
 import com.sshtools.terminal.emulation.buffer.FixedSizeInMemoryBufferData;
 import com.sshtools.terminal.emulation.buffer.ScrollBackBufferData.Mode;
-import com.sshtools.terminal.emulation.emulator.dec.DECEmulator;
-import com.sshtools.terminal.emulation.emulator.dec.DECModes;
-import com.sshtools.terminal.emulation.emulator.dec.DECModes.StatusLineType;
-import com.sshtools.terminal.emulation.emulator.dec.DECTerminalType;
-import com.sshtools.terminal.emulation.events.ViewportEvent;
-import com.sshtools.terminal.emulation.events.ViewportListener;
-import com.sshtools.terminal.emulation.fonts.FontSpec;
-import com.sshtools.terminal.emulation.util.Cell;
 import com.sshtools.terminal.vt.javafx.JavaFXTerminalPanel;
 import com.sshtools.terminal.vt.javafx.JavaFXURIFinder;
 
@@ -134,7 +135,7 @@ public class TTY extends StackPane implements Closeable {
 			var sz = new Size(vp.getColumns(), vp.getRows());
 			LOG.info("Initial shell size to {} x {} # {}", sz.getColumns(), sz.getRows(), termType);
 			var jline = TerminalBuilder.builder().type(termType).size(sz)
-					.streams(new TerminalInputStream(vp), new TerminalOutputStream(vp)).build();
+					.streams(new TerminalInputStream(vp), new BufferedOutputStream(new TerminalOutputStream(vp))).build();
 
 			return jline;
 		} catch (IOException ioe) {
@@ -210,12 +211,12 @@ public class TTY extends StackPane implements Closeable {
 		/* Emulator */
 		var sz = getConfiguredSize();
 		var emulator = ttyType.createEmulator(new Dim(sz[0], sz[1]));
-//		var emulator = new DECEmulator<JavaFXTerminalPanel>(XTERM256Color.ID, sz[0], sz[1]);
+//		var context = new DECEmulator<JavaFXTerminalPanel>(XTERM256Color.ID, sz[0], sz[1]);
 		
 		/* URI manager */
 		var uriManager = new URIManager(ttyContext);
 
-		/* Create and configure terminal */
+		/* Create and configure emulator */
 		terminalPanel = new JavaFXTerminalPanel.Builder()
 				.withAudioSystem(new TTYAudioSystem(this))
 				.withUiToolkit(ttyContext.getContainer().getUiToolkit())
@@ -241,7 +242,7 @@ public class TTY extends StackPane implements Closeable {
 		overlayInfo.managedProperty().bind(overlayInfo.visibleProperty());
 		overlayInfo.getStyleClass().add("overlay-info");
 
-		/* Configure terminal's buffer */
+		/* Configure emulator's buffer */
 		emulator.addCWDChangeListener((vp, cwd) -> {
 			protocol().cwd(cwd);
 		});
@@ -299,7 +300,9 @@ public class TTY extends StackPane implements Closeable {
 					decType, new FixedSizeInMemoryBufferData(statusHeight), sz[0],
 					statusHeight);
 	
-			statusTerminal = new JavaFXTerminalPanel.Builder().withUiToolkit(ttyContext.getContainer().getUiToolkit())
+			statusTerminal = new JavaFXTerminalPanel.Builder().
+					withUiToolkit(ttyContext.getContainer().getUiToolkit()).
+					withAudioSystem(terminalPanel.getAudio())
 					.withFontManager(ttyContext.getContainer().getFonts().getFontManager()).withBuffer(statusEmulator)
 					.build();
 			statusTerminal.setResizeStrategy(ResizeStrategy.SCREEN);
@@ -314,7 +317,7 @@ public class TTY extends StackPane implements Closeable {
 			terminalPanel.getViewport().setStatusLineDisplay(statusTerminal);
 
 			/*
-			 * Set the height again. TC sets the height based on terminal type, we overide
+			 * Set the height again. TC sets the height based on emulator type, we overide
 			 * it and base it on configuration
 			 */
 			updateStatusSize();
@@ -325,17 +328,17 @@ public class TTY extends StackPane implements Closeable {
 			/* TODO some need binding */
 //					cfg.bindEnum(ResizeStrategy.class, this::setResizeStrategy, terminalPanel::getResizeStrategy, "resize-strategy", Options.TERMINAL_SECTION),
 //					cfg.bindInteger(buf::setMaximumSize, buf::getMaximumSize, "buffer-size", Options.TERMINAL_SECTION),
-//					cfg.bindString(emulator::setTerminalType, emulator.getTerminalType()::getId, "type", Options.TERMINAL_SECTION),  
-//					cfg.bindString((nsz) -> updateAppearance(), () -> String.format("%dx%d", emulator.getColumns(), emulator.getRows()), "screen-size", Options.TERMINAL_SECTION),
+//					cfg.bindString(context::setTerminalType, context.getTerminalType()::getId, "type", Options.TERMINAL_SECTION),  
+//					cfg.bindString((nsz) -> updateAppearance(), () -> String.format("%dx%d", context.getColumns(), context.getRows()), "screen-size", Options.TERMINAL_SECTION),
 //					cfg.bindInteger(this::setFontSize, terminalPanel.getFontManager().getDefault().spec()::getSize, "font-size", Options.TERMINAL_SECTION),
 //					cfg.bindStrings(this::setFonts, this::getFonts, "fonts", Options.TERMINAL_SECTION),
 //					cfg.bindStrings((s) -> updateFeatures(), this::getEnabledFeatures, "enabled-features", Options.TERMINAL_SECTION), 
 //					cfg.bindStrings((s) -> updateFeatures(), this::getDisabledFeatures, "disabled-features", Options.TERMINAL_SECTION),
 //					cfg.bindString(this::setThemeName, this::getThemeName, Constants.THEME_KEY, Options.TERMINAL_SECTION),
 //					cfg.bindBoolean(this::setStatusDisplay, this::isStatusDisplay, "enabled", STATUS_SECTION),
-//					cfg.bindBoolean(emulator::setEnableScrollback, emulator::isEnableScrollback, "scroll-back", Options.TERMINAL_SECTION),
-//					cfg.bindBoolean(emulator::setEnableBlinking, emulator::isEnableBlinking, "blinking", Options.TERMINAL_SECTION),
-//					cfg.bindBoolean(emulator.getModes()::setCursorBlink, emulator.getModes()::isCursorBlink, "cursor-blink", Options.TERMINAL_SECTION),
+//					cfg.bindBoolean(context::setEnableScrollback, context::isEnableScrollback, "scroll-back", Options.TERMINAL_SECTION),
+//					cfg.bindBoolean(context::setEnableBlinking, context::isEnableBlinking, "blinking", Options.TERMINAL_SECTION),
+//					cfg.bindBoolean(context.getModes()::setCursorBlink, context.getModes()::isCursorBlink, "cursor-blink", Options.TERMINAL_SECTION),
 //					cfg.bindEnum(CursorStyle.class, terminalPanel::setCursorStyle, terminalPanel::getCursorStyle, "cursor-style", Options.TERMINAL_SECTION)
 			));
 //				statusTerminal.getControl().setVisible(true);
@@ -363,7 +366,7 @@ public class TTY extends StackPane implements Closeable {
 						Constants.TERMINAL_SECTION),
 				cfg.bindString(emulator::setTerminalType, emulator.getTerminalType()::getId, Constants.TYPE_KEY,
 						Constants.TERMINAL_SECTION),
-//			cfg.bindString((nsz) -> updateAppearance(), () -> String.format("%dx%d", emulator.getColumns(), emulator.getRows()), Constants.SCREEN_SIZE_KEY, Constants.TERMINAL_SECTION),
+//			cfg.bindString((nsz) -> updateAppearance(), () -> String.format("%dx%d", context.getColumns(), context.getRows()), Constants.SCREEN_SIZE_KEY, Constants.TERMINAL_SECTION),
 				cfg.bindInteger(this::setFontSize, terminalPanel.getFontManager().getDefault().spec()::getSize,
 						Constants.FONT_SIZE_KEY, Constants.TERMINAL_SECTION),
 				cfg.bindStrings(this::setFonts, ttyContext.getContainer().getFonts()::getFonts, Constants.FONTS_KEY,
@@ -501,7 +504,7 @@ public class TTY extends StackPane implements Closeable {
 
 	public Map<String, String> environment() {
 		var env = new HashMap<String, String>();
-		env.put("TERM", terminalPanel.getViewport().getTerminalType().getId());
+		env.put("TERM", terminalPanel.getViewport().getTerminalType().getTermVariable());
 
 		var theme = ttyContext.getContainer().getSelectedTheme();
 		addEnvVarIfPresentInTheme(theme, TerminalTheme.LS_COLORS, env);
@@ -799,16 +802,16 @@ public class TTY extends StackPane implements Closeable {
 		var aStr = Colors.toHex(
 				Colors.accent(uiToolkit.localColorToNativeColor(bgCol), uiToolkit.localColorToNativeColor(fgCol)));
 		bui.append("* {\n");
-		bui.append("-fx-terminal-fg: ");
+		bui.append("-fx-emulator-fg: ");
 		bui.append(fgStr);
 		bui.append(";\n");
-		bui.append("-fx-terminal-bg: ");
+		bui.append("-fx-emulator-bg: ");
 		bui.append(bgStr);
 		bui.append(";\n");
-		bui.append("-fx-terminal-bg-opaque: ");
+		bui.append("-fx-emulator-bg-opaque: ");
 		bui.append(bgOpaqueStr);
 		bui.append(";\n");
-		bui.append("-fx-terminal-accent: ");
+		bui.append("-fx-emulator-accent: ");
 		bui.append(aStr);
 		bui.append(";\n");
 		bui.append("}\n");

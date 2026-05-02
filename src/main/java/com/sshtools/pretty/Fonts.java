@@ -13,9 +13,10 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.sshtools.terminal.emulation.UIToolkit;
+import com.sshtools.terminal.api.IFontManager;
+import com.sshtools.terminal.api.ManagedFont;
+import com.sshtools.terminal.api.UIToolkit;
 import com.sshtools.terminal.emulation.fonts.FontManager;
-import com.sshtools.terminal.emulation.fonts.FontManager.ManagedFont;
 //import com.sshtools.terminal.fonts.TrueTypeFonts;
 import com.sshtools.terminal.fonts.Emoji;
 
@@ -30,7 +31,7 @@ public class Fonts extends AbstractINISetSystem  {
 
 	static Logger LOG = LoggerFactory.getLogger(Fonts.class);
 
-	private final FontManager<Font> fontManager;
+	private final IFontManager<Font> fontManager;
 	private final Map<String, ManagedFont<Font, ?>> userFonts = new HashMap<>();
 //	private final TrueTypeFonts<Font> trueTypeFonts;
 	private final Path primaryFontsPath;
@@ -67,7 +68,7 @@ public class Fonts extends AbstractINISetSystem  {
 		listeners.remove(listener);
 	}
 
-	public FontManager<Font> getFontManager() {
+	public IFontManager<Font> getFontManager() {
 		return fontManager;
 	}
 
@@ -133,12 +134,12 @@ public class Fonts extends AbstractINISetSystem  {
 				LOG.warn("Font at {} already registered.", fileChanged);
 			} else {
 				/* TODO: This deprecated toURL() works, but fileChanged.toUri().toString() does not, investigate */
-				var tkFont = uiToolkit.loadFont(null, fileChanged.toFile().toURL().toString(), FontManager.DEFAULT_FONT_SIZE);
+				var tkFont = uiToolkit.loadFont(null, fileChanged.toFile().toURL().toString(), IFontManager.DEFAULT_FONT_SIZE);
 				fnt = new FontManager.ToolkitFont<Font>(uiToolkit, supplemental, tkFont);
 				fontManager.addFont(0, fnt);
 				
 				
-//				fnt = trueTypeFonts.addFontResource(null, fileChanged.toFile().toURL().toString(), FontManager.DEFAULT_FONT_SIZE, supplemental);
+//				fnt = trueTypeFonts.addFontResource(null, fileChanged.toFile().toURL().toString(), IFontManager.DEFAULT_FONT_SIZE, supplemental);
 //				userFonts.put(fileChanged.toString(), fnt);
 //				LOG.info("User font {} added.", fileChanged);
 //				fireFontsChanged();

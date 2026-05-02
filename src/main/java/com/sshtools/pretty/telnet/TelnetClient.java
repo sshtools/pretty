@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
  * </ul>
  * <p>
  * This class handles the low-level telnet negotiation and provides hooks via
- * {@link TelnetListener} for higher-level integration with terminal emulators,
+ * {@link TelnetListener} for higher-level integration with emulator emulators,
  * command frameworks, etc.
  * </p>
  * <p>
@@ -213,7 +213,7 @@ public final class TelnetClient implements Closeable {
     }
 
     // -----------------------------------------------------------------------
-    // Builder
+    // AbstractBuilder
     // -----------------------------------------------------------------------
 
     /**
@@ -454,7 +454,7 @@ public final class TelnetClient implements Closeable {
     }
 
     /**
-     * Notify the server of a terminal window size change. This sends a NAWS
+     * Notify the server of a emulator window size change. This sends a NAWS
      * sub-negotiation if NAWS has been successfully negotiated.
      *
      * @param columns new column count
@@ -535,7 +535,7 @@ public final class TelnetClient implements Closeable {
     }
 
     /**
-     * @return the negotiated or configured terminal type
+     * @return the negotiated or configured emulator type
      */
     public String terminalType() {
         return terminalType;
@@ -877,7 +877,7 @@ public final class TelnetClient implements Closeable {
     }
 
     private void sendTerminalType() throws IOException {
-        LOG.debug("Sending terminal type: {}", terminalType);
+        LOG.debug("Sending emulator type: {}", terminalType);
         var typeBytes = terminalType.getBytes(StandardCharsets.US_ASCII);
         synchronized (out) {
             out.write(IAC);

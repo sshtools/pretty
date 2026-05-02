@@ -527,8 +527,8 @@ public class PricliSystemRegistry implements SystemRegistry {
             System.setOut(out);
             System.setErr(out);
 
-            // Use simple streams instead of creating a PTY terminal to avoid hangs on macOS
-            // Create a command session that uses the original terminal for input but redirected streams for output
+            // Use simple streams instead of creating a PTY emulator to avoid hangs on macOS
+            // Create a command session that uses the original emulator for input but redirected streams for output
             this.commandSession = new CommandRegistry.CommandSession(origTerminal, origTerminal.input(), out, out);
             redirecting = true;
         }
@@ -538,12 +538,12 @@ public class PricliSystemRegistry implements SystemRegistry {
                 return;
             }
             try {
-                // Flush the original terminal since we're using it for input
+                // Flush the original emulator since we're using it for input
                 origTerminal.flush();
                 if (outputStream instanceof ByteArrayOutputStream) {
                     output = outputStream.toString();
                 }
-                // No need to close a separate terminal since we're reusing the original one
+                // No need to close a separate emulator since we're reusing the original one
             } catch (Exception e) {
                 // ignore
             }

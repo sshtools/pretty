@@ -38,7 +38,7 @@ public class Ssh extends AbstractSshCommand {
 	private Optional<Integer> port;
 
 	@Option(names = { "-H",
-			"--no-pop" }, paramLabel = "NUMBER", description = "Do not automatically return to the terminal on successful connection.")
+			"--no-pop" }, paramLabel = "NUMBER", description = "Do not automatically return to the emulator on successful connection.")
 	private boolean noPop;
 
 	@Option(names = { "--prompt" }, description = "Prompt for hostname and/or username.")
@@ -160,7 +160,7 @@ public class Ssh extends AbstractSshCommand {
 		/* Start shell */
 		var tsk = ssh.addTask(ShellTask.ShellTaskBuilder.create()
 				.withClient(ssh)
-				.withTermType(vdu.getTerminalType().getId())
+				.withTermType(vdu.getTerminalType().getTermVariable())
 				.withColumns(vdu.getColumns())
 				.withRows(vdu.getRows())
 				.onBeforeOpen((task, session) -> {
@@ -177,7 +177,7 @@ public class Ssh extends AbstractSshCommand {
 					}
 				}).onTask((task, session) -> {
 
-					/* Write out a message on the terminal, not the shell */
+					/* Write out a message on the emulator, not the shell */
 					vdu.newline();
 					vdu.cr();
 					vdu.writeString(Styling
@@ -196,7 +196,7 @@ public class Ssh extends AbstractSshCommand {
 					var proto = new SshProtocol(this, instance(), session);
 					try {
 						tty.protocol(proto);
-						LOG.info("SSH protocol exited, returning to terminal.");
+						LOG.info("SSH protocol exited, returning to emulator.");
 					} catch (Exception e) {
 						cli.printException(e);
 					} finally {

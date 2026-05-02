@@ -10,11 +10,11 @@ import org.slf4j.LoggerFactory;
 import com.gluonhq.emoji.Emoji;
 import com.gluonhq.emoji.EmojiData;
 import com.gluonhq.emoji.util.EmojiImageUtils;
-import com.sshtools.terminal.emulation.VDUCharacterCanvas;
-import com.sshtools.terminal.emulation.fonts.FontManager;
-import com.sshtools.terminal.emulation.fonts.SoftCell;
-import com.sshtools.terminal.emulation.fonts.SoftFont;
-import com.sshtools.terminal.emulation.images.ImageSupport;
+import com.sshtools.terminal.api.IFontManager;
+import com.sshtools.terminal.api.ImageSupport;
+import com.sshtools.terminal.api.SoftCell;
+import com.sshtools.terminal.api.SoftFont;
+import com.sshtools.terminal.api.CharacterCanvas;
 
 import javafx.scene.image.Image;
 import javafx.scene.text.Font;
@@ -27,9 +27,14 @@ public class EmojiSupport implements SoftFont {
 	private Optional<Emoji> lastEmoji = Optional.empty();
 	private int[] lastEmojiCodepoints = new int[0];
 
-	public EmojiSupport(FontManager<Font> fontManager) {
+	public EmojiSupport(IFontManager<Font> fontManager) {
 		fontManager.addSoftFont("Emoji", this);
 		image = EmojiImageUtils.getImage20();
+	}
+
+	@Override
+	public int getCodepoint() {
+		return 0;
 	}
 
 	@Override
@@ -111,10 +116,15 @@ public class EmojiSupport implements SoftFont {
 	}
 
 	@Override
-	public <I> void drawChar(VDUCharacterCanvas<I> g, int c, int x, int y, int cw, int ch,
+	public <I> void drawChar(CharacterCanvas<I> g, int c, int x, int y, int cw, int ch,
 			ImageSupport<I> imageSupport) {
 		var emoji = emoji(c).get();
 		var viewport = EmojiImageUtils.getViewportFor20(emoji);
 		g.drawImage((I)image, (int)viewport.getMinX(), (int)viewport.getMinY(), (int)viewport.getWidth(), (int)viewport.getHeight(),  x, y, cw * (int)( viewport.getWidth() / 20.0), ch);
+	}
+
+	@Override
+	public int getSize() {
+		return Integer.MAX_VALUE;
 	}
 }

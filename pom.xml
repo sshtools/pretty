@@ -307,11 +307,6 @@
 			</exclusions>
 		</dependency>
 		<dependency>
-			<groupId>jsyn</groupId>
-			<artifactId>jsyn</artifactId>
-			<version>20171016</version>
-		</dependency>
-		<dependency>
 			<groupId>io.github.palexdev</groupId>
 			<artifactId>scenicview</artifactId>
 			<version>17.0.2</version>
@@ -437,6 +432,150 @@
 		<dependency>
 			<groupId>com.sshtools</groupId>
 			<artifactId>terminal-xyzmodem</artifactId>
+			<version>4.0.0-SNAPSHOT</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-api</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		 
+		<dependency>
+			<groupId>com.sshtools</groupId>
+			<artifactId>terminal-tektronix</artifactId>
+			<version>4.0.0-SNAPSHOT</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-api</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		 
+		<dependency>
+			<groupId>com.sshtools</groupId>
+			<artifactId>terminal-kitty</artifactId>
+			<version>4.0.0-SNAPSHOT</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-api</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		 
+		<dependency>
+			<groupId>com.sshtools</groupId>
+			<artifactId>terminal-iterm2</artifactId>
+			<version>4.0.0-SNAPSHOT</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-api</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		 
+		<dependency>
+			<groupId>com.sshtools</groupId>
+			<artifactId>terminal-xterm</artifactId>
+			<version>4.0.0-SNAPSHOT</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-api</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		 
+		<dependency>
+			<groupId>com.sshtools</groupId>
+			<artifactId>terminal-vt100</artifactId>
+			<version>4.0.0-SNAPSHOT</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-api</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.sshtools</groupId>
+			<artifactId>terminal-vt200</artifactId>
+			<version>4.0.0-SNAPSHOT</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-api</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		 
+		<dependency>
+			<groupId>com.sshtools</groupId>
+			<artifactId>terminal-vt300</artifactId>
+			<version>4.0.0-SNAPSHOT</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-api</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		 
+		<dependency>
+			<groupId>com.sshtools</groupId>
+			<artifactId>terminal-vt400</artifactId>
+			<version>4.0.0-SNAPSHOT</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-api</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		 
+		<dependency>
+			<groupId>com.sshtools</groupId>
+			<artifactId>terminal-vt500</artifactId>
+			<version>4.0.0-SNAPSHOT</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-api</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		 
+		<dependency>
+			<groupId>com.sshtools</groupId>
+			<artifactId>terminal-vt52</artifactId>
+			<version>4.0.0-SNAPSHOT</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-api</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		 
+		<dependency>
+			<groupId>com.sshtools</groupId>
+			<artifactId>terminal-regis</artifactId>
+			<version>4.0.0-SNAPSHOT</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-api</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		 
+		<dependency>
+			<groupId>com.sshtools</groupId>
+			<artifactId>terminal-audio</artifactId>
 			<version>4.0.0-SNAPSHOT</version>
 			<exclusions>
 				<exclusion>
@@ -647,7 +786,7 @@
 		<dependency>
 			<groupId>com.sshtools</groupId>
 			<artifactId>pty4j21</artifactId>
-			<version>0.22.1</version> 
+			<version>0.22.2</version> 
 		</dependency>
 		<dependency>
 			<groupId>org.jetbrains.pty4j</groupId>

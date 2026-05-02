@@ -21,8 +21,8 @@ import com.sshtools.pretty.TerminalProtocol;
 import com.sshtools.pretty.pricli.serial.Serial.FlowControl;
 import com.sshtools.pretty.pricli.serial.Serial.Parity;
 import com.sshtools.pretty.pricli.serial.Serial.StopBits;
+import com.sshtools.terminal.api.Emulator;
 import com.sshtools.terminal.emulation.TerminalOutputStream;
-import com.sshtools.terminal.emulation.Emulator;
 import com.sshtools.terminal.vt.javafx.JavaFXTerminalPanel;
 
 import purejavacomm.SerialPort;

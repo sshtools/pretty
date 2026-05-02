@@ -37,7 +37,7 @@ import picocli.CommandLine.Model.OptionSpec;
 /**
  * Compiles SystemCompleter for command completion and implements a method
  * commandDescription() that provides command descriptions for JLine
- * TailTipWidgets to be displayed in terminal status bar. SystemCompleter
+ * TailTipWidgets to be displayed in emulator status bar. SystemCompleter
  * implements the JLine 3 {@link Completer} interface. SystemCompleter generates
  * completion candidates for the specified command line based on the
  * {@link CommandSpec} that this {@code PicocliCommands} was constructed with.
@@ -165,7 +165,7 @@ public final class PricliCommandRegistry implements CommandRegistry, ConsoleEngi
 	 *
 	 * @param args
 	 * @return command description for JLine TailTipWidgets to be displayed in
-	 *         terminal status bar.
+	 *         emulator status bar.
 	 */
 	@Override
 	public CmdDesc commandDescription(List<String> args) {

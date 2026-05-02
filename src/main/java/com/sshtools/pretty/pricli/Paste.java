@@ -17,7 +17,7 @@ import picocli.CommandLine.ParentCommand;
          footer = "%nAliases: p",
          usageHelpAutoWidth = true, 
          
-         description = "Paste the clipboard contents as terminal input")
+         description = "Paste the clipboard contents as emulator input")
 public class Paste implements Callable<Integer> {
 	final static ResourceBundle RESOURCES = ResourceBundle.getBundle(Paste.class.getName());
 

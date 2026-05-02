@@ -10,7 +10,7 @@ import java.util.prefs.Preferences;
 import com.sshtools.jajafx.JajaFXAppWindow;
 import com.sshtools.jaul.UpdateService;
 import com.sshtools.jini.config.Monitor;
-import com.sshtools.terminal.emulation.UIToolkit;
+import com.sshtools.terminal.api.UIToolkit;
 
 import javafx.application.HostServices;
 import javafx.collections.ObservableList;

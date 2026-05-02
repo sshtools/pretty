@@ -11,9 +11,9 @@ import org.slf4j.LoggerFactory;
 import com.sshtools.pretty.Actions.Action;
 import com.sshtools.pretty.Actions.On;
 import com.sshtools.pretty.pricli.PricliShell;
-import com.sshtools.terminal.emulation.Emulator;
-import com.sshtools.terminal.emulation.events.ViewportEvent;
-import com.sshtools.terminal.emulation.events.ViewportListener;
+import com.sshtools.terminal.api.Emulator;
+import com.sshtools.terminal.api.events.ViewportEvent;
+import com.sshtools.terminal.api.events.ViewportListener;
 import com.sshtools.terminal.vt.javafx.JavaFXScrollBar;
 import com.sshtools.terminal.vt.javafx.JavaFXTerminalPanel;
 
@@ -98,7 +98,7 @@ public class ScrollableTerminal extends BorderPane {
 		 * When a key release of the same code (or character) occurs, but any modifier state, we then
 		 * execute that action. 
 		 */
-		terminalPanel.setOnBeforeKeyPressed(evt -> {
+		terminalPanel.getKeyboardInput().setOnBeforeKeyPressed(evt -> {
 			for (var action : actions(ttyContext, on)) {
 				if (action.hasAccelerator() && action.accelerator().match(evt)) {
 					if (action.accelerator() instanceof KeyCodeCombination kcc) {
@@ -111,7 +111,7 @@ public class ScrollableTerminal extends BorderPane {
 				}
 			}
 		});
-		terminalPanel.setOnBeforeKeyReleased(evt -> {
+		terminalPanel.getKeyboardInput().setOnBeforeKeyReleased(evt -> {
 			for (var action : actions(ttyContext, on)) {
 				if (action.accelerator() instanceof KeyCodeCombination kcc) {
 					if (consumed.remove(kcc.getCode()) != null) {
@@ -142,7 +142,7 @@ public class ScrollableTerminal extends BorderPane {
 				}
 			}
 		});
-		terminalPanel.setOnBeforeKeyTyped(evt -> {
+		terminalPanel.getKeyboardInput().setOnBeforeKeyTyped(evt -> {
 			if (consumed.isEmpty()) {
 				for (var action : actions(ttyContext, on)) {
 					if (action.hasAccelerator() && action.accelerator().match(evt)) {

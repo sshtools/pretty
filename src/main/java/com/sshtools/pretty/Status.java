@@ -14,14 +14,14 @@ import java.util.concurrent.TimeUnit;
 import org.jline.utils.AttributedStringBuilder;
 import org.jline.utils.AttributedStyle;
 
-import com.sshtools.terminal.emulation.Modes;
-import com.sshtools.terminal.emulation.SGRState;
-import com.sshtools.terminal.emulation.Emulator;
-import com.sshtools.terminal.emulation.Viewport;
-import com.sshtools.terminal.emulation.buffer.BufferData;
-import com.sshtools.terminal.emulation.buffer.BufferData.ConfigurationChange;
-import com.sshtools.terminal.emulation.events.ViewportEvent;
-import com.sshtools.terminal.emulation.events.ViewportListener;
+import com.sshtools.terminal.api.BufferData;
+import com.sshtools.terminal.api.Emulator;
+import com.sshtools.terminal.api.Modes;
+import com.sshtools.terminal.api.SGRState;
+import com.sshtools.terminal.api.Viewport;
+import com.sshtools.terminal.api.BufferData.ConfigurationChange;
+import com.sshtools.terminal.api.events.ViewportEvent;
+import com.sshtools.terminal.api.events.ViewportListener;
 import com.sshtools.terminal.vt.javafx.JavaFXTerminalPanel;
 
 public class Status {

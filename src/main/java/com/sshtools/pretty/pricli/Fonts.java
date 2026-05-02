@@ -13,10 +13,10 @@ import org.jline.utils.AttributedStringBuilder;
 import org.jline.utils.AttributedStyle;
 
 import com.sshtools.pretty.Constants;
-import com.sshtools.terminal.emulation.fonts.FontManager;
-import com.sshtools.terminal.emulation.fonts.FontManager.ManagedFont;
-import com.sshtools.terminal.emulation.fonts.FontSpec;
-import com.sshtools.terminal.emulation.fonts.SoftFont;
+import com.sshtools.terminal.api.FontSpec;
+import com.sshtools.terminal.api.IFontManager;
+import com.sshtools.terminal.api.ManagedFont;
+import com.sshtools.terminal.api.SoftFont;
 
 import javafx.application.Platform;
 import picocli.CommandLine.Command;
@@ -24,7 +24,7 @@ import picocli.CommandLine.Parameters;
 import picocli.CommandLine.ParentCommand;
 
 /**
- * Manage fonts used in the terminal. This allows listing of available fonts and
+ * Manage fonts used in the emulator. This allows listing of available fonts and
  * showing details of the currently active fonts. It also allows moving of fonts
  * to change the order and which font is used for which code points. Adding
  * fonts from those provided by the toolkit to this list of active fonts is also
@@ -149,7 +149,7 @@ public class Fonts implements Callable<Integer> {
 		return 0;
 	}
 
-	private ManagedFont<?, ?> findManagedFont(FontManager<?> mgr, List<ManagedFont<?, ?>> fonts, String n) {
+	private ManagedFont<?, ?> findManagedFont(IFontManager<?> mgr, List<ManagedFont<?, ?>> fonts, String n) {
 		var fnt = mgr.getFont(n);
 		if (fnt == null) {
 			try {
@@ -163,7 +163,7 @@ public class Fonts implements Callable<Integer> {
 		return fnt;
 	}
 
-	private FontSpec findFont(FontManager<?> mgr, List<FontSpec> fonts, String n) {
+	private FontSpec findFont(IFontManager<?> mgr, List<FontSpec> fonts, String n) {
 		
 		var fnt = fonts
 				.stream()

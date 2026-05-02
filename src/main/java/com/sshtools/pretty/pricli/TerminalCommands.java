@@ -3,16 +3,16 @@ package com.sshtools.pretty.pricli;
 import java.util.Optional;
 
 import com.sshtools.pretty.Actions.On;
+import com.sshtools.terminal.api.Emulator;
 import com.sshtools.pretty.Constants;
 import com.sshtools.pretty.TTY;
 import com.sshtools.pretty.TTYContext;
-import com.sshtools.terminal.emulation.Emulator;
 
 import picocli.CommandLine.Command;
 
-@Command(name = "terminal", description = "Commands to manipulate or query the terminal", subcommands = {
+@Command(name = "terminal", description = "Commands to manipulate or query the emulator", subcommands = {
 		SelectAll.class, Scroll.class, ClearTerminal.class, Reset.class, Copy.class, Paste.class, Themes.class,
-		Record.class, Stop.class, Tab.class, Open.class, Tektronix.class })
+		Record.class, Stop.class, Tab.class, Open.class, Tektronix.class, Keys.class })
 public final class TerminalCommands extends AbstractRootCommand {
 	public enum TerminalViewportType {
 		TERMINAL, CLI

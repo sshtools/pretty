@@ -10,8 +10,8 @@ import org.jline.utils.AttributedStringBuilder;
 import org.jline.utils.AttributedStyle;
 
 import com.sshtools.pretty.Strings;
-import com.sshtools.terminal.emulation.Feature;
-import com.sshtools.terminal.emulation.Emulator;
+import com.sshtools.terminal.api.Emulator;
+import com.sshtools.terminal.api.Feature;
 import com.sshtools.terminal.vt.javafx.JavaFXTerminalPanel;
 
 import picocli.CommandLine.Command;
@@ -21,7 +21,7 @@ import picocli.CommandLine.ParentCommand;
 @Command(name = "features", 
          usageHelpAutoWidth = true, 
          mixinStandardHelpOptions = true, 
-         description = "Shows boolean terminal features.")
+         description = "Shows boolean emulator features.")
 public class Features implements Callable<Integer> {
 	final static ResourceBundle RESOURCES = ResourceBundle.getBundle(Features.class.getName());
 

@@ -17,7 +17,7 @@ import picocli.CommandLine.ParentCommand;
          footer = "%nAliases: ts",
          usageHelpAutoWidth = true, 
          mixinStandardHelpOptions = true, 
-         description = "Show terminal themes.")
+         description = "Show emulator themes.")
 public class Themes implements Callable<Integer> {
 	final static ResourceBundle RESOURCES = ResourceBundle.getBundle(Themes.class.getName());
 

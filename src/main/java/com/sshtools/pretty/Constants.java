@@ -47,6 +47,7 @@ public interface Constants {
 	String COPY_ON_SELECT = "copy-on-select";
 	String REFLOW_KEY = "reflow";
 	String GRAPHICS_MODE_KEY = "graphics-mode";
+	String TABS_KEY = "tabs";
 
 	// UI
 	String DARK_MODE_KEY = "dark-mode";

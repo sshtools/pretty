@@ -10,8 +10,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.sshtools.pretty.pricli.Styling;
-import com.sshtools.terminal.emulation.Emulator;
-import com.sshtools.terminal.emulation.events.ResizeListener;
+import com.sshtools.terminal.api.Emulator;
+import com.sshtools.terminal.api.events.ResizeListener;
 
 public class ErrorProtocol implements TerminalProtocol, ResizeListener {
 	static Logger LOG = LoggerFactory.getLogger(ErrorProtocol.class);
@@ -39,7 +39,7 @@ public class ErrorProtocol implements TerminalProtocol, ResizeListener {
 		
 		var vp = tty.terminal().getViewport();
 		
-		jline = TTY.ttyJLine(vp.getTerminalType().getId(), vp);
+		jline = TTY.ttyJLine(vp.getTerminalType().getTermVariable(), vp);
 		var wtr = jline.writer();
 		wtr.write(Strings.ansiExceptionString(true, exception, message).toAnsi(jline));
 		wtr.println();

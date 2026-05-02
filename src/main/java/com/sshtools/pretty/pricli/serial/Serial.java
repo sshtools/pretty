@@ -336,7 +336,7 @@ public class Serial implements Callable<Integer> {
 		private Optional<StopBits> stopBits;
 		
 		@Option(names = {"--parity", "parity", "pt", "-pt", "--pt" }, paramLabel = "PARITY", description = "Parity.")
-		private Optional<StopBits> parity;
+		private Optional<Parity> parity;
 		
 		@Option(names = {"--flow-in", "flow-in", "fi", "-fi", "--fi" }, paramLabel = "FLOW", description = "Input flow control.")
 		private Optional<FlowControl> flowIn;
@@ -478,7 +478,7 @@ public class Serial implements Callable<Integer> {
 		@Option(names = {"-t","--timeout"}, description = "Connect timeout in seconds.", paramLabel = "TIMEOUT")
 		private Optional<Integer> timeout;
 		
-		@Option(names = {"-H", "--no-pop"}, paramLabel = "NUMBER", description="Do not automatically return to the terminal on successful connection.")
+		@Option(names = {"-H", "--no-pop"}, paramLabel = "NUMBER", description="Do not automatically return to the emulator on successful connection.")
 		private boolean noPop;
 
 		@Parameters(index = "0", arity = "0..1", paramLabel = "PORT", description = "The serial port to connect. Use 'ports' sub-command to list ports. If not supplied, first port found is used.")

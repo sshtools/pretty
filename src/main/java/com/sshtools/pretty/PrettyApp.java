@@ -31,7 +31,7 @@ import com.sshtools.jaul.UpdateService;
 import com.sshtools.jini.config.Monitor;
 import com.sshtools.pretty.Shells.Shell;
 import com.sshtools.pretty.Shells.ShellType;
-import com.sshtools.terminal.emulation.UIToolkit;
+import com.sshtools.terminal.api.UIToolkit;
 import com.sshtools.terminal.vt.javafx.JavaFXUIToolkit;
 
 import javafx.application.HostServices;

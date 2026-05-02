@@ -53,7 +53,7 @@ public final class TTYStack extends StackPane implements TTYContext, ListChangeL
 
 	TTYStack(AppContext appContext, Stage stage) {
 
-		setId("terminal-tabs");
+		setId("emulator-tabs");
 
 		this.appContext = appContext;
 		this.stage = stage;
@@ -73,7 +73,7 @@ public final class TTYStack extends StackPane implements TTYContext, ListChangeL
 		tabs = new SplitTabPane();
 		tabs.setTabDragPolicy(TabDragPolicy.REORDER);
 		hndl = getContainer().getConfiguration().bindEnum(Side.class, tabs::setSide, tabs::getSide,
-				"tabs", Constants.TERMINAL_SECTION);
+				Constants.TABS_KEY, Constants.TERMINAL_SECTION);
 		tabs.getSelectionModel().selectedItemProperty().addListener((c, o, n) -> {
 			if(n == null)
 				return;

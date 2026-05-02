@@ -6,10 +6,10 @@ import org.jline.terminal.Terminal;
 import org.jline.utils.AttributedStringBuilder;
 import org.jline.utils.AttributedStyle;
 
+import com.sshtools.terminal.api.LineData;
+import com.sshtools.terminal.dec.DECEmulator;
+import com.sshtools.terminal.dec.DECPage;
 import com.sshtools.terminal.emulation.DefaultViewport;
-import com.sshtools.terminal.emulation.buffer.LineData;
-import com.sshtools.terminal.emulation.emulator.dec.DECEmulator;
-import com.sshtools.terminal.emulation.emulator.dec.DECPage;
 
 import javafx.application.Platform;
 import picocli.CommandLine.Command;
@@ -51,8 +51,8 @@ public class Debug implements Callable<Integer> {
 		// DEBUG
 		//
 		// TODO move this somewhere else
-//		if (control && shift && keyCode == VDUKeyEvent.F12) {
-//			terminal.dumpStatus();
+//		if (control && shift && keyCode == DeviceKeyCode.F12) {
+//			emulator.dumpStatus();
 //		}
 //		if (control && shift && keyChar == 'G') {
 //			LOG.debug("Slow mode");
@@ -64,12 +64,12 @@ public class Debug implements Callable<Integer> {
 //			return;
 		
 //		} else if (control && shift && keyChar == 'I') {
-//			terminal.onDebugModeRequest.accept(true);
+//			emulator.onDebugModeRequest.accept(true);
 //			LOG.debug("Display, emulation and buffer debug on");
 //			return;
 //		} else if (control && shift && keyChar == 'J') {
 //			LOG.debug("Display, emulation and buffer debug off");
-//			terminal.onDebugModeRequest.accept(false);
+//			emulator.onDebugModeRequest.accept(false);
 //			return;
 //		}
 	}
@@ -142,9 +142,9 @@ public class Debug implements Callable<Integer> {
 			as.append(" attrs=0x");
 			as.append(String.format("%02x", attrs));
 			as.append(" soft=");
-			as.append(String.valueOf((attrs & com.sshtools.terminal.emulation.Viewport.LINE_SOFT_WRAPPED) != 0));
+			as.append(String.valueOf((attrs & com.sshtools.terminal.api.Viewport.LINE_SOFT_WRAPPED) != 0));
 			as.append(" hard=");
-			as.append(String.valueOf((attrs & com.sshtools.terminal.emulation.Viewport.LINE_HARD_BREAK) != 0));
+			as.append(String.valueOf((attrs & com.sshtools.terminal.api.Viewport.LINE_HARD_BREAK) != 0));
 			as.append(" size=0x");
 			as.append(String.format("%02x", (byte) (attrs & DefaultViewport.LINE_SIZE_MASK)));
 			
@@ -153,7 +153,7 @@ public class Debug implements Callable<Integer> {
 
 	}
 
-	@Command(name = "emulator", aliases = {"e", "em"}, usageHelpAutoWidth = true, description = "Show information about the state of the emulator.")
+	@Command(name = "context", aliases = {"e", "em"}, usageHelpAutoWidth = true, description = "Show information about the state of the context.")
 	public final static class Emulator implements Callable<Integer> {
 
 		@ParentCommand
@@ -185,8 +185,7 @@ public class Debug implements Callable<Integer> {
 			printRow(jline, "Display Rows", String.valueOf(emu.getDisplayRows()));
 			printRow(jline, "Viewport End", String.valueOf(emu.getViewportEnd()));
 			printRow(jline, "Character Set", String.valueOf(emu.getCharacterSet()));
-			printRow(jline, "Screen Base", String.valueOf(emu.getViewportStart()));
-			printRow(jline, "Cursor Style", String.valueOf(emu.getCursorStyle()));
+			printRow(jline, "SetupLayout Base", String.valueOf(emu.getViewportStart()));
 
 			printPage(jline, "", page);
 			modes.getAlternatePage().ifPresent(pg -> printPage(jline, "Alt. ", pg));
@@ -194,7 +193,7 @@ public class Debug implements Callable<Integer> {
 			jline.writer().println();
 			printTitle(jline, "Modes");
 			printRow(jline, "Allow Wide Mode", String.valueOf(modes.isAllowWideMode()));
-			printRow(jline, "Alternate Screen", String.valueOf(modes.isAlternateBuffer()));
+			printRow(jline, "Alternate SetupLayout", String.valueOf(modes.isAlternateBuffer()));
 			printRow(jline, "Alternate Scroll Mode", String.valueOf(modes.isAlternateScrollMode()));
 			printRow(jline, "Application Cursor Key", String.valueOf(modes.isApplicationCursorKeys()));
 			printRow(jline, "Application Keypad", String.valueOf(modes.isApplicationKeypadMode()));
@@ -221,7 +220,7 @@ public class Debug implements Callable<Integer> {
 			printRow(jline, "VT52 Mode", String.valueOf(modes.isVT52Mode()));
 			printRow(jline, "Wide Mode", String.valueOf(modes.isWideMode()));
 			printRow(jline, "Wrap Around", String.valueOf(modes.isWrapAround()));
-			printRow(jline, "Clear Screen On Mode Change", String.valueOf(modes.isClearScreenOnModeChange()));
+			printRow(jline, "Clear SetupLayout On Mode Change", String.valueOf(modes.isClearScreenOnModeChange()));
 			printRow(jline, "Special Modifers", String.valueOf(modes.isSpecialModifiers()));
 			printRow(jline, "Sixel Scrolling", String.valueOf(modes.isSixelScrolling()));
 			

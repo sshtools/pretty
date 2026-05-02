@@ -26,7 +26,7 @@ import com.sshtools.pretty.Status.Element;
 import com.sshtools.pretty.Status.Unit;
 import com.sshtools.pretty.Status.Width;
 import com.sshtools.pretty.ssh.SFTPFileSystem;
-import com.sshtools.terminal.emulation.Emulator;
+import com.sshtools.terminal.api.Emulator;
 import com.sshtools.terminal.vt.javafx.JavaFXTerminalPanel;
 
 record ActiveMount(String name, TTY tty, SFTPFileSystem fs, SshClient sshClient, Fuse fuse, Thread shutdownHook, Path mountPoint) implements EventListener, Element {
