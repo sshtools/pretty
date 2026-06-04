@@ -9,7 +9,6 @@ import java.util.ResourceBundle;
 import org.jline.console.CommandRegistry;
 import org.jline.utils.AttributedStringBuilder;
 import org.jline.utils.AttributedStyle;
-import org.jline.utils.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -91,7 +90,7 @@ public final class SshProtocol implements TerminalProtocol, ResizeListener, Elem
 		} finally {
 			LOG.info("Out of SSH loop.");
 			if(session.getConnectionProtocol().getActiveChannels().isEmpty()) {
-				Log.info("Disconnecting, last session closed.");
+				LOG.info("Disconnecting, last session closed.");
 				instance.client().disconnect();
 			}
 		}

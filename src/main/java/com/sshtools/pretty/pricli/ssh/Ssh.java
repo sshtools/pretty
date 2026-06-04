@@ -9,7 +9,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
-import org.jline.utils.Log;
 import org.jline.widget.AutosuggestionWidgets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -172,7 +171,7 @@ public class Ssh extends AbstractSshCommand {
 					}
 
 					if (session.getConnectionProtocol().getActiveChannels().isEmpty()) {
-						Log.info("Disconnecting, last session closed.");
+						LOG.info("Disconnecting, last session closed.");
 						ssh.disconnect();
 					}
 				}).onTask((task, session) -> {
