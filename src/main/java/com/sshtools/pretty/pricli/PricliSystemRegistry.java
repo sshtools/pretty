@@ -69,9 +69,10 @@ import org.jline.terminal.Terminal;
 import org.jline.utils.AttributedString;
 import org.jline.utils.AttributedStringBuilder;
 import org.jline.utils.AttributedStyle;
-import org.jline.utils.Log;
 import org.jline.utils.OSUtils;
 import org.jline.utils.StyleResolver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Aggregate command registries.
@@ -79,6 +80,8 @@ import org.jline.utils.StyleResolver;
  */
 public class PricliSystemRegistry implements SystemRegistry {
 	
+	private final static Logger LOG = LoggerFactory.getLogger(PricliSystemRegistry.class);
+
     private static final String HELP_COLORS = "HELP_COLORS";
     private static final String DEFAULT_HELP_COLORS = "ti=magenta:co=1:ar=3:op=33:de=";
 
@@ -1352,7 +1355,7 @@ public class PricliSystemRegistry implements SystemRegistry {
         if (errorCount == 0) {
             names.extractNames(line);
         }
-        Log.debug("execute: ", new Date().getTime() - start, " msec");
+        LOG.debug("execute: ", new Date().getTime() - start, " msec");
         return out;
     }
 
@@ -1436,7 +1439,7 @@ public class PricliSystemRegistry implements SystemRegistry {
                 asb.append(exception.getClass().getCanonicalName());
             }
             asb.toAttributedString().println(terminal());
-            Log.debug("Stack: ", exception);
+            LOG.debug("Stack: ", exception);
         }
     }
 
